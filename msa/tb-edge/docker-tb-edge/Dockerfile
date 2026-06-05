@@ -27,7 +27,22 @@ ENV SPRING_DATASOURCE_PASSWORD=postgres
 
 COPY logback.xml ${pkg.name}.conf start-tb-edge.sh upgrade-tb-edge.sh install-tb-edge.sh ${pkg.name}.deb /tmp/
 
-RUN chmod a+x /tmp/*.sh \
+RUN echo "Previously installed font libraries:" \
+ && (dpkg -l | grep -E 'font|dejavu|harfbuzz' || echo "  (none)") \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
+      libharfbuzz0b fontconfig fonts-dejavu-core \
+ && rm -rf /var/lib/apt/lists/* \
+ && echo "Current fonts libraries:" \
+ && (dpkg -l | grep -E 'font|dejavu|harfbuzz') \
+ && echo "Font config list:" \
+ && fc-list && test -n "$(fc-list)" \
+ && (fc-list | grep -i dejavu) \
+ && echo "Harfbuzz library test with ldconfig:" \
+ && (ldconfig -p | grep harfbuzz)
+
+RUN echo 'networkaddress.cache.ttl=60' >> /etc/java-17-openjdk/security/java.security \
+    && chmod a+x /tmp/*.sh \
     && mv /tmp/start-tb-edge.sh /usr/bin \
     && mv /tmp/upgrade-tb-edge.sh /usr/bin \
     && mv /tmp/install-tb-edge.sh /usr/bin \
