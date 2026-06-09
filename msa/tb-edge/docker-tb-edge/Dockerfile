@@ -41,7 +41,7 @@ RUN echo "Previously installed font libraries:" \
  && echo "Harfbuzz library test with ldconfig:" \
  && (ldconfig -p | grep harfbuzz)
 
-RUN echo 'networkaddress.cache.ttl=60' >> /etc/java-17-openjdk/security/java.security \
+RUN echo 'networkaddress.cache.ttl=60' >> "$JAVA_HOME/conf/security/java.security" \
     && chmod a+x /tmp/*.sh \
     && mv /tmp/start-tb-edge.sh /usr/bin \
     && mv /tmp/upgrade-tb-edge.sh /usr/bin \
