@@ -26,7 +26,6 @@ import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @DaoSqlTest
 public class DashboardApiClientTest extends AbstractApiClientTest {
@@ -86,6 +85,8 @@ public class DashboardApiClientTest extends AbstractApiClientTest {
         PageDataDashboardInfo dashboardsAfterUnassign = client.getCustomerDashboards(customerId, 100, 0, null, null, null, null);
         assertEquals(0, dashboardsAfterUnassign.getData().size());
 
+        /*
+        // Edge: a dashboard can't be made public directly — the public customer is cloud-managed
         // make dashboard public and verify
         client.assignDashboardToPublicCustomer(dashboardId);
         DashboardInfo publicDashboard = client.getDashboardInfoById(dashboardId);
@@ -94,6 +95,7 @@ public class DashboardApiClientTest extends AbstractApiClientTest {
 
         // remove public access
         client.unassignDashboardFromPublicCustomer(dashboardId);
+        */
 
         // delete dashboard
         UUID dashboardToDeleteId = createdDashboards.get(0).getId().getId();

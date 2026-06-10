@@ -54,7 +54,11 @@ public class JpaRuleChainDetailsDao extends JpaAbstractDao<RuleChainDetailsEntit
     @Override
     protected RuleChainDetailsEntity doSave(RuleChainDetailsEntity entity, boolean isNew, boolean flush) {
         try {
-            return super.doSave(entity, isNew, flush);
+            RuleChainDetailsEntity saved = super.doSave(entity, isNew, flush);
+            // Edge-only: base 'doSave' does not flush (Edge does not use JPA optimistic locking), so a DB constraint violation would otherwise surface at commit,
+            // outside this catch. Flush here so an oversized "notes" payload ("value too long") becomes DataValidationException (-> HTTP 400).
+            getRepository().flush();
+            return saved;
         } catch (Exception e) {
             String rootMsg = ExceptionUtils.getRootCauseMessage(e);
             if (StringUtils.contains(rootMsg, "value too long")) {
