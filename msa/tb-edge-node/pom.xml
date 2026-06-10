@@ -129,6 +129,7 @@
                             <workingDirectory>${project.build.directory}/docker-tb-edge-node</workingDirectory>
                             <arguments>
                                 <argument>build</argument>
+                                <argument>--load</argument>
                                 <argument>-t</argument>
                                 <argument>${docker.repo}/${docker.name}:latest</argument>
                                 <argument>.</argument>

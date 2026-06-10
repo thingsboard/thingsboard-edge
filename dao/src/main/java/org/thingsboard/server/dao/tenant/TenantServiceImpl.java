@@ -55,7 +55,6 @@ import java.util.function.Consumer;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service("TenantDaoService")
 @Slf4j
@@ -142,7 +141,11 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         }
         boolean create = tenant.getId() == null;
 
-        Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
+        // Edge-only: base 'doSave' does not flush (Edge does not use JPA optimistic locking). On create, flush eagerly so a non-existent tenantProfileId
+        // fails the FK constraint here (-> HTTP 400) instead of later during default-entity creation, where it gets re-wrapped as a generic 500.
+        Tenant savedTenant = create
+                ? tenantDao.saveAndFlush(TenantId.SYS_TENANT_ID, tenant)
+                : tenantDao.save(tenant.getId(), tenant);
         TenantId tenantId = savedTenant.getId();
         publishEvictEvent(new TenantEvictEvent(tenantId, create));
 
@@ -239,7 +242,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     public boolean tenantExists(TenantId tenantId) {
         // edge-only: we cannot properly evict cache, because it's only appear on tenant creation
         // return existsTenantCache.getAndPutInTransaction(tenantId, () -> tenantDao.existsById(tenantId, tenantId.getId()), false);
-       return tenantDao.existsById(tenantId, tenantId.getId());
+        return tenantDao.existsById(tenantId, tenantId.getId());
     }
 
     private final PaginatedRemover<TenantId, Tenant> tenantsRemover = new PaginatedRemover<>() {
