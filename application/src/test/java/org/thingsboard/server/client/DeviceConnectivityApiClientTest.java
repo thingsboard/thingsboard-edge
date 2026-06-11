@@ -17,6 +17,7 @@ package org.thingsboard.server.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
+import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.client.model.Device;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
@@ -24,6 +25,11 @@ import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
+// Edge: MQTT/CoAP transports are disabled by default in application-test.properties (fast context init)
+@TestPropertySource(properties = {
+        "transport.mqtt.enabled=true",
+        "transport.coap.enabled=true",
+})
 @DaoSqlTest
 public class DeviceConnectivityApiClientTest extends AbstractApiClientTest {
 
