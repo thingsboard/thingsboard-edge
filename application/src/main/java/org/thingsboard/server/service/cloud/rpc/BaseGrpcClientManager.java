@@ -76,6 +76,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     private ScheduledExecutorService reconnectExecutor;
     private ScheduledFuture<?> connectFuture;
     private ScheduledFuture<?> reconnectFuture;
+    private volatile long lastReconnectAttemptTs;
 
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
@@ -173,7 +174,19 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         connectionStatusManager.updateConnectivityStatus(false);
 
         if (reconnectFuture == null) {
+            lastReconnectAttemptTs = 0;
             reconnectFuture = reconnectExecutor.scheduleAtFixedRate(() -> {
+                // This task is cancelled in onEdgeUpdate() once the server delivers the
+                // EdgeConfiguration. A busy server (e.g. draining a large backlog after an
+                // outage) may need more than one reconnect period for that, and tearing the
+                // fresh connection down again would restart the handshake from scratch in an
+                // endless loop. So after a successful connect attempt, give the server a few
+                // periods of grace before force-reconnecting.
+                long gracePeriodMs = edgeInfo.getReconnectTimeoutMs() * 3;
+                if (lastReconnectAttemptTs > 0 && System.currentTimeMillis() - lastReconnectAttemptTs < gracePeriodMs) {
+                    log.debug("Connect attempt is in progress, awaiting edge configuration from the server");
+                    return;
+                }
                 log.info("Trying to reconnect due to the error: {}!", e.getMessage());
                 try {
                     edgeRpcClient.disconnect(true);
@@ -186,6 +199,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
                             this::onEdgeUpdate,
                             this::onDownlink,
                             this::scheduleReconnect);
+                    lastReconnectAttemptTs = System.currentTimeMillis();
                 } catch (Exception ex) {
                     log.error("Exception during connect: {}", ex.getMessage());
                 }
