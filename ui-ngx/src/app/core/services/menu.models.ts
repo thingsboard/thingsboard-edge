@@ -114,7 +114,7 @@ export enum MenuId {
   edge = 'edge',
   edge_status = 'edge_status',
   cloud_events = 'cloud_events',
-  iot_hub = 'iot_hub'
+  // iot_hub = 'iot_hub'
 }
 
 declare type MenuFilter = (authState: AuthState) => boolean;
