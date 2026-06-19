@@ -51,7 +51,9 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
+import org.thingsboard.server.service.install.DatabaseSchemaSettingsService;
 import org.thingsboard.server.service.install.DbUpgradeExecutorService;
+import org.thingsboard.server.service.install.lts.LtsMigrationService;
 import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
 import java.util.ArrayList;
@@ -70,6 +72,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private final RuleChainService ruleChainService;
     private final ComponentDiscoveryService componentDiscoveryService;
     private final DbUpgradeExecutorService executorService;
+    private final DatabaseSchemaSettingsService schemaSettingsService;
+    private final LtsMigrationService ltsMigrationService;
 
     // edge-only: for case "edge" in updateData
     @Autowired
@@ -84,15 +88,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Override
     public void updateData() throws Exception {
         log.info("Updating data ...");
-        //TODO: should be cleaned after each release
-
-        // Edge-only: always run next config:
-
-        // reset full sync required - to upload latest widgets from cloud
-        tenantsFullSyncRequiredUpdater.updateEntities(null);
-
-        // ... Edge-only
-
+        ltsMigrationService.runDataMigrations(schemaSettingsService.getDbSchemaVersion(), schemaSettingsService.getPackageSchemaVersion());
         log.info("Data updated.");
     }
 
