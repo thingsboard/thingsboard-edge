@@ -17,6 +17,7 @@ package org.thingsboard.server.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
+import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.client.model.Device;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
@@ -24,6 +25,11 @@ import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
+// Edge: MQTT/CoAP transports are disabled by default in application-test.properties (fast context init)
+@TestPropertySource(properties = {
+        "transport.mqtt.enabled=true",
+        "transport.coap.enabled=true",
+})
 @DaoSqlTest
 public class DeviceConnectivityApiClientTest extends AbstractApiClientTest {
 
@@ -39,7 +45,10 @@ public class DeviceConnectivityApiClientTest extends AbstractApiClientTest {
         String deviceId = savedDevice.getId().getId().toString();
 
         JsonNode commands = client.getDevicePublishTelemetryCommands(deviceId);
-        assertEquals("curl -v -X POST http://localhost:8080/api/v1/" + token + "/telemetry --header Content-Type:application/json --data \"{temperature:25}\"", commands.get("http").get("http").asText());
+        // Edge: the HTTP publish command reflects the live request port (DeviceConnectivityServiceImpl
+        // overrides it with the base-URL port), not CE's configured 8080 — assert the dynamic test port.
+        // assertEquals("curl -v -X POST http://localhost:8080/api/v1/" + token + "/telemetry --header Content-Type:application/json --data \"{temperature:25}\"", commands.get("http").get("http").asText());
+        assertEquals("curl -v -X POST http://localhost:" + wsPort + "/api/v1/" + token + "/telemetry --header Content-Type:application/json --data \"{temperature:25}\"", commands.get("http").get("http").asText());
         assertEquals("mosquitto_pub -d -q 1 -h localhost -p 1883 -t v1/devices/me/telemetry -u \"" + token + "\" -m \"{temperature:25}\"", commands.get("mqtt").get("mqtt").asText());
         assertEquals("coap-client -v 6 -m POST -t \"application/json\" -e \"{temperature:25}\" coap://localhost:5683/api/v1/" + token + "/telemetry", commands.get("coap").get("coap").asText());
     }
