@@ -30,6 +30,7 @@ export interface MenuSection {
   pages?: Array<MenuSection>;
   opened?: boolean;
   rootOnly?: boolean;
+  isNew?: boolean;
   customTranslate?: boolean;
 }
 
@@ -113,6 +114,7 @@ export enum MenuId {
   edge = 'edge',
   edge_status = 'edge_status',
   cloud_events = 'cloud_events',
+  iot_hub = 'iot_hub'
 }
 
 declare type MenuFilter = (authState: AuthState) => boolean;
@@ -803,7 +805,18 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       path: '/edge/cloudEvents',
       icon: 'date_range'
     }
-  ]
+  ],
+  // [
+  //   MenuId.iot_hub,
+  //   {
+  //     id: MenuId.iot_hub,
+  //     name: 'iot-hub.iot-hub',
+  //     type: 'link',
+  //     path: '/iot-hub',
+  //     icon: 'hub',
+  //     isNew: true
+  //   }
+  // ]
 ]);
 
 const menuFilters = new Map<MenuId, MenuFilter>([
@@ -929,6 +942,7 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
         ]
       },
       {id: MenuId.dashboards},
+      // {id: MenuId.iot_hub},
       {
         id: MenuId.entities,
         pages: [

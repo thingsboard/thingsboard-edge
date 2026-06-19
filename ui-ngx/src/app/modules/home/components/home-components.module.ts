@@ -113,6 +113,7 @@ import { StatesControllerModule } from '@home/components/dashboard-page/states/s
 import { DashboardLayoutComponent } from '@home/components/dashboard-page/layout/dashboard-layout.component';
 import { EditWidgetComponent } from '@home/components/dashboard-page/edit-widget.component';
 import { DashboardWidgetSelectComponent } from '@home/components/dashboard-page/dashboard-widget-select.component';
+import { IotHubComponentsModule } from '@home/components/iot-hub/iot-hub-components.module';
 import { AddWidgetDialogComponent } from '@home/components/dashboard-page/add-widget-dialog.component';
 import { ManageDashboardLayoutsDialogComponent } from '@home/components/dashboard-page/layout/manage-dashboard-layouts-dialog.component';
 import {
@@ -127,7 +128,6 @@ import { CloudEventTableComponent } from '@home/components/cloud-event/cloud-eve
 import { CloudEventDetailsDialogComponent } from '@home/components/cloud-event/cloud-event-details-dialog.component';
 import { EdgeDownlinkTableComponent } from '@home/components/edge/edge-downlink-table.component';
 import { EdgeDownlinkTableHeaderComponent } from '@home/components/edge/edge-downlink-table-header.component';
-import { DisplayWidgetTypesPanelComponent } from '@home/components/dashboard-page/widget-types-panel.component';
 import { AlarmDurationPredicateValueComponent } from '@home/components/profile/alarm/alarm-duration-predicate-value.component';
 import { DashboardImageDialogComponent } from '@home/components/dashboard-page/dashboard-image-dialog.component';
 import {
@@ -328,7 +328,6 @@ import { EventsDialogComponent } from '@home/dialogs/events-dialog.component';
       DashboardStateDialogComponent,
       DashboardImageDialogComponent,
       EmbedDashboardDialogComponent,
-      DisplayWidgetTypesPanelComponent,
       TenantProfileQueuesComponent,
       QueueFormComponent,
       RepositorySettingsComponent,
@@ -363,7 +362,7 @@ import { EventsDialogComponent } from '@home/dialogs/events-dialog.component';
       ApiKeyGeneratedDialogComponent,
       AuditLogHeaderComponent,
       AuditLogFilterComponent,
-      EventsDialogComponent
+      EventsDialogComponent,
     ],
   imports: [
     CommonModule,
@@ -371,6 +370,7 @@ import { EventsDialogComponent } from '@home/dialogs/events-dialog.component';
     SharedHomeComponentsModule,
     CalculatedFieldsModule,
     AlarmRuleModule,
+    IotHubComponentsModule,
     WidgetConfigComponentsModule,
     BasicWidgetConfigModule,
     Lwm2mProfileComponentsModule,
@@ -475,6 +475,7 @@ import { EventsDialogComponent } from '@home/dialogs/events-dialog.component';
     SelectDashboardBreakpointComponent,
     EditWidgetComponent,
     DashboardWidgetSelectComponent,
+    IotHubComponentsModule,
     AddWidgetDialogComponent,
     MoveWidgetsDialogComponent,
     ManageDashboardLayoutsDialogComponent,
@@ -484,7 +485,6 @@ import { EventsDialogComponent } from '@home/dialogs/events-dialog.component';
     DashboardStateDialogComponent,
     DashboardImageDialogComponent,
     EmbedDashboardDialogComponent,
-    DisplayWidgetTypesPanelComponent,
     TenantProfileQueuesComponent,
     QueueFormComponent,
     RepositorySettingsComponent,
@@ -514,7 +514,7 @@ import { EventsDialogComponent } from '@home/dialogs/events-dialog.component';
     ResourcesLibraryComponent,
     ApiKeysTableComponent,
     ApiKeysTableDialogComponent,
-    EventsDialogComponent
+    EventsDialogComponent,
   ],
   providers: [
     WidgetComponentService,
