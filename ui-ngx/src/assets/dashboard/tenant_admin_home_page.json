@@ -1253,8 +1253,8 @@
             "widgets": {
               "d70cc256-4c7b-ee06-9905-b8c5e546605f": {
                 "sizeX": 42,
-                "sizeY": 17,
-                "row": 27,
+                "sizeY": 32,
+                "row": 12,
                 "col": 43,
                 "mobileOrder": 5,
                 "mobileHeight": 10
@@ -1283,24 +1283,16 @@
               },
               "6d6e2b1d-6ce7-4678-3745-c6b0897b2674": {
                 "sizeX": 43,
-                "sizeY": 17,
-                "row": 27,
+                "sizeY": 32,
+                "row": 12,
                 "col": 0,
                 "mobileOrder": 2,
                 "mobileHeight": 10
               },
-              "fe678c4f-ea86-4cae-8d81-6fca493fe311": {
-                "sizeX": 85,
-                "sizeY": 15,
-                "row": 0,
-                "col": 0,
-                "mobileOrder": 3,
-                "mobileHeight": 12
-              },
               "35d3ac3b-f1af-dc3d-a1d1-11f351d16fc6": {
                 "sizeX": 43,
                 "sizeY": 12,
-                "row": 15,
+                "row": 0,
                 "col": 0,
                 "mobileHeight": 9,
                 "mobileOrder": 1
@@ -1309,7 +1301,7 @@
                 "sizeX": 42,
                 "sizeY": 12,
                 "mobileHeight": 9,
-                "row": 15,
+                "row": 0,
                 "col": 43,
                 "mobileOrder": 0
               },
