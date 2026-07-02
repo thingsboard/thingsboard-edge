@@ -42,7 +42,10 @@ const emptyUserAuthState: AuthPayload = {
   maxDebugModeDurationMinutes: 0,
   intermediateAggregationIntervalInSecForCF: 0,
   userSettings: initialUserSettings,
-  trendzSettings: initialTrendzSettings
+  trendzSettings: initialTrendzSettings,
+  nullsOrderStrategy: 'default',
+  edqsEnabled: false,
+  iotHubBaseUrl: ''
 };
 
 export const initialState: AuthState = {

@@ -50,6 +50,7 @@ import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module'
 import { GatewaysModule } from '@home/pages/gateways/gateways.module';
 import { MobileModule } from '@home/pages/mobile/mobile.module';
 import { AiModelModule } from '@home/pages/ai-model/ai-model.module';
+import { IotHubModule } from '@home/pages/iot-hub/iot-hub.module';
 
 @NgModule({
   exports: [
@@ -86,7 +87,8 @@ import { AiModelModule } from '@home/pages/ai-model/ai-model.module';
     ScadaSymbolModule,
     AiModelModule,
     CloudEventModule,
-    EdgeStatusModule
+    EdgeStatusModule,
+    // IotHubModule,
   ]
 })
 export class HomePagesModule { }
