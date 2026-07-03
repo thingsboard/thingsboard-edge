@@ -55,6 +55,17 @@ public class JpaTenantDao extends JpaAbstractDao<TenantEntity, Tenant> implement
         return tenantRepository;
     }
 
+    // Edge-only: JpaAbstractDao.doSave does not flush on Edge, so a non-existent tenant_profile_id
+    // FK violation (fk_tenant_profile) would otherwise surface later during default-entity creation
+    // as a generic 500 ("Unable to load rule chain from json") instead of the sanitized 400. Flush
+    // eagerly here so the DataIntegrityViolationException reaches ThingsboardErrorResponseHandler.handleDatabaseException.
+    @Override
+    protected TenantEntity doSave(TenantEntity entity, boolean isNew, boolean flush) {
+        TenantEntity saved = super.doSave(entity, isNew, flush);
+        getRepository().flush();
+        return saved;
+    }
+
     @Override
     public TenantInfo findTenantInfoById(TenantId tenantId, UUID id) {
         return DaoUtil.getData(tenantRepository.findTenantInfoById(id));
