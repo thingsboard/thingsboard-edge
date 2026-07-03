@@ -78,6 +78,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
                     .consumerCreator(tbCloudEventQueueProvider::createCloudEventMsgConsumer)
                     .consumerExecutor(consumerExecutor)
                     .threadPrefix("cloud-events")
+                    .readinessCheck(this::isReadyToProcessGeneralEvents)
                     .build();
             consumer.subscribe();
             consumer.launch();
@@ -91,6 +92,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
                     .consumerCreator(tbCloudEventQueueProvider::createCloudEventTSMsgConsumer)
                     .consumerExecutor(tsConsumerExecutor)
                     .threadPrefix("ts-cloud-events")
+                    .readinessCheck(this::isReadyToProcessTsEvents)
                     .build();
             tsConsumer.subscribe();
             tsConsumer.launch();
@@ -156,6 +158,16 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
                 sleep();
             }
         } while (!isProcessed);
+    }
+
+    // Readiness gates so the cloud-event consumers pause polling (instead of polling and risking event loss/interruption)
+    // while a full sync is in progress. Mirrors the edge-event consumer gate in KafkaEdgeGrpcSession.
+    private boolean isReadyToProcessGeneralEvents() {
+        return initialized && !syncInProgress;
+    }
+
+    private boolean isReadyToProcessTsEvents() {
+        return initialized && !syncInProgress && !isGeneralProcessInProgress;
     }
 
     private void sleep() {
