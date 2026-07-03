@@ -790,6 +790,9 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.ai_models, () => false
+  ],
+  [
+    MenuId.iot_hub, () => false
   ]
 ]);
 
