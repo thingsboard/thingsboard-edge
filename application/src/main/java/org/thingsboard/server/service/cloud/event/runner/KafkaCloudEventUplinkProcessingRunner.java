@@ -150,11 +150,11 @@ public class KafkaCloudEventUplinkProcessingRunner implements CloudEventUplinkPr
     // Readiness gates so the cloud-event consumers pause polling (instead of polling and risking event loss/interruption)
     // while a full sync is in progress. Mirrors the edge-event consumer gate in KafkaEdgeGrpcSession.
     private boolean isReadyToProcessGeneralEvents() {
-        return initialized && !syncInProgress;
+        return edgeInfo.isInitialized() && !edgeInfo.isSyncInProgress();
     }
 
     private boolean isReadyToProcessTsEvents() {
-        return initialized && !syncInProgress && !isGeneralProcessInProgress;
+        return edgeInfo.isInitialized() && !edgeInfo.isSyncInProgress() && !edgeInfo.isGeneralProcessInProgress();
     }
 
     private void sleep() {
