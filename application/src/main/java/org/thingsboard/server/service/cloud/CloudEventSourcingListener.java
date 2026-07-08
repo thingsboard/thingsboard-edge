@@ -15,6 +15,7 @@
  */
 package org.thingsboard.server.service.cloud;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -27,9 +28,12 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.rpc.Rpc;
+import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.dao.cloud.CloudSynchronizationManager;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
@@ -94,15 +98,17 @@ public class CloudEventSourcingListener {
         }
         try {
             if (event.getEntityId() != null && !baseEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())
-                    && !(event.getEntity() instanceof AlarmComment)) {
+                    && !(event.getEntity() instanceof AlarmComment)
+                    && !(event.getEntity() instanceof Rpc)) {
                 return;
             }
             log.trace("SaveEntityEvent called: {}", event);
             boolean isCreated = Boolean.TRUE.equals(event.getCreated());
-            String body = getBodyMsgForEntityEvent(event.getEntity());
+            String body = getBodyMsgForSaveEntityEvent(event.getEntity());
             CloudEventType cloudEventType = getCloudEventTypeForEntityEvent(event.getEntity());
             EdgeEventActionType action = getActionForEntityEvent(event.getEntity(), isCreated);
-            tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
+            EntityId entityId = event.getEntity() instanceof Rpc rpc ? rpc.getDeviceId() : event.getEntityId();
+            tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), entityId,
                     body, cloudEventType, action);
         } catch (Exception e) {
             log.error("failed to process SaveEntityEvent: {}", event);
@@ -121,14 +127,17 @@ public class CloudEventSourcingListener {
         }
         try {
             if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())
-                    && !(event.getEntity() instanceof AlarmComment)) {
+                    && !(event.getEntity() instanceof AlarmComment)
+                    && !(event.getEntity() instanceof Rpc)) {
                 return;
             }
             log.trace("DeleteEntityEvent called: {}", event);
+            String body = getBodyMsgForDeleteEntityEvent(event.getEntity());
             CloudEventType type = getCloudEventTypeForEntityEvent(event.getEntity());
             EdgeEventActionType actionType = getEdgeEventActionTypeForEntityEvent(event.getEntity());
-            tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    JacksonUtil.toString(event.getEntity()), type, actionType);
+            EntityId entityId = getNfTargetEntityId(event);
+            tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), entityId,
+                    body, type, actionType);
         } catch (Exception e) {
             log.error("failed to process DeleteEntityEvent: {}", event, e);
         }
@@ -174,9 +183,18 @@ public class CloudEventSourcingListener {
         }
     }
 
+    private EntityId getNfTargetEntityId(DeleteEntityEvent<?> event) {
+        if (event.getEntity() instanceof Rpc rpc) {
+            return rpc.getDeviceId();
+        }
+        return event.getEntityId();
+    }
+
     private CloudEventType getCloudEventTypeForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
             return CloudEventType.ALARM_COMMENT;
+        } else if (entity instanceof Rpc) {
+            return CloudEventType.DEVICE;
         }
         return null;
     }
@@ -186,20 +204,46 @@ public class CloudEventSourcingListener {
             return EdgeEventActionType.DELETED_COMMENT;
         } else if (entity instanceof Alarm) {
             return EdgeEventActionType.ALARM_DELETE;
+        } else if (entity instanceof Rpc) {
+            return EdgeEventActionType.RPC_CALL;
         }
         return EdgeEventActionType.DELETED;
     }
 
-    private String getBodyMsgForEntityEvent(Object entity) {
+    private String getBodyMsgForSaveEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
             return JacksonUtil.toString(entity);
         }
+        if (entity instanceof Rpc rpc) {
+            // RPC v2 (persistent) status sync Edge -> Cloud. Reuses the DEVICE/RPC_CALL uplink channel;
+            // the cloud Rpc entity shares the same id (== request UUID), so it can be located and updated.
+            ObjectNode body = JacksonUtil.newObjectNode();
+            body.put("requestUUID", rpc.getId().getId().toString());
+            body.put("rpcStatus", rpc.getStatus().name());
+            if (rpc.getResponse() != null) {
+                body.set("response", rpc.getResponse());
+            }
+            return JacksonUtil.toString(body);
+        }
         return null;
+    }
+
+    private String getBodyMsgForDeleteEntityEvent(Object entity) {
+        if (entity instanceof Rpc rpc) {
+            // RPC v2 (persistent) delete propagation Edge -> Cloud over the DEVICE/RPC_CALL channel.
+            ObjectNode body = JacksonUtil.newObjectNode();
+            body.put("requestUUID", rpc.getId().getId().toString());
+            body.put("rpcStatus", RpcStatus.DELETED.name());
+            return JacksonUtil.toString(body);
+        }
+        return JacksonUtil.toString(entity);
     }
 
     private EdgeEventActionType getActionForEntityEvent(Object entity, boolean isCreated) {
         if (entity instanceof AlarmComment) {
             return isCreated ? EdgeEventActionType.ADDED_COMMENT : EdgeEventActionType.UPDATED_COMMENT;
+        } else if (entity instanceof Rpc) {
+            return EdgeEventActionType.RPC_CALL;
         }
         return isCreated ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
     }
