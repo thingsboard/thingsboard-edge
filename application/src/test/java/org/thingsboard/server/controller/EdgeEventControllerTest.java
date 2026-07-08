@@ -26,7 +26,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
@@ -67,7 +67,7 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
 
     @Autowired
     private EdgeEventDao edgeEventDao;
-    @SpyBean
+    @MockitoSpyBean
     private SqlPartitioningRepository partitioningRepository;
     @Autowired
     private EdgeEventsCleanUpService edgeEventsCleanUpService;
