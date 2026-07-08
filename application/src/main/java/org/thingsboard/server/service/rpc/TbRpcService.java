@@ -44,7 +44,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 public class TbRpcService {
     private final RpcService rpcService;
     private final TbClusterService tbClusterService;
-    private final ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher; // Edge only
 
     public Rpc save(TenantId tenantId, Rpc rpc) {
         Rpc saved = rpcService.save(rpc);
