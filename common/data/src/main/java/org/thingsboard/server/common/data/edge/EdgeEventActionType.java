@@ -52,7 +52,10 @@ public enum EdgeEventActionType {
     WIDGET_BUNDLE_TYPES_REQUEST(null), // deprecated
     ENTITY_VIEW_REQUEST(null), // deprecated
     ENTITY_MERGE_REQUEST(null), // deprecated
-    DEVICE_PROFILE_DEVICES_REQUEST(null); // deprecated
+    DEVICE_PROFILE_DEVICES_REQUEST(null), // deprecated
+    SEND_EMAIL(null),
+    SEND_SMS(null),
+    SEND_NOTIFICATION(null);
 
     private final ActionType actionType;
 
