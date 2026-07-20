@@ -69,6 +69,7 @@ public class KafkaCloudEventUplinkProcessingRunner implements CloudEventUplinkPr
                     .consumerCreator(tbCloudEventQueueProvider::createCloudEventMsgConsumer)
                     .consumerExecutor(consumerExecutor)
                     .threadPrefix("cloud-events")
+                    .readinessCheck(this::isReadyToProcessGeneralEvents)
                     .build();
             consumer.subscribe();
             consumer.launch();
@@ -82,6 +83,7 @@ public class KafkaCloudEventUplinkProcessingRunner implements CloudEventUplinkPr
                     .consumerCreator(tbCloudEventQueueProvider::createCloudEventTSMsgConsumer)
                     .consumerExecutor(tsConsumerExecutor)
                     .threadPrefix("ts-cloud-events")
+                    .readinessCheck(this::isReadyToProcessTsEvents)
                     .build();
             tsConsumer.subscribe();
             tsConsumer.launch();
@@ -143,6 +145,16 @@ public class KafkaCloudEventUplinkProcessingRunner implements CloudEventUplinkPr
                 sleep();
             }
         } while (!isProcessed);
+    }
+
+    // Readiness gates so the cloud-event consumers pause polling (instead of polling and risking event loss/interruption)
+    // while a full sync is in progress. Mirrors the edge-event consumer gate in KafkaEdgeGrpcSession.
+    private boolean isReadyToProcessGeneralEvents() {
+        return edgeInfo.isInitialized() && !edgeInfo.isSyncInProgress();
+    }
+
+    private boolean isReadyToProcessTsEvents() {
+        return edgeInfo.isInitialized() && !edgeInfo.isSyncInProgress() && !edgeInfo.isGeneralProcessInProgress();
     }
 
     private void sleep() {
