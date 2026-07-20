@@ -99,6 +99,7 @@ const applySystemParametersToHomeDashboard = (store: Store<AppState>,
           }
         }
         dashboard.hideDashboardToolbar = true;
+        dashboard.isSystemDashboard = true;
         return dashboard;
       })
     ))

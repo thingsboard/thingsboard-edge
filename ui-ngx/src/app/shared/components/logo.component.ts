@@ -31,7 +31,7 @@ import { UrlHolder } from '@shared/pipe/image.pipe';
 export class LogoComponent implements OnInit {
 
   @Input()
-  src: string | UrlHolder = 'assets/logo_title_white_edge.svg';
+  src: string | UrlHolder = 'assets/logo_title_black_edge.svg';
 
   @Input()
   link: string | UrlTree;

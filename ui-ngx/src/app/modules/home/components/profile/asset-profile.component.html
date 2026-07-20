@@ -17,43 +17,43 @@
 -->
 @if (!standalone) {
   <div class="tb-details-buttons xs:flex xs:flex-col">
-    <button mat-raised-button color="primary"
+    <button mat-stroked-button color="primary"
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'open')"
             [class.!hidden]="isEdit || isDetailsPage">
       {{'common.open-details-page' | translate }}
     </button>
-    <button mat-raised-button color="primary"
+    <button mat-stroked-button color="primary"
             [disabled]="(isLoading$ | async)"
             (click)="onEntityAction($event, 'export')"
             [class.!hidden]="isEdit">
       {{'asset-profile.export' | translate }}
     </button>
-  <!-- Edge-only: not visible on edge
-  <button mat-raised-button color="primary"
-          [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'setDefault')"
-          [class.!hidden]="isEdit || entity?.default">
-    {{'asset-profile.set-default' | translate }}
-  </button>
-  -->
-  <button mat-raised-button color="primary"
-          [disabled]="(isLoading$ | async)"
-          (click)="onEntityAction($event, 'delete')"
-          [class.!hidden]="hideDelete() || isEdit">
-    {{'asset-profile.delete' | translate }}
-  </button>
-  <div class="flex flex-row xs:flex-col">
-    <button mat-raised-button
-            ngxClipboard
-            (cbOnSuccess)="onAssetProfileIdCopied($event)"
-            [cbContent]="entity?.id?.id"
-            [class.!hidden]="isEdit">
-      <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
-      <span translate>asset-profile.copyId</span>
+    <!-- Edge-only: not visible on edge
+    <button mat-stroked-button color="primary"
+            [disabled]="(isLoading$ | async)"
+            (click)="onEntityAction($event, 'setDefault')"
+            [class.!hidden]="isEdit || entity?.default">
+      {{'asset-profile.set-default' | translate }}
     </button>
+    -->
+    <button mat-stroked-button color="primary"
+            [disabled]="(isLoading$ | async)"
+            (click)="onEntityAction($event, 'delete')"
+            [class.!hidden]="hideDelete() || isEdit">
+      {{'asset-profile.delete' | translate }}
+    </button>
+    <div class="flex flex-row xs:flex-col">
+      <button mat-stroked-button
+              ngxClipboard
+              (cbOnSuccess)="onAssetProfileIdCopied($event)"
+              [cbContent]="entity?.id?.id"
+              [class.!hidden]="isEdit">
+        <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
+        <span translate>asset-profile.copyId</span>
+      </button>
+    </div>
   </div>
-</div>
 }
 <div [class.mat-padding]="!standalone" class="flex flex-col">
 <form [formGroup]="entityForm">
