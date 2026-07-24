@@ -615,7 +615,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 try {
                     edgeRpcClient.disconnect(true);
                 } catch (Exception ex) {
-                    log.error("Exception during disconnect: {}", ex.getMessage());
+                    log.error("Exception during disconnect:", ex);
                 }
                 try {
                     edgeRpcClient.connect(routingKey, routingSecret,
@@ -624,7 +624,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                             this::onDownlink,
                             this::scheduleReconnect);
                 } catch (Exception ex) {
-                    log.error("Exception during connect: {}", ex.getMessage());
+                    log.error("Exception during connect:", ex);
                 }
             }, reconnectTimeoutMs, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
         }
