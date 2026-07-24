@@ -611,7 +611,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
         if (reconnectFuture == null) {
             reconnectFuture = reconnectExecutor.scheduleAtFixedRate(() -> {
-                log.info("Trying to reconnect due to the error: {}!", e.getMessage());
+                log.info("Trying to reconnect due to the error: ", e);
                 try {
                     edgeRpcClient.disconnect(true);
                 } catch (Exception ex) {
