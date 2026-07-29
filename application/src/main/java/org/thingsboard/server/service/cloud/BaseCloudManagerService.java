@@ -103,6 +103,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
 
+    @Value("${cloud.reconnect_max_timeout:180000}")
+    private long reconnectMaxTimeoutMs;
+
     @Value("${cloud.uplink_pack_timeout_sec:60}")
     private long uplinkPackTimeoutSec;
 
@@ -153,6 +156,8 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private ScheduledExecutorService connectExecutor;
     private ScheduledFuture<?> reconnectFuture;
     private ScheduledFuture<?> connectFuture;
+    private volatile boolean reconnecting;
+    private long currentReconnectTimeoutMs;
 
     private EdgeSettings currentEdgeSettings;
     protected TenantId tenantId;
@@ -237,6 +242,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     protected void destroy() throws InterruptedException {
         initInProgress = false;
         initialized = false;
+        reconnecting = false;
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
@@ -433,6 +439,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         try {
             interruptPreviousSendUplinkMsgsTask();
             if (reconnectFuture != null) {
+                reconnecting = false;
                 reconnectFuture.cancel(true);
                 reconnectFuture = null;
             }
@@ -609,25 +616,41 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
         updateConnectivityStatus(false);
 
+        // Only start a reconnect loop if one is not already running. Reconnect attempts that fail
+        // asynchronously call this method again via the onError callback - those are no-ops here.
         if (reconnectFuture == null) {
-            reconnectFuture = reconnectExecutor.scheduleAtFixedRate(() -> {
-                log.info("Trying to reconnect due to the error: ", e);
-                try {
-                    edgeRpcClient.disconnect(true);
-                } catch (Exception ex) {
-                    log.error("Exception during disconnect:", ex);
-                }
-                try {
-                    edgeRpcClient.connect(routingKey, routingSecret,
-                            this::onUplinkResponse,
-                            this::onEdgeUpdate,
-                            this::onDownlink,
-                            this::scheduleReconnect);
-                } catch (Exception ex) {
-                    log.error("Exception during connect:", ex);
-                }
-            }, reconnectTimeoutMs, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+            reconnecting = true;
+            currentReconnectTimeoutMs = reconnectTimeoutMs;
+            scheduleReconnectAttempt(e);
         }
+    }
+
+    private void scheduleReconnectAttempt(Exception e) {
+        ScheduledExecutorService executor = reconnectExecutor;
+        if (!reconnecting || executor == null) {
+            return;
+        }
+        reconnectFuture = executor.schedule(() -> {
+            log.info("Trying to reconnect due to the error: ", e);
+            try {
+                edgeRpcClient.disconnect(true);
+            } catch (Exception ex) {
+                log.error("Exception during disconnect:", ex);
+            }
+            try {
+                edgeRpcClient.connect(routingKey, routingSecret,
+                        this::onUplinkResponse,
+                        this::onEdgeUpdate,
+                        this::onDownlink,
+                        this::scheduleReconnect);
+            } catch (Exception ex) {
+                log.error("Exception during connect:", ex);
+            }
+            if (reconnecting) {
+                currentReconnectTimeoutMs = Math.min(currentReconnectTimeoutMs * 2, reconnectMaxTimeoutMs);
+                scheduleReconnectAttempt(e);
+            }
+        }, currentReconnectTimeoutMs, TimeUnit.MILLISECONDS);
     }
 
     private void save(String key, long value) {
