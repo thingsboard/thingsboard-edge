@@ -52,6 +52,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.thingsboard.server.service.edge.rpc.EdgeGrpcSession.RATE_LIMIT_REACHED;
 
@@ -76,7 +78,8 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     private ScheduledExecutorService reconnectExecutor;
     private ScheduledFuture<?> connectFuture;
     private ScheduledFuture<?> reconnectFuture;
-    private volatile boolean reconnecting;
+    private final Lock reconnectLock = new ReentrantLock();
+    private boolean reconnecting;
     private long currentReconnectTimeoutMs;
 
     @Override
@@ -89,7 +92,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     @PreDestroy
     private void destroy() {
         edgeInfo.resetProcessingFlags();
-        reconnecting = false;
+        cancelReconnect();
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
@@ -177,13 +180,21 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
         // Only start a reconnect loop if one is not already running. Reconnect attempts that fail
         // asynchronously call this method again via the onError callback - those are no-ops here.
-        if (reconnectFuture == null) {
-            reconnecting = true;
-            currentReconnectTimeoutMs = edgeInfo.getReconnectTimeoutMs();
-            scheduleReconnectAttempt(e);
+        // All reconnect state (reconnecting/reconnectFuture/currentReconnectTimeoutMs) is guarded by
+        // reconnectLock, since it is touched from gRPC callback threads and the reconnect thread.
+        reconnectLock.lock();
+        try {
+            if (reconnectFuture == null) {
+                reconnecting = true;
+                currentReconnectTimeoutMs = edgeInfo.getReconnectTimeoutMs();
+                scheduleReconnectAttempt(e);
+            }
+        } finally {
+            reconnectLock.unlock();
         }
     }
 
+    // Must be called while holding reconnectLock.
     private void scheduleReconnectAttempt(Exception e) {
         ScheduledExecutorService executor = reconnectExecutor;
         if (!reconnecting || executor == null) {
@@ -208,11 +219,30 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             // Exponential backoff: a failed attempt (native/heap pressure, unreachable cloud) grows
             // the delay up to a cap, so a stuck Edge is not hammering reconnect once per interval.
             // A successful connect stops the loop via onEdgeUpdate -> reconnecting=false.
-            if (reconnecting) {
-                currentReconnectTimeoutMs = Math.min(currentReconnectTimeoutMs * 2, edgeInfo.getReconnectMaxTimeoutMs());
-                scheduleReconnectAttempt(e);
+            reconnectLock.lock();
+            try {
+                if (reconnecting) {
+                    currentReconnectTimeoutMs = Math.min(currentReconnectTimeoutMs * 2, edgeInfo.getReconnectMaxTimeoutMs());
+                    scheduleReconnectAttempt(e);
+                }
+            } finally {
+                reconnectLock.unlock();
             }
         }, currentReconnectTimeoutMs, TimeUnit.MILLISECONDS);
+    }
+
+    // Stops any in-progress reconnect loop and clears its state. Safe to call when no loop is running.
+    private void cancelReconnect() {
+        reconnectLock.lock();
+        try {
+            reconnecting = false;
+            if (reconnectFuture != null) {
+                reconnectFuture.cancel(true);
+                reconnectFuture = null;
+            }
+        } finally {
+            reconnectLock.unlock();
+        }
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
@@ -239,11 +269,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
             eventPublisher.publishEvent(InterruptSendUplinkEvent.INSTANCE);
-            if (reconnectFuture != null) {
-                reconnecting = false;
-                reconnectFuture.cancel(true);
-                reconnectFuture = null;
-            }
+            cancelReconnect();
 
             if ("CE".equals(edgeConfiguration.getCloudType())) {
                 initAndUpdateEdgeSettings(edgeConfiguration);
