@@ -174,11 +174,11 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
         if (reconnectFuture == null) {
             reconnectFuture = reconnectExecutor.scheduleAtFixedRate(() -> {
-                log.info("Trying to reconnect due to the error: {}!", e.getMessage());
+                log.info("Trying to reconnect due to the error: ", e);
                 try {
                     edgeRpcClient.disconnect(true);
                 } catch (Exception ex) {
-                    log.error("Exception during disconnect: {}", ex.getMessage());
+                    log.error("Exception during disconnect: ", ex);
                 }
                 try {
                     edgeRpcClient.connect(edgeInfo.getRoutingKey(), edgeInfo.getRoutingSecret(),
@@ -187,7 +187,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
                             this::onDownlink,
                             this::scheduleReconnect);
                 } catch (Exception ex) {
-                    log.error("Exception during connect: {}", ex.getMessage());
+                    log.error("Exception during connect: ", ex);
                 }
             }, edgeInfo.getReconnectTimeoutMs(), edgeInfo.getReconnectTimeoutMs(), TimeUnit.MILLISECONDS);
         }
