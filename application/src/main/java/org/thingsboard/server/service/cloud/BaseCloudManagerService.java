@@ -103,7 +103,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
 
-    @Value("${cloud.reconnect_max_timeout:180000}")
+    @Value("${cloud.reconnect_max_timeout}")
     private long reconnectMaxTimeoutMs;
 
     @Value("${cloud.uplink_pack_timeout_sec:60}")
@@ -156,7 +156,8 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private ScheduledExecutorService connectExecutor;
     private ScheduledFuture<?> reconnectFuture;
     private ScheduledFuture<?> connectFuture;
-    private volatile boolean reconnecting;
+    private final Lock reconnectLock = new ReentrantLock();
+    private boolean reconnecting;
     private long currentReconnectTimeoutMs;
 
     private EdgeSettings currentEdgeSettings;
@@ -242,7 +243,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     protected void destroy() throws InterruptedException {
         initInProgress = false;
         initialized = false;
-        reconnecting = false;
+        cancelReconnect();
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
@@ -438,11 +439,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
             interruptPreviousSendUplinkMsgsTask();
-            if (reconnectFuture != null) {
-                reconnecting = false;
-                reconnectFuture.cancel(true);
-                reconnectFuture = null;
-            }
+            cancelReconnect();
 
             if ("CE".equals(edgeConfiguration.getCloudType())) {
                 initAndUpdateEdgeSettings(edgeConfiguration);
@@ -616,15 +613,21 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
         updateConnectivityStatus(false);
 
-        // Only start a reconnect loop if one is not already running. Reconnect attempts that fail
-        // asynchronously call this method again via the onError callback - those are no-ops here.
-        if (reconnectFuture == null) {
-            reconnecting = true;
-            currentReconnectTimeoutMs = reconnectTimeoutMs;
-            scheduleReconnectAttempt(e);
+        // All reconnect state (reconnecting/reconnectFuture/currentReconnectTimeoutMs) is guarded by
+        // reconnectLock, since it is touched from gRPC callback threads and the reconnect thread.
+        reconnectLock.lock();
+        try {
+            if (reconnectFuture == null) {
+                reconnecting = true;
+                currentReconnectTimeoutMs = reconnectTimeoutMs;
+                scheduleReconnectAttempt(e);
+            }
+        } finally {
+            reconnectLock.unlock();
         }
     }
 
+    // Must be called while holding reconnectLock.
     private void scheduleReconnectAttempt(Exception e) {
         ScheduledExecutorService executor = reconnectExecutor;
         if (!reconnecting || executor == null) {
@@ -646,11 +649,30 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             } catch (Exception ex) {
                 log.error("Exception during connect:", ex);
             }
-            if (reconnecting) {
-                currentReconnectTimeoutMs = Math.min(currentReconnectTimeoutMs * 2, reconnectMaxTimeoutMs);
-                scheduleReconnectAttempt(e);
+            reconnectLock.lock();
+            try {
+                if (reconnecting) {
+                    currentReconnectTimeoutMs = Math.min(currentReconnectTimeoutMs * 2, reconnectMaxTimeoutMs);
+                    scheduleReconnectAttempt(e);
+                }
+            } finally {
+                reconnectLock.unlock();
             }
         }, currentReconnectTimeoutMs, TimeUnit.MILLISECONDS);
+    }
+
+    // Stops any in-progress reconnect loop and clears its state. Safe to call when no loop is running.
+    private void cancelReconnect() {
+        reconnectLock.lock();
+        try {
+            reconnecting = false;
+            if (reconnectFuture != null) {
+                reconnectFuture.cancel(true);
+                reconnectFuture = null;
+            }
+        } finally {
+            reconnectLock.unlock();
+        }
     }
 
     private void save(String key, long value) {
