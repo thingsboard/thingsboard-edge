@@ -123,8 +123,10 @@ cloud:
   routingKey: "${CLOUD_ROUTING_KEY:}"
   # Secret key for secure communication with the cloud
   secret: "${CLOUD_ROUTING_SECRET:}"
-  # Reconnection timeout in milliseconds if cloud connectivity is lost
+  # Initial reconnection timeout in milliseconds if cloud connectivity is lost; grows exponentially per failed attempt up to reconnect_max_timeout
   reconnect_timeout: "${CLOUD_RECONNECT_TIMEOUT:3000}"
+  # Maximum reconnection timeout in milliseconds - upper bound for the exponential backoff between failed reconnect attempts
+  reconnect_max_timeout: "${CLOUD_RECONNECT_MAX_TIMEOUT:180000}"
   # Timeout in seconds for packaging uplink data to the cloud
   uplink_pack_timeout_sec: "${CLOUD_UPLINK_PACK_TIMEOUT_SEC:60}"
   rpc:

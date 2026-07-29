@@ -37,6 +37,8 @@ public class EdgeInfoHolder {
     private String routingSecret;
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
+    @Value("${cloud.reconnect_max_timeout:180000}")
+    private long reconnectMaxTimeoutMs;
 
     private TenantId tenantId;
     private CustomerId customerId;

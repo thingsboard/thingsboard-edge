@@ -76,6 +76,8 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     private ScheduledExecutorService reconnectExecutor;
     private ScheduledFuture<?> connectFuture;
     private ScheduledFuture<?> reconnectFuture;
+    private volatile boolean reconnecting;
+    private long currentReconnectTimeoutMs;
 
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
@@ -87,6 +89,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     @PreDestroy
     private void destroy() {
         edgeInfo.resetProcessingFlags();
+        reconnecting = false;
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
@@ -172,25 +175,44 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         edgeInfo.resetProcessingFlags();
         connectionStatusManager.updateConnectivityStatus(false);
 
+        // Only start a reconnect loop if one is not already running. Reconnect attempts that fail
+        // asynchronously call this method again via the onError callback - those are no-ops here.
         if (reconnectFuture == null) {
-            reconnectFuture = reconnectExecutor.scheduleAtFixedRate(() -> {
-                log.info("Trying to reconnect due to the error: {}!", e.getMessage());
-                try {
-                    edgeRpcClient.disconnect(true);
-                } catch (Exception ex) {
-                    log.error("Exception during disconnect: {}", ex.getMessage());
-                }
-                try {
-                    edgeRpcClient.connect(edgeInfo.getRoutingKey(), edgeInfo.getRoutingSecret(),
-                            this::onUplinkResponse,
-                            this::onEdgeUpdate,
-                            this::onDownlink,
-                            this::scheduleReconnect);
-                } catch (Exception ex) {
-                    log.error("Exception during connect: {}", ex.getMessage());
-                }
-            }, edgeInfo.getReconnectTimeoutMs(), edgeInfo.getReconnectTimeoutMs(), TimeUnit.MILLISECONDS);
+            reconnecting = true;
+            currentReconnectTimeoutMs = edgeInfo.getReconnectTimeoutMs();
+            scheduleReconnectAttempt(e);
         }
+    }
+
+    private void scheduleReconnectAttempt(Exception e) {
+        ScheduledExecutorService executor = reconnectExecutor;
+        if (!reconnecting || executor == null) {
+            return;
+        }
+        reconnectFuture = executor.schedule(() -> {
+            log.info("Trying to reconnect due to the error: {}!", e.getMessage());
+            try {
+                edgeRpcClient.disconnect(true);
+            } catch (Exception ex) {
+                log.error("Exception during disconnect: {}", ex.getMessage());
+            }
+            try {
+                edgeRpcClient.connect(edgeInfo.getRoutingKey(), edgeInfo.getRoutingSecret(),
+                        this::onUplinkResponse,
+                        this::onEdgeUpdate,
+                        this::onDownlink,
+                        this::scheduleReconnect);
+            } catch (Exception ex) {
+                log.error("Exception during connect: {}", ex.getMessage());
+            }
+            // Exponential backoff: a failed attempt (native/heap pressure, unreachable cloud) grows
+            // the delay up to a cap, so a stuck Edge is not hammering reconnect once per interval.
+            // A successful connect stops the loop via onEdgeUpdate -> reconnecting=false.
+            if (reconnecting) {
+                currentReconnectTimeoutMs = Math.min(currentReconnectTimeoutMs * 2, edgeInfo.getReconnectMaxTimeoutMs());
+                scheduleReconnectAttempt(e);
+            }
+        }, currentReconnectTimeoutMs, TimeUnit.MILLISECONDS);
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
@@ -218,6 +240,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         try {
             eventPublisher.publishEvent(InterruptSendUplinkEvent.INSTANCE);
             if (reconnectFuture != null) {
+                reconnecting = false;
                 reconnectFuture.cancel(true);
                 reconnectFuture = null;
             }
