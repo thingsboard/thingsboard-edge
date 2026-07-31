@@ -80,6 +80,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -107,6 +108,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     @Value("${cloud.reconnect_max_timeout}")
     private long reconnectMaxTimeoutMs;
+
+    @Value("${cloud.reconnect_jitter_factor:0.15}")
+    private double reconnectJitterFactor;
 
     @Value("${cloud.uplink_pack_timeout_sec:60}")
     private long uplinkPackTimeoutSec;
@@ -667,7 +671,18 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                     scheduleReconnectAttempt(e);
                 }
             });
-        }, currentReconnectTimeoutMs, TimeUnit.MILLISECONDS);
+        }, applyJitter(currentReconnectTimeoutMs), TimeUnit.MILLISECONDS);
+    }
+
+    // Randomizes the delay by ±reconnectJitterFactor so that a fleet of edges that lost the cloud at the
+    // same moment does not retry in synchronized waves. Jitter is applied to the scheduled value only -
+    // currentReconnectTimeoutMs stays the clean base, so the randomness never compounds across attempts.
+    private long applyJitter(long delayMs) {
+        long offset = (long) (delayMs * reconnectJitterFactor);
+        if (offset <= 0) {
+            return delayMs;
+        }
+        return ThreadLocalRandom.current().nextLong(Math.max(0, delayMs - offset), delayMs + offset + 1);
     }
 
     // Stops any in-progress reconnect loop and clears its state. Safe to call when no loop is running.
