@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -59,7 +60,7 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
 
     private Future<?> sendUplinkFuture;
     private SettableFuture<Boolean> sendUplinkFutureResult;
-    private ExecutorService uplinkExecutor;
+    private volatile ExecutorService uplinkExecutor;
 
     public void init() {
         // A previous connection may have left its executor running: this is re-entered on every
@@ -128,7 +129,28 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
     private void processMsgPack(List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
         pendingMsgs.setNewPack(uplinkMsgPack);
 
-        sendUplinkFuture = uplinkExecutor.submit(() -> {
+        // Read once - replaced on reconnect and cleared on shutdown, both from other threads.
+        ExecutorService executor = uplinkExecutor;
+        if (executor == null) {
+            rejectMsgPack(uplinkMsgPack, null);
+            return;
+        }
+        try {
+            scheduleMsgPack(executor, uplinkMsgPack, isGeneralMsg);
+        } catch (RejectedExecutionException e) {
+            rejectMsgPack(uplinkMsgPack, e);
+        }
+    }
+
+    // Report as interrupted so the pack is retried - the caller blocks on this future.
+    private void rejectMsgPack(List<UplinkMsg> uplinkMsgPack, RejectedExecutionException e) {
+        log.debug("[{}] Uplink executor is unavailable, {} msg(s) are going to be retried later",
+                edgeInfo.getTenantId(), uplinkMsgPack.size(), e);
+        sendUplinkFutureResult.set(true);
+    }
+
+    private void scheduleMsgPack(ExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
+        sendUplinkFuture = executor.submit(() -> {
             try {
                 int attempt = 1;
                 boolean success;

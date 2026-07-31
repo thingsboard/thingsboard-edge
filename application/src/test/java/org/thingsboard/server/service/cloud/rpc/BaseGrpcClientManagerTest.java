@@ -232,6 +232,46 @@ public class BaseGrpcClientManagerTest {
         verify(reconnectExecutor, never()).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
     }
 
+    @Test
+    void destroyShutsDownConnectExecutorAndDropsPendingRetry() throws Exception {
+        // A long delay keeps the scheduled connect task pending, so destroy() has something to discard.
+        lenient().when(edgeInfo.getReconnectTimeoutMs()).thenReturn(TIMEOUT_MS);
+        manager.establishRpcConnection();
+        ExecutorService connectExecutor = (ExecutorService) ReflectionTestUtils.getField(manager, "connectExecutor");
+        assertThat(connectExecutor).isNotNull();
+
+        ReflectionTestUtils.invokeMethod(manager, "destroy");
+
+        // cloud-manager-connect threads are non-daemon, so one left running holds up JVM shutdown.
+        assertThat(ReflectionTestUtils.getField(manager, "connectExecutor")).isNull();
+        assertThat(ReflectionTestUtils.getField(manager, "connectFuture")).isNull();
+        assertThat(connectExecutor.isShutdown()).as("connect executor must not be orphaned").isTrue();
+
+        // Terminating promptly proves the queued retry was discarded rather than left to fire later and
+        // resurrect the manager after destroy. Waiting the full delay would mean it was still pending.
+        assertThat(connectExecutor.awaitTermination(TIMEOUT_MS / 2, TimeUnit.MILLISECONDS))
+                .as("pending connect retry must be dropped on shutdown").isTrue();
+        verify(edgeRpcClient, never()).connect(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void destroyIsSafeWhenRunningOnTheConnectExecutorThread() throws Exception {
+        lenient().when(edgeInfo.getReconnectTimeoutMs()).thenReturn(TIMEOUT_MS);
+        manager.establishRpcConnection();
+        ScheduledExecutorService connectExecutor =
+                (ScheduledExecutorService) ReflectionTestUtils.getField(manager, "connectExecutor");
+
+        // onDestroy calls destroy() from a task running on connectExecutor itself when the system tenant
+        // partition moves away, so the teardown must not interrupt the very thread that is executing it.
+        Boolean interrupted = connectExecutor.submit(() -> {
+            ReflectionTestUtils.invokeMethod(manager, "destroy");
+            return Thread.currentThread().isInterrupted();
+        }).get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+        assertThat(interrupted).as("destroy() must not interrupt the thread it runs on").isFalse();
+        verify(edgeRpcClient).disconnect(false);
+    }
+
     private void shutdownConnectExecutor() {
         ExecutorService connectExecutor = (ExecutorService) ReflectionTestUtils.getField(manager, "connectExecutor");
         if (connectExecutor != null) {

@@ -51,6 +51,7 @@ import org.thingsboard.server.service.cloud.info.PendingUplinkMsgPackHolder;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -74,7 +75,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     private final DownlinkMessageService downlinkMessageService;
 
     private ScheduledExecutorService shutdownExecutor;
-    private ScheduledExecutorService connectExecutor;
+    private volatile ScheduledExecutorService connectExecutor;
     private ScheduledExecutorService reconnectExecutor;
     private ScheduledFuture<?> connectFuture;
     private ScheduledFuture<?> reconnectFuture;
@@ -96,6 +97,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         // gRPC onError callback, which calls scheduleReconnect. Clearing the executor under reconnectLock
         // first makes that callback a no-op instead of a reject on an already shut down executor.
         shutdownReconnect();
+        shutdownConnect();
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
@@ -137,7 +139,10 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             connectFuture = null;
         }
         if (connectExecutor == null) {
-            connectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-connect"));
+            ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ThingsBoardThreadFactory.forName("cloud-manager-connect"));
+            // Otherwise a retry queued here would still run after destroy and resurrect the manager.
+            executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+            connectExecutor = executor;
         }
         connectFuture = connectExecutor.schedule(() -> {
             try {
@@ -239,6 +244,18 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
                 reconnectFuture = null;
             }
         });
+    }
+
+    // shutdown(), not shutdownNow(): destroy() may itself be running on this executor's thread.
+    private void shutdownConnect() {
+        if (connectFuture != null) {
+            connectFuture.cancel(false);
+            connectFuture = null;
+        }
+        if (connectExecutor != null) {
+            connectExecutor.shutdown();
+            connectExecutor = null;
+        }
     }
 
     // Stops the reconnect loop and disposes of its executor, so that a gRPC callback arriving afterwards

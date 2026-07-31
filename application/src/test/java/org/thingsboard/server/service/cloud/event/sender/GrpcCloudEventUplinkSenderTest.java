@@ -15,6 +15,7 @@
  */
 package org.thingsboard.server.service.cloud.event.sender;
 
+import com.google.common.util.concurrent.SettableFuture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,13 +24,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.cloud.event.UplinkMsgMapper;
 import org.thingsboard.server.service.cloud.info.EdgeInfoHolder;
 import org.thingsboard.server.service.cloud.info.PendingUplinkMsgPackHolder;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.GrpcClientManager;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -87,6 +91,40 @@ public class GrpcCloudEventUplinkSenderTest {
 
         // @PreDestroy can follow a StopCloudEventProcessingEvent, so a second shutdown must be harmless.
         sender.shutdown();
+    }
+
+    @Test
+    void processMsgPackWithoutUplinkExecutorReportsPackAsInterrupted() throws Exception {
+        SettableFuture<Boolean> result = SettableFuture.create();
+        ReflectionTestUtils.setField(sender, "sendUplinkFutureResult", result);
+        // shutdown() clears the executor, and init() replaces it on every GrpcConnectionEstablishedEvent,
+        // which the uplink runner is not stopped for - so it can observe the field mid-replacement.
+        ReflectionTestUtils.setField(sender, "uplinkExecutor", null);
+
+        ReflectionTestUtils.invokeMethod(sender, "processMsgPack", List.of(uplinkMsg()), true);
+
+        // sendCloudEvents returns this future and its caller blocks on get(), so leaving it unset would
+        // wedge uplink processing permanently. true means "interrupted", i.e. retry, do not commit.
+        assertThat(result.isDone()).as("caller's future must never be left uncompleted").isTrue();
+        assertThat(result.get()).isTrue();
+    }
+
+    @Test
+    void processMsgPackOnShutDownUplinkExecutorReportsPackAsInterrupted() throws Exception {
+        ExecutorService shutDownExecutor = Executors.newSingleThreadExecutor();
+        shutDownExecutor.shutdownNow();
+        SettableFuture<Boolean> result = SettableFuture.create();
+        ReflectionTestUtils.setField(sender, "sendUplinkFutureResult", result);
+        ReflectionTestUtils.setField(sender, "uplinkExecutor", shutDownExecutor);
+
+        ReflectionTestUtils.invokeMethod(sender, "processMsgPack", List.of(uplinkMsg()), true);
+
+        assertThat(result.isDone()).as("rejected submission must complete the caller's future").isTrue();
+        assertThat(result.get()).isTrue();
+    }
+
+    private static UplinkMsg uplinkMsg() {
+        return UplinkMsg.newBuilder().setUplinkMsgId(1).build();
     }
 
 }
