@@ -15,6 +15,7 @@
  */
 package org.thingsboard.server.service.cloud;
 
+import com.google.common.util.concurrent.SettableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,12 +26,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -215,6 +218,79 @@ public class BaseCloudManagerServiceTest {
         assertThat(scheduledDelays).isEmpty();
         assertThat((Boolean) ReflectionTestUtils.getField(service, "reconnecting")).isFalse();
         verify(reconnectExecutor, never()).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+    }
+
+    @Test
+    void destroyShutsDownConnectExecutorAndDropsPendingRetry() throws Exception {
+        // A long delay keeps the scheduled connect task pending, so destroy() has something to discard.
+        ReflectionTestUtils.setField(service, "reconnectTimeoutMs", TIMEOUT_MS);
+        service.establishRpcConnection();
+        ExecutorService connectExecutor = (ExecutorService) ReflectionTestUtils.getField(service, "connectExecutor");
+        assertThat(connectExecutor).isNotNull();
+
+        service.destroy();
+
+        // cloud-manager-connect threads are non-daemon, so one left running holds up JVM shutdown.
+        assertThat(ReflectionTestUtils.getField(service, "connectExecutor")).isNull();
+        assertThat(ReflectionTestUtils.getField(service, "connectFuture")).isNull();
+        assertThat(connectExecutor.isShutdown()).as("connect executor must not be orphaned").isTrue();
+
+        // Terminating promptly proves the queued retry was discarded rather than left to fire later and
+        // resurrect the manager after destroy. Waiting the full delay would mean it was still pending.
+        assertThat(connectExecutor.awaitTermination(TIMEOUT_MS / 2, TimeUnit.MILLISECONDS))
+                .as("pending connect retry must be dropped on shutdown").isTrue();
+        verify(edgeRpcClient, never()).connect(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void destroyIsSafeWhenRunningOnTheConnectExecutorThread() throws Exception {
+        ReflectionTestUtils.setField(service, "reconnectTimeoutMs", TIMEOUT_MS);
+        service.establishRpcConnection();
+        ScheduledExecutorService connectExecutor =
+                (ScheduledExecutorService) ReflectionTestUtils.getField(service, "connectExecutor");
+
+        // The partition-moved-away path calls destroy() from a task running on connectExecutor itself, so
+        // the teardown must not interrupt the very thread that is executing it.
+        Boolean interrupted = connectExecutor.submit(() -> {
+            service.destroy();
+            return Thread.currentThread().isInterrupted();
+        }).get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+        assertThat(interrupted).as("destroy() must not interrupt the thread it runs on").isFalse();
+        verify(edgeRpcClient).disconnect(false);
+    }
+
+    @Test
+    void processMsgPackWithoutUplinkExecutorReportsPackAsInterrupted() throws Exception {
+        SettableFuture<Boolean> result = SettableFuture.create();
+        ReflectionTestUtils.setField(service, "sendUplinkFutureResult", result);
+        // destroy() clears the uplink executor, and establishRpcConnection replaces it on every reconnect.
+        ReflectionTestUtils.setField(service, "uplinkExecutor", null);
+
+        ReflectionTestUtils.invokeMethod(service, "processMsgPack", List.of(uplinkMsg()), true);
+
+        // sendCloudEvents returns this future and the caller blocks on get(), so leaving it unset would
+        // wedge uplink processing permanently. true means "interrupted", i.e. retry, do not commit.
+        assertThat(result.isDone()).as("caller's future must never be left uncompleted").isTrue();
+        assertThat(result.get()).isTrue();
+    }
+
+    @Test
+    void processMsgPackOnShutDownUplinkExecutorReportsPackAsInterrupted() throws Exception {
+        ScheduledExecutorService shutDownExecutor = Executors.newSingleThreadScheduledExecutor();
+        shutDownExecutor.shutdownNow();
+        SettableFuture<Boolean> result = SettableFuture.create();
+        ReflectionTestUtils.setField(service, "sendUplinkFutureResult", result);
+        ReflectionTestUtils.setField(service, "uplinkExecutor", shutDownExecutor);
+
+        ReflectionTestUtils.invokeMethod(service, "processMsgPack", List.of(uplinkMsg()), true);
+
+        assertThat(result.isDone()).as("rejected submission must complete the caller's future").isTrue();
+        assertThat(result.get()).isTrue();
+    }
+
+    private static UplinkMsg uplinkMsg() {
+        return UplinkMsg.newBuilder().setUplinkMsgId(1).build();
     }
 
     private void shutdownConnectExecutor() {

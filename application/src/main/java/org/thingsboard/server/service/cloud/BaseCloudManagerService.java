@@ -76,8 +76,10 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -148,12 +150,12 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @Autowired
     protected CloudStatsCounterService statsCounterService;
 
-    private ScheduledExecutorService uplinkExecutor;
+    private volatile ScheduledExecutorService uplinkExecutor;
     private ScheduledFuture<?> sendUplinkFuture;
 
     private ScheduledExecutorService shutdownExecutor;
     private ScheduledExecutorService reconnectExecutor;
-    private ScheduledExecutorService connectExecutor;
+    private volatile ScheduledExecutorService connectExecutor;
     private ScheduledFuture<?> reconnectFuture;
     private ScheduledFuture<?> connectFuture;
     private final Lock reconnectLock = new ReentrantLock();
@@ -184,7 +186,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             connectFuture = null;
         }
         if (connectExecutor == null) {
-            connectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-connect"));
+            ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ThingsBoardThreadFactory.forName("cloud-manager-connect"));
+            // Otherwise a retry queued here would still run after destroy and resurrect the manager.
+            executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+            connectExecutor = executor;
         }
         connectFuture = connectExecutor.schedule(() -> {
             try {
@@ -256,6 +261,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         // gRPC onError callback, which calls scheduleReconnect. Clearing the executor under reconnectLock
         // first makes that callback a no-op instead of a reject on an already shut down executor.
         shutdownReconnect();
+        shutdownConnect();
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
@@ -682,6 +688,18 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         uplinkExecutor = null;
     }
 
+    // shutdown(), not shutdownNow(): destroy() may itself be running on this executor's thread.
+    private void shutdownConnect() {
+        if (connectFuture != null) {
+            connectFuture.cancel(false);
+            connectFuture = null;
+        }
+        if (connectExecutor != null) {
+            connectExecutor.shutdown();
+            connectExecutor = null;
+        }
+    }
+
     private void shutdownReconnect() {
         underReconnectLock(() -> {
             reconnecting = false;
@@ -808,7 +826,27 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private void processMsgPack(List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
         pendingMsgMap.clear();
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
-        sendUplinkFuture = uplinkExecutor.schedule(() -> {
+        // Read once - replaced on reconnect and cleared on destroy, both from other threads.
+        ScheduledExecutorService executor = uplinkExecutor;
+        if (executor == null) {
+            rejectMsgPack(uplinkMsgPack, null);
+            return;
+        }
+        try {
+            scheduleMsgPack(executor, uplinkMsgPack, isGeneralMsg);
+        } catch (RejectedExecutionException e) {
+            rejectMsgPack(uplinkMsgPack, e);
+        }
+    }
+
+    // Report as interrupted so the pack is retried - the caller blocks on this future.
+    private void rejectMsgPack(List<UplinkMsg> uplinkMsgPack, RejectedExecutionException e) {
+        log.debug("[{}] Uplink executor is unavailable, {} msg(s) are going to be retried later", tenantId, uplinkMsgPack.size(), e);
+        sendUplinkFutureResult.set(true);
+    }
+
+    private void scheduleMsgPack(ScheduledExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
+        sendUplinkFuture = executor.schedule(() -> {
             try {
                 int attempt = 1;
                 boolean success;
