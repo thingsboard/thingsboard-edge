@@ -34,8 +34,10 @@ import org.thingsboard.server.service.cloud.rpc.GrpcClientManager;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 public class GrpcCloudEventUplinkSenderTest {
@@ -94,33 +96,31 @@ public class GrpcCloudEventUplinkSenderTest {
     }
 
     @Test
-    void processMsgPackWithoutUplinkExecutorReportsPackAsInterrupted() throws Exception {
-        SettableFuture<Boolean> result = SettableFuture.create();
-        ReflectionTestUtils.setField(sender, "sendUplinkFutureResult", result);
+    void processMsgPackWithoutUplinkExecutorFailsFast() {
         // shutdown() clears the executor, and init() replaces it on every GrpcConnectionEstablishedEvent,
         // which the uplink runner is not stopped for - so it can observe the field mid-replacement.
-        ReflectionTestUtils.setField(sender, "uplinkExecutor", null);
-
-        ReflectionTestUtils.invokeMethod(sender, "processMsgPack", List.of(uplinkMsg()), true);
-
-        // sendCloudEvents returns this future and its caller blocks on get(), so leaving it unset would
-        // wedge uplink processing permanently. true means "interrupted", i.e. retry, do not commit.
-        assertThat(result.isDone()).as("caller's future must never be left uncompleted").isTrue();
-        assertThat(result.get()).isTrue();
+        assertPackRejected(null);
     }
 
     @Test
-    void processMsgPackOnShutDownUplinkExecutorReportsPackAsInterrupted() throws Exception {
+    void processMsgPackOnShutDownUplinkExecutorFailsFast() {
         ExecutorService shutDownExecutor = Executors.newSingleThreadExecutor();
         shutDownExecutor.shutdownNow();
+
+        assertPackRejected(shutDownExecutor);
+    }
+
+    // Completing sendUplinkFutureResult as interrupted would tell processUplinkMessages to retry the same
+    // page, which it would re-query forever because only a new connection can restore the executor.
+    // Failing reaches its catch instead, abandoning the batch with its queue offset uncommitted.
+    private void assertPackRejected(ExecutorService executor) {
         SettableFuture<Boolean> result = SettableFuture.create();
         ReflectionTestUtils.setField(sender, "sendUplinkFutureResult", result);
-        ReflectionTestUtils.setField(sender, "uplinkExecutor", shutDownExecutor);
+        ReflectionTestUtils.setField(sender, "uplinkExecutor", executor);
 
-        ReflectionTestUtils.invokeMethod(sender, "processMsgPack", List.of(uplinkMsg()), true);
-
-        assertThat(result.isDone()).as("rejected submission must complete the caller's future").isTrue();
-        assertThat(result.get()).isTrue();
+        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(sender, "processMsgPack", List.of(uplinkMsg()), true))
+                .isInstanceOf(RejectedExecutionException.class);
+        assertThat(result.isDone()).as("pack must not be reported as a finished send").isFalse();
     }
 
     private static UplinkMsg uplinkMsg() {

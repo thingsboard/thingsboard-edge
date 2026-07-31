@@ -132,24 +132,18 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
         // Read once - replaced on reconnect and cleared on shutdown, both from other threads.
         ExecutorService executor = uplinkExecutor;
         if (executor == null) {
-            rejectMsgPack(uplinkMsgPack, null);
-            return;
+            // Fail instead of completing sendUplinkFutureResult as interrupted: processUplinkMessages reads
+            // that as "retry this page", and since only a new connection can restore the executor it would
+            // re-query the same page without ever advancing. Throwing reaches its catch, which abandons the
+            // batch and leaves the queue offset uncommitted, so the events are redelivered later. A shut
+            // down executor gets there on its own - submit() throws RejectedExecutionException.
+            throw new RejectedExecutionException("Uplink executor is unavailable, "
+                    + uplinkMsgPack.size() + " msg(s) are going to be retried later");
         }
-        try {
-            scheduleMsgPack(executor, uplinkMsgPack, isGeneralMsg);
-        } catch (RejectedExecutionException e) {
-            rejectMsgPack(uplinkMsgPack, e);
-        }
+        submitMsgPack(executor, uplinkMsgPack, isGeneralMsg);
     }
 
-    // Report as interrupted so the pack is retried - the caller blocks on this future.
-    private void rejectMsgPack(List<UplinkMsg> uplinkMsgPack, RejectedExecutionException e) {
-        log.debug("[{}] Uplink executor is unavailable, {} msg(s) are going to be retried later",
-                edgeInfo.getTenantId(), uplinkMsgPack.size(), e);
-        sendUplinkFutureResult.set(true);
-    }
-
-    private void scheduleMsgPack(ExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
+    private void submitMsgPack(ExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
         sendUplinkFuture = executor.submit(() -> {
             try {
                 int attempt = 1;
