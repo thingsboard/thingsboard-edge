@@ -39,6 +39,8 @@ public class EdgeInfoHolder {
     private long reconnectTimeoutMs;
     @Value("${cloud.reconnect_max_timeout}")
     private long reconnectMaxTimeoutMs;
+    @Value("${cloud.reconnect_jitter_factor:0.15}")
+    private double reconnectJitterFactor;
 
     private TenantId tenantId;
     private CustomerId customerId;

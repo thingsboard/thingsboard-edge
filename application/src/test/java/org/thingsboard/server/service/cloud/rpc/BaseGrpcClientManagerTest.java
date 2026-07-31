@@ -35,6 +35,7 @@ import org.thingsboard.server.service.cloud.info.EdgeInfoHolder;
 import org.thingsboard.server.service.cloud.info.PendingUplinkMsgPackHolder;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -123,6 +124,29 @@ public class BaseGrpcClientManagerTest {
         assertThat(scheduledDelays).containsExactly(1000L, 2000L, 4000L, 8000L, 8000L);
         verify(edgeRpcClient, times(4)).disconnect(true);
         verify(edgeRpcClient, times(4)).connect(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void reconnectDelayIsJitteredAroundTheDoublingBase() {
+        lenient().when(edgeInfo.getReconnectJitterFactor()).thenReturn(0.5);
+
+        triggerReconnect();
+        for (int i = 0; i < 20; i++) {
+            runScheduledTask(i);
+        }
+
+        // Each delay sits within ±50% of its base (1000/2000/4000). The bases are unaffected by jitter, so
+        // the ranges stay centred on the doubling sequence - if jitter compounded, the third delay could
+        // reach 1500*2*1.5*2*1.5 and escape its range.
+        assertThat(scheduledDelays.get(0)).isBetween(500L, 1500L);
+        assertThat(scheduledDelays.get(1)).isBetween(1000L, 3000L);
+        assertThat(scheduledDelays.get(2)).isBetween(2000L, 6000L);
+
+        // From the 4th attempt on every base is the same capped 8000ms, so these delays must still differ
+        // from one another - that is the whole point of jitter, and a fixed delay would fail here.
+        List<Long> cappedDelays = scheduledDelays.subList(3, scheduledDelays.size());
+        assertThat(cappedDelays).allSatisfy(delay -> assertThat(delay).isBetween(4000L, 12000L));
+        assertThat(new HashSet<>(cappedDelays)).as("jitter must actually vary the delay").hasSizeGreaterThan(1);
     }
 
     @Test
