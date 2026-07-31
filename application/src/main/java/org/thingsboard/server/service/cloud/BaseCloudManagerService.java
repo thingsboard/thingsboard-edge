@@ -159,9 +159,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     private ScheduledExecutorService shutdownExecutor;
     private ScheduledExecutorService reconnectExecutor;
-    private volatile ScheduledExecutorService connectExecutor;
     private ScheduledFuture<?> reconnectFuture;
-    private ScheduledFuture<?> connectFuture;
+    // Connect state is publish-only: written on the partition-event thread, read on the connect and the
+    // shutdown threads. Volatile is enough because no read-modify-write has to span both fields.
+    private volatile ScheduledExecutorService connectExecutor;
+    private volatile ScheduledFuture<?> connectFuture;
     private final Lock reconnectLock = new ReentrantLock();
     private boolean reconnecting;
     private long currentReconnectTimeoutMs;
