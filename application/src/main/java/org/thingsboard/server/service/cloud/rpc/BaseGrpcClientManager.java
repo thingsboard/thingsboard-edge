@@ -92,10 +92,14 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     @PreDestroy
     private void destroy() {
         edgeInfo.resetProcessingFlags();
-        cancelReconnect();
+        // Must happen before edgeRpcClient.disconnect(false) below: shutting down the channel fires the
+        // gRPC onError callback, which calls scheduleReconnect. Clearing the executor under reconnectLock
+        // first makes that callback a no-op instead of a reject on an already shut down executor.
+        shutdownReconnect();
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
+            shutdownExecutor = null;
         }
 
         connectionStatusManager.updateConnectivityStatus(false);
@@ -107,11 +111,6 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             edgeRpcClient.disconnect(false);
         } catch (Exception e) {
             log.error("Exception during disconnect", e);
-        }
-
-        if (reconnectExecutor != null) {
-            reconnectExecutor.shutdownNow();
-            reconnectExecutor = null;
         }
         log.info("[{}] Destroy was successful", edgeId);
     }
@@ -162,6 +161,13 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         edgeInfo.setInitInProgress(true);
         try {
             log.info("Starting Cloud Edge service");
+            // A previous attempt may have left its reconnect executor running: scheduleReconnect resets the
+            // processing flags, so a PartitionChangeEvent can re-enter here without destroy() having run.
+            // Replace it instead of orphaning its threads, and do it before connect() so that callbacks
+            // fired during connect always see the current executor.
+            shutdownReconnect();
+            underReconnectLock(() -> reconnectExecutor =
+                    Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect")));
             edgeRpcClient.connect(edgeInfo.getRoutingKey(), edgeInfo.getRoutingSecret(),
                     this::onUplinkResponse,
                     this::onEdgeUpdate,
@@ -170,6 +176,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             launchCloudEventsProcessing();
         } catch (Exception e) {
             log.error("Failed to establish connection to cloud", e);
+            shutdownReconnect();
             connectExecutor.schedule(this::establishRpcConnection, edgeInfo.getReconnectTimeoutMs(), TimeUnit.MILLISECONDS);
         }
     }
@@ -180,18 +187,13 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
         // Only start a reconnect loop if one is not already running. Reconnect attempts that fail
         // asynchronously call this method again via the onError callback - those are no-ops here.
-        // All reconnect state (reconnecting/reconnectFuture/currentReconnectTimeoutMs) is guarded by
-        // reconnectLock, since it is touched from gRPC callback threads and the reconnect thread.
-        reconnectLock.lock();
-        try {
-            if (reconnectFuture == null) {
+        underReconnectLock(() -> {
+            if (reconnectFuture == null && reconnectExecutor != null) {
                 reconnecting = true;
                 currentReconnectTimeoutMs = edgeInfo.getReconnectTimeoutMs();
                 scheduleReconnectAttempt(e);
             }
-        } finally {
-            reconnectLock.unlock();
-        }
+        });
     }
 
     // Must be called while holding reconnectLock.
@@ -219,27 +221,49 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             // Exponential backoff: a failed attempt (native/heap pressure, unreachable cloud) grows
             // the delay up to a cap, so a stuck Edge is not hammering reconnect once per interval.
             // A successful connect stops the loop via onEdgeUpdate -> reconnecting=false.
-            reconnectLock.lock();
-            try {
+            underReconnectLock(() -> {
                 if (reconnecting) {
                     currentReconnectTimeoutMs = Math.min(currentReconnectTimeoutMs * 2, edgeInfo.getReconnectMaxTimeoutMs());
                     scheduleReconnectAttempt(e);
                 }
-            } finally {
-                reconnectLock.unlock();
-            }
+            });
         }, currentReconnectTimeoutMs, TimeUnit.MILLISECONDS);
     }
 
     // Stops any in-progress reconnect loop and clears its state. Safe to call when no loop is running.
     private void cancelReconnect() {
-        reconnectLock.lock();
-        try {
+        underReconnectLock(() -> {
             reconnecting = false;
             if (reconnectFuture != null) {
                 reconnectFuture.cancel(true);
                 reconnectFuture = null;
             }
+        });
+    }
+
+    // Stops the reconnect loop and disposes of its executor, so that a gRPC callback arriving afterwards
+    // cannot resurrect the loop or reject on a shut down executor.
+    private void shutdownReconnect() {
+        underReconnectLock(() -> {
+            reconnecting = false;
+            if (reconnectFuture != null) {
+                reconnectFuture.cancel(true);
+                reconnectFuture = null;
+            }
+            if (reconnectExecutor != null) {
+                reconnectExecutor.shutdownNow();
+                reconnectExecutor = null;
+            }
+        });
+    }
+
+    // All reconnect state (reconnecting/reconnectFuture/currentReconnectTimeoutMs/reconnectExecutor) is
+    // guarded by reconnectLock, since it is touched from gRPC callback threads, the connect thread and
+    // the reconnect thread.
+    private void underReconnectLock(Runnable action) {
+        reconnectLock.lock();
+        try {
+            action.run();
         } finally {
             reconnectLock.unlock();
         }
@@ -328,7 +352,6 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
     private void launchCloudEventsProcessing() {
         eventPublisher.publishEvent(GrpcConnectionEstablishedEvent.INSTANCE);
-        reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
     }
 
     private void onDestroy() {
@@ -338,6 +361,11 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
     private boolean validateRoutingKeyAndSecret() {
         if (StringUtils.isBlank(edgeInfo.getRoutingKey()) || StringUtils.isBlank(edgeInfo.getRoutingSecret())) {
+            if (shutdownExecutor != null) {
+                // Already complaining from a previous call - a PartitionChangeEvent re-enters this path on
+                // every event, and a second executor would only duplicate the message every 10 seconds.
+                return false;
+            }
             shutdownExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-shutdown"));
             shutdownExecutor.scheduleAtFixedRate(() -> log.error(
                     "Routing Key and Routing Secret must be provided! " +

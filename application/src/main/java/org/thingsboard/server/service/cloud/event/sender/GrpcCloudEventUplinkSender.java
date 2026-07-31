@@ -62,14 +62,22 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
     private ExecutorService uplinkExecutor;
 
     public void init() {
+        // A previous connection may have left its executor running: this is re-entered on every
+        // GrpcConnectionEstablishedEvent, so replace the old one instead of orphaning its thread.
+        shutdownUplinkExecutor();
         uplinkExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
     }
 
     @PreDestroy
     public void shutdown() {
-        if (uplinkExecutor != null) {
+        shutdownUplinkExecutor();
+    }
+
+    private void shutdownUplinkExecutor() {
+        if (uplinkExecutor != null && !uplinkExecutor.isShutdown()) {
             uplinkExecutor.shutdownNow();
         }
+        uplinkExecutor = null;
     }
 
     @Override
