@@ -846,20 +846,15 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         // Read once - replaced on reconnect and cleared on destroy, both from other threads.
         ScheduledExecutorService executor = uplinkExecutor;
         if (executor == null) {
-            rejectMsgPack(uplinkMsgPack, null);
-            return;
+            // Fail instead of completing sendUplinkFutureResult as interrupted: processUplinkMessages reads
+            // that as "retry this page", and since only a new connection can restore the executor it would
+            // re-query the same page without ever advancing. Throwing reaches its catch, which abandons the
+            // batch and leaves the queue offset uncommitted, so the events are redelivered later. A shut
+            // down executor gets there on its own - schedule() throws RejectedExecutionException.
+            throw new RejectedExecutionException("Uplink executor is unavailable, "
+                    + uplinkMsgPack.size() + " msg(s) are going to be retried later");
         }
-        try {
-            scheduleMsgPack(executor, uplinkMsgPack, isGeneralMsg);
-        } catch (RejectedExecutionException e) {
-            rejectMsgPack(uplinkMsgPack, e);
-        }
-    }
-
-    // Report as interrupted so the pack is retried - the caller blocks on this future.
-    private void rejectMsgPack(List<UplinkMsg> uplinkMsgPack, RejectedExecutionException e) {
-        log.debug("[{}] Uplink executor is unavailable, {} msg(s) are going to be retried later", tenantId, uplinkMsgPack.size(), e);
-        sendUplinkFutureResult.set(true);
+        scheduleMsgPack(executor, uplinkMsgPack, isGeneralMsg);
     }
 
     private void scheduleMsgPack(ScheduledExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
