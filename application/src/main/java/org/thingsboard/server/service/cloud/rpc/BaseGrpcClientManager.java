@@ -190,6 +190,14 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     }
 
     private void scheduleReconnect(Exception e) {
+        startReconnectLoop(e, true);
+    }
+
+    private void rearmReconnectPreservingBackoff(Exception e) {
+        startReconnectLoop(e, false);
+    }
+
+    private void startReconnectLoop(Exception e, boolean resetBackoff) {
         edgeInfo.resetProcessingFlags();
         connectionStatusManager.updateConnectivityStatus(false);
 
@@ -198,7 +206,9 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         underReconnectLock(() -> {
             if (reconnectFuture == null && reconnectExecutor != null) {
                 reconnecting = true;
-                currentReconnectTimeoutMs = edgeInfo.getReconnectTimeoutMs();
+                if (resetBackoff || currentReconnectTimeoutMs <= 0) {
+                    currentReconnectTimeoutMs = edgeInfo.getReconnectTimeoutMs();
+                }
                 scheduleReconnectAttempt(e);
             }
         });
@@ -342,7 +352,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             }
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
-            scheduleReconnect(e);
+            rearmReconnectPreservingBackoff(e);
         } finally {
             edgeInfo.setInitInProgress(false);
         }

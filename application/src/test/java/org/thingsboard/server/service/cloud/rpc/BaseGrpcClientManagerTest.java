@@ -311,6 +311,20 @@ public class BaseGrpcClientManagerTest {
         verify(edgeInfo).setInitInProgress(false);
     }
 
+    @Test
+    void failedEdgeUpdateDoesNotResetTheBackoff() throws Exception {
+        triggerReconnect();
+        runScheduledTask(0);
+        assertThat(scheduledDelays).containsExactly(INITIAL_TIMEOUT_MS, 2 * INITIAL_TIMEOUT_MS);
+        when(edgeConfigurationHandler.initAndUpdateEdgeSettings(any())).thenThrow(new RuntimeException("DB is down"));
+
+        ReflectionTestUtils.invokeMethod(manager, "onEdgeUpdate", ceEdgeConfiguration());
+
+        assertThat(scheduledDelays).as("a failed init must not restart the backoff from the initial timeout")
+                .containsExactly(INITIAL_TIMEOUT_MS, 2 * INITIAL_TIMEOUT_MS, 2 * INITIAL_TIMEOUT_MS);
+        assertThat((Boolean) ReflectionTestUtils.getField(manager, "reconnecting")).isTrue();
+    }
+
     private static EdgeConfiguration ceEdgeConfiguration() {
         return EdgeConfiguration.newBuilder().setCloudType("CE").build();
     }
