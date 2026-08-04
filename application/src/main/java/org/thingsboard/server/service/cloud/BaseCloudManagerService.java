@@ -106,7 +106,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
 
-    @Value("${cloud.reconnect_max_timeout}")
+    @Value("${cloud.reconnect_max_timeout:180000}")
     private long reconnectMaxTimeoutMs;
 
     @Value("${cloud.reconnect_jitter_factor:0.15}")
@@ -461,8 +461,8 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
-            interruptPreviousSendUplinkMsgsTask();
             cancelReconnect();
+            interruptPreviousSendUplinkMsgsTask();
 
             if ("CE".equals(edgeConfiguration.getCloudType())) {
                 initAndUpdateEdgeSettings(edgeConfiguration);
@@ -480,8 +480,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             }
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
+            scheduleReconnect(e);
+        } finally {
+            initInProgress = false;
         }
-        initInProgress = false;
     }
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
@@ -803,7 +805,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 return Futures.immediateFuture(true);
             }
             interruptPreviousSendUplinkMsgsTask();
-            sendUplinkFutureResult = SettableFuture.create();
 
             log.trace("[{}] event(s) are going to be converted.", cloudEvents.size());
             List<UplinkMsg> uplinkMsgPack = cloudEvents.stream()
@@ -815,6 +816,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 return Futures.immediateFuture(false);
             }
 
+            sendUplinkFutureResult = SettableFuture.create();
             processMsgPack(uplinkMsgPack, isGeneralMsg);
         } finally {
             uplinkSendLock.unlock();
@@ -845,16 +847,15 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
         // Read once - replaced on reconnect and cleared on destroy, both from other threads.
         ScheduledExecutorService executor = uplinkExecutor;
-        if (executor == null) {
-            // Fail instead of completing sendUplinkFutureResult as interrupted: processUplinkMessages reads
-            // that as "retry this page", and since only a new connection can restore the executor it would
-            // re-query the same page without ever advancing. Throwing reaches its catch, which abandons the
-            // batch and leaves the queue offset uncommitted, so the events are redelivered later. A shut
-            // down executor gets there on its own - schedule() throws RejectedExecutionException.
-            throw new RejectedExecutionException("Uplink executor is unavailable, "
-                    + uplinkMsgPack.size() + " msg(s) are going to be retried later");
+        try {
+            if (executor == null) {
+                throw new RejectedExecutionException("Uplink executor is unavailable, "
+                        + uplinkMsgPack.size() + " msg(s) are going to be retried later");
+            }
+            scheduleMsgPack(executor, uplinkMsgPack, isGeneralMsg);
+        } catch (RejectedExecutionException e) {
+            sendUplinkFutureResult.setException(e);
         }
-        scheduleMsgPack(executor, uplinkMsgPack, isGeneralMsg);
     }
 
     private void scheduleMsgPack(ScheduledExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {

@@ -26,13 +26,17 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
+import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -66,6 +70,10 @@ public class BaseCloudManagerServiceTest {
     private ScheduledExecutorService reconnectExecutor;
     @Mock
     private PartitionService partitionService;
+    @Mock
+    private EdgeSettingsService edgeSettingsService;
+    @Mock
+    private TelemetrySubscriptionService tsSubService;
 
     private TestCloudManagerService service;
 
@@ -300,17 +308,61 @@ public class BaseCloudManagerServiceTest {
         assertPackRejected(shutDownExecutor);
     }
 
-    // Completing sendUplinkFutureResult as interrupted would tell processUplinkMessages to retry the same
-    // page, which it would re-query forever because only a new connection can restore the executor.
-    // Failing reaches its catch instead, abandoning the batch with its queue offset uncommitted.
+    @Test
+    void failedEdgeUpdateReArmsReconnect() {
+        givenSystemTenantPartitionIsMine();
+        ReflectionTestUtils.setField(service, "edgeSettingsService", edgeSettingsService);
+        ReflectionTestUtils.setField(service, "tsSubService", tsSubService);
+        when(edgeSettingsService.findEdgeSettings()).thenThrow(new RuntimeException("DB is down"));
+
+        // The channel stays up after a failed init, so nothing else would ever retry the handshake.
+        ReflectionTestUtils.invokeMethod(service, "onEdgeUpdate", ceEdgeConfiguration());
+
+        assertThat(scheduledDelays).as("failed init must re-arm the reconnect loop").containsExactly(INITIAL_TIMEOUT_MS);
+        assertThat((Boolean) ReflectionTestUtils.getField(service, "reconnecting")).isTrue();
+        assertThat(ReflectionTestUtils.getField(service, "reconnectFuture")).isNotNull();
+    }
+
+    private void givenSystemTenantPartitionIsMine() {
+        ReflectionTestUtils.setField(service, "partitionService", partitionService);
+        when(partitionService.resolve(any(), any(TenantId.class), any(TenantId.class)))
+                .thenReturn(new TopicPartitionInfo("tb_core", TenantId.SYS_TENANT_ID, 0, true));
+    }
+
+    private static EdgeConfiguration ceEdgeConfiguration() {
+        return EdgeConfiguration.newBuilder().setCloudType("CE").build();
+    }
+
+    @Test
+    void emptyPackDoesNotStrandTheUplinkFuture() {
+        // Already completed, so interruptPreviousSendUplinkMsgsTask returns without waiting out its timeout.
+        SettableFuture<Boolean> previous = SettableFuture.create();
+        previous.set(false);
+        ReflectionTestUtils.setField(service, "sendUplinkFutureResult", previous);
+
+        // No events convert to an uplink msg, so processCloudEvents takes the empty-pack early return.
+        assertThat(service.processCloudEvents(List.of(), true)).isDone();
+
+        // A fresh future created before that return would never be completed, and the next
+        // interruptPreviousSendUplinkMsgsTask would block for its full 10s timeout on it.
+        assertThat(ReflectionTestUtils.getField(service, "sendUplinkFutureResult")).isSameAs(previous);
+    }
+
+    // The pack must surface as a failed future rather than an escaping unchecked exception: both callers
+    // already handle ExecutionException, whereas RejectedExecutionException crossing processCloudEvents
+    // misses the Kafka catch and the batch is dropped without being committed. Completing as interrupted
+    // would instead tell processUplinkMessages to re-query the same page forever.
     private void assertPackRejected(ScheduledExecutorService executor) {
         SettableFuture<Boolean> result = SettableFuture.create();
         ReflectionTestUtils.setField(service, "sendUplinkFutureResult", result);
         ReflectionTestUtils.setField(service, "uplinkExecutor", executor);
 
-        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(service, "processMsgPack", List.of(uplinkMsg()), true))
-                .isInstanceOf(RejectedExecutionException.class);
-        assertThat(result.isDone()).as("pack must not be reported as a finished send").isFalse();
+        ReflectionTestUtils.invokeMethod(service, "processMsgPack", List.of(uplinkMsg()), true);
+
+        assertThat(result.isDone()).as("pack must be reported as failed, not left pending").isTrue();
+        assertThatThrownBy(result::get)
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(RejectedExecutionException.class);
     }
 
     private static UplinkMsg uplinkMsg() {
