@@ -323,6 +323,23 @@ public class BaseCloudManagerServiceTest {
         assertThat(ReflectionTestUtils.getField(service, "reconnectFuture")).isNotNull();
     }
 
+    @Test
+    void failedEdgeUpdateDoesNotResetTheBackoff() {
+        triggerReconnect();
+        runScheduledTask(0);
+        assertThat(scheduledDelays).containsExactly(INITIAL_TIMEOUT_MS, 2 * INITIAL_TIMEOUT_MS);
+        givenSystemTenantPartitionIsMine();
+        ReflectionTestUtils.setField(service, "edgeSettingsService", edgeSettingsService);
+        ReflectionTestUtils.setField(service, "tsSubService", tsSubService);
+        when(edgeSettingsService.findEdgeSettings()).thenThrow(new RuntimeException("DB is down"));
+
+        ReflectionTestUtils.invokeMethod(service, "onEdgeUpdate", ceEdgeConfiguration());
+
+        assertThat(scheduledDelays).as("a failed init must not restart the backoff from the initial timeout")
+                .containsExactly(INITIAL_TIMEOUT_MS, 2 * INITIAL_TIMEOUT_MS, 2 * INITIAL_TIMEOUT_MS);
+        assertThat((Boolean) ReflectionTestUtils.getField(service, "reconnecting")).isTrue();
+    }
+
     private void givenSystemTenantPartitionIsMine() {
         ReflectionTestUtils.setField(service, "partitionService", partitionService);
         when(partitionService.resolve(any(), any(TenantId.class), any(TenantId.class)))

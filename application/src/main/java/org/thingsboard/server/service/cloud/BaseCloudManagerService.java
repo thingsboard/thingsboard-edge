@@ -480,7 +480,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             }
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
-            scheduleReconnect(e);
+            rearmReconnectPreservingBackoff(e);
         } finally {
             initInProgress = false;
         }
@@ -634,6 +634,14 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     }
 
     private void scheduleReconnect(Exception e) {
+        startReconnectLoop(e, true);
+    }
+
+    private void rearmReconnectPreservingBackoff(Exception e) {
+        startReconnectLoop(e, false);
+    }
+
+    private void startReconnectLoop(Exception e, boolean resetBackoff) {
         initialized = false;
 
         updateConnectivityStatus(false);
@@ -641,7 +649,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
         underReconnectLock(() -> {
             if (reconnectFuture == null && reconnectExecutor != null) {
                 reconnecting = true;
-                currentReconnectTimeoutMs = reconnectTimeoutMs;
+                if (resetBackoff || currentReconnectTimeoutMs <= 0) {
+                    currentReconnectTimeoutMs = reconnectTimeoutMs;
+                }
                 scheduleReconnectAttempt(e);
             }
         });
