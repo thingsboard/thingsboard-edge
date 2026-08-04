@@ -32,12 +32,15 @@ import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.GrpcClientManager;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class GrpcCloudEventUplinkSenderTest {
@@ -110,17 +113,36 @@ public class GrpcCloudEventUplinkSenderTest {
         assertPackRejected(shutDownExecutor);
     }
 
-    // Completing sendUplinkFutureResult as interrupted would tell processUplinkMessages to retry the same
-    // page, which it would re-query forever because only a new connection can restore the executor.
-    // Failing reaches its catch instead, abandoning the batch with its queue offset uncommitted.
+    @Test
+    void emptyPackDoesNotStrandTheUplinkFuture() {
+        // Already completed, so interruptPreviousSendUplinkMsgsTask returns without waiting out its timeout.
+        SettableFuture<Boolean> previous = SettableFuture.create();
+        previous.set(false);
+        ReflectionTestUtils.setField(sender, "sendUplinkFutureResult", previous);
+        when(uplinkMsgMapper.convertCloudEventsToUplink(anyList())).thenReturn(List.of());
+
+        assertThat(sender.sendCloudEvents(List.of(), true)).isDone();
+
+        // A fresh future created before the empty-pack early return would never be completed, and the next
+        // interruptPreviousSendUplinkMsgsTask would block for its full 10s timeout on it.
+        assertThat(ReflectionTestUtils.getField(sender, "sendUplinkFutureResult")).isSameAs(previous);
+    }
+
+    // The pack must surface as a failed future rather than an escaping unchecked exception: callers already
+    // handle ExecutionException, whereas RejectedExecutionException crossing sendCloudEvents misses the Kafka
+    // runner's catch and the batch is dropped without being committed. Completing as interrupted would
+    // instead tell the Postgres runner to re-query the same page forever.
     private void assertPackRejected(ExecutorService executor) {
         SettableFuture<Boolean> result = SettableFuture.create();
         ReflectionTestUtils.setField(sender, "sendUplinkFutureResult", result);
         ReflectionTestUtils.setField(sender, "uplinkExecutor", executor);
 
-        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(sender, "processMsgPack", List.of(uplinkMsg()), true))
-                .isInstanceOf(RejectedExecutionException.class);
-        assertThat(result.isDone()).as("pack must not be reported as a finished send").isFalse();
+        ReflectionTestUtils.invokeMethod(sender, "processMsgPack", List.of(uplinkMsg()), true);
+
+        assertThat(result.isDone()).as("pack must be reported as failed, not left pending").isTrue();
+        assertThatThrownBy(result::get)
+                .isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(RejectedExecutionException.class);
     }
 
     private static UplinkMsg uplinkMsg() {

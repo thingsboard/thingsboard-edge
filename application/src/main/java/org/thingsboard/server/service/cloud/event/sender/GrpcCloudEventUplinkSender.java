@@ -89,7 +89,6 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
                 return Futures.immediateFuture(true);
             }
             interruptPreviousSendUplinkMsgsTask();
-            sendUplinkFutureResult = SettableFuture.create();
 
             cloudEvents = EdgeMsgConstructorUtils.mergeAndFilterUplinkDuplicates(cloudEvents);
 
@@ -99,6 +98,7 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
                 return Futures.immediateFuture(false);
             }
 
+            sendUplinkFutureResult = SettableFuture.create();
             processMsgPack(uplinkMsgPack, isGeneralMsg);
         } finally {
             edgeInfo.unlockSend();
@@ -131,16 +131,21 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
 
         // Read once - replaced on reconnect and cleared on shutdown, both from other threads.
         ExecutorService executor = uplinkExecutor;
-        if (executor == null) {
-            // Fail instead of completing sendUplinkFutureResult as interrupted: processUplinkMessages reads
-            // that as "retry this page", and since only a new connection can restore the executor it would
-            // re-query the same page without ever advancing. Throwing reaches its catch, which abandons the
-            // batch and leaves the queue offset uncommitted, so the events are redelivered later. A shut
-            // down executor gets there on its own - submit() throws RejectedExecutionException.
-            throw new RejectedExecutionException("Uplink executor is unavailable, "
-                    + uplinkMsgPack.size() + " msg(s) are going to be retried later");
+        try {
+            if (executor == null) {
+                throw new RejectedExecutionException("Uplink executor is unavailable, "
+                        + uplinkMsgPack.size() + " msg(s) are going to be retried later");
+            }
+            // An executor shut down after the read above rejects on its own - submit() throws the same type.
+            submitMsgPack(executor, uplinkMsgPack, isGeneralMsg);
+        } catch (RejectedExecutionException e) {
+            // Fail the future rather than letting this escape: callers already handle ExecutionException,
+            // whereas an unchecked exception crossing sendCloudEvents relies on a catch-all further up - on
+            // the Kafka path it misses the catch entirely and the batch is dropped without being committed.
+            // Completing as interrupted is not an option either: the Postgres runner reads that as "retry
+            // this page" and would re-query it forever, since only a new connection can restore the executor.
+            sendUplinkFutureResult.setException(e);
         }
-        submitMsgPack(executor, uplinkMsgPack, isGeneralMsg);
     }
 
     private void submitMsgPack(ExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {

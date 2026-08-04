@@ -323,8 +323,8 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
-            eventPublisher.publishEvent(InterruptSendUplinkEvent.INSTANCE);
             cancelReconnect();
+            eventPublisher.publishEvent(InterruptSendUplinkEvent.INSTANCE);
 
             if ("CE".equals(edgeConfiguration.getCloudType())) {
                 initAndUpdateEdgeSettings(edgeConfiguration);
@@ -342,8 +342,10 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             }
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
+            scheduleReconnect(e);
+        } finally {
+            edgeInfo.setInitInProgress(false);
         }
-        edgeInfo.setInitInProgress(false);
     }
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {

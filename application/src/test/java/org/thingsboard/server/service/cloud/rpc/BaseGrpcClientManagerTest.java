@@ -28,6 +28,7 @@ import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.service.cloud.DownlinkMessageService;
 import org.thingsboard.server.service.cloud.config.EdgeConfigurationHandler;
@@ -52,6 +53,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class BaseGrpcClientManagerTest {
@@ -294,6 +296,23 @@ public class BaseGrpcClientManagerTest {
 
         assertThat(interrupted).as("destroy() must not interrupt the thread it runs on").isFalse();
         verify(edgeRpcClient).disconnect(false);
+    }
+
+    @Test
+    void failedEdgeUpdateReArmsReconnect() throws Exception {
+        when(edgeConfigurationHandler.initAndUpdateEdgeSettings(any())).thenThrow(new RuntimeException("DB is down"));
+
+        // The channel stays up after a failed init, so nothing else would ever retry the handshake.
+        ReflectionTestUtils.invokeMethod(manager, "onEdgeUpdate", ceEdgeConfiguration());
+
+        assertThat(scheduledDelays).as("failed init must re-arm the reconnect loop").containsExactly(INITIAL_TIMEOUT_MS);
+        assertThat((Boolean) ReflectionTestUtils.getField(manager, "reconnecting")).isTrue();
+        assertThat(ReflectionTestUtils.getField(manager, "reconnectFuture")).isNotNull();
+        verify(edgeInfo).setInitInProgress(false);
+    }
+
+    private static EdgeConfiguration ceEdgeConfiguration() {
+        return EdgeConfiguration.newBuilder().setCloudType("CE").build();
     }
 
     private void shutdownConnectExecutor() {
