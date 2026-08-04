@@ -76,8 +76,11 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -102,6 +105,12 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
+
+    @Value("${cloud.reconnect_max_timeout:180000}")
+    private long reconnectMaxTimeoutMs;
+
+    @Value("${cloud.reconnect_jitter_factor:0.15}")
+    private double reconnectJitterFactor;
 
     @Value("${cloud.uplink_pack_timeout_sec:60}")
     private long uplinkPackTimeoutSec;
@@ -145,14 +154,19 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     @Autowired
     protected CloudStatsCounterService statsCounterService;
 
-    private ScheduledExecutorService uplinkExecutor;
+    private volatile ScheduledExecutorService uplinkExecutor;
     private ScheduledFuture<?> sendUplinkFuture;
 
     private ScheduledExecutorService shutdownExecutor;
     private ScheduledExecutorService reconnectExecutor;
-    private ScheduledExecutorService connectExecutor;
     private ScheduledFuture<?> reconnectFuture;
-    private ScheduledFuture<?> connectFuture;
+    // Connect state is publish-only: written on the partition-event thread, read on the connect and the
+    // shutdown threads. Volatile is enough because no read-modify-write has to span both fields.
+    private volatile ScheduledExecutorService connectExecutor;
+    private volatile ScheduledFuture<?> connectFuture;
+    private final Lock reconnectLock = new ReentrantLock();
+    private boolean reconnecting;
+    private long currentReconnectTimeoutMs;
 
     private EdgeSettings currentEdgeSettings;
     protected TenantId tenantId;
@@ -178,7 +192,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             connectFuture = null;
         }
         if (connectExecutor == null) {
-            connectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-connect"));
+            ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ThingsBoardThreadFactory.forName("cloud-manager-connect"));
+            // Otherwise a retry queued here would still run after destroy and resurrect the manager.
+            executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+            connectExecutor = executor;
         }
         connectFuture = connectExecutor.schedule(() -> {
             try {
@@ -191,17 +208,26 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                         initInProgress = true;
                         try {
                             log.info("Starting Cloud Edge service");
+                            // A previous attempt may have left its executors running: scheduleReconnect clears
+                            // 'initialized', so a PartitionChangeEvent can re-enter here without destroy() having
+                            // run. Replace them instead of orphaning their threads, and do it before connect() so
+                            // that callbacks fired during connect always see the current executors.
+                            shutdownUplinkExecutor();
+                            shutdownReconnect();
+                            uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
+                            underReconnectLock(
+                                    () -> reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect")));
                             edgeRpcClient.connect(routingKey, routingSecret,
                                     this::onUplinkResponse,
                                     this::onEdgeUpdate,
                                     this::onDownlink,
                                     this::scheduleReconnect);
-                            uplinkExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
-                            reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
                             launchUplinkProcessing();
                         } catch (Exception e) {
                             initInProgress = false;
                             log.error("Failed to establish connection to cloud", e);
+                            shutdownUplinkExecutor();
+                            shutdownReconnect();
                             connectExecutor.schedule(this::establishRpcConnection, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
                         }
                     }
@@ -237,9 +263,15 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     protected void destroy() throws InterruptedException {
         initInProgress = false;
         initialized = false;
+        // Must happen before edgeRpcClient.disconnect(false) below: shutting down the channel fires the
+        // gRPC onError callback, which calls scheduleReconnect. Clearing the executor under reconnectLock
+        // first makes that callback a no-op instead of a reject on an already shut down executor.
+        shutdownReconnect();
+        shutdownConnect();
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
+            shutdownExecutor = null;
         }
 
         updateConnectivityStatus(false);
@@ -252,14 +284,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             log.error("Exception during disconnect", e);
         }
 
-        if (uplinkExecutor != null && !uplinkExecutor.isShutdown()) {
-            uplinkExecutor.shutdownNow();
-            uplinkExecutor = null;
-        }
-        if (reconnectExecutor != null) {
-            reconnectExecutor.shutdownNow();
-            reconnectExecutor = null;
-        }
+        shutdownUplinkExecutor();
         log.info("[{}] Destroy was successful", edgeId);
     }
 
@@ -395,6 +420,11 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     private boolean validateRoutingKeyAndSecret() {
         if (StringUtils.isBlank(routingKey) || StringUtils.isBlank(routingSecret)) {
+            if (shutdownExecutor != null) {
+                // Already complaining from a previous call - a PartitionChangeEvent re-enters this path on
+                // every event, and a second executor would only duplicate the message every 10 seconds.
+                return false;
+            }
             shutdownExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-shutdown"));
             shutdownExecutor.scheduleAtFixedRate(() -> log.error(
                     "Routing Key and Routing Secret must be provided! " +
@@ -431,11 +461,8 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
+            cancelReconnect();
             interruptPreviousSendUplinkMsgsTask();
-            if (reconnectFuture != null) {
-                reconnectFuture.cancel(true);
-                reconnectFuture = null;
-            }
 
             if ("CE".equals(edgeConfiguration.getCloudType())) {
                 initAndUpdateEdgeSettings(edgeConfiguration);
@@ -453,8 +480,10 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
             }
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
+            scheduleReconnect(e);
+        } finally {
+            initInProgress = false;
         }
-        initInProgress = false;
     }
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
@@ -609,25 +638,99 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
         updateConnectivityStatus(false);
 
-        if (reconnectFuture == null) {
-            reconnectFuture = reconnectExecutor.scheduleAtFixedRate(() -> {
-                log.info("Trying to reconnect due to the error: ", e);
-                try {
-                    edgeRpcClient.disconnect(true);
-                } catch (Exception ex) {
-                    log.error("Exception during disconnect:", ex);
-                }
-                try {
-                    edgeRpcClient.connect(routingKey, routingSecret,
-                            this::onUplinkResponse,
-                            this::onEdgeUpdate,
-                            this::onDownlink,
-                            this::scheduleReconnect);
-                } catch (Exception ex) {
-                    log.error("Exception during connect:", ex);
-                }
-            }, reconnectTimeoutMs, reconnectTimeoutMs, TimeUnit.MILLISECONDS);
+        underReconnectLock(() -> {
+            if (reconnectFuture == null && reconnectExecutor != null) {
+                reconnecting = true;
+                currentReconnectTimeoutMs = reconnectTimeoutMs;
+                scheduleReconnectAttempt(e);
+            }
+        });
+    }
+
+    // Must be called while holding reconnectLock.
+    private void scheduleReconnectAttempt(Exception e) {
+        ScheduledExecutorService executor = reconnectExecutor;
+        if (!reconnecting || executor == null) {
+            return;
         }
+        reconnectFuture = executor.schedule(() -> {
+            log.info("Trying to reconnect due to the error: ", e);
+            try {
+                edgeRpcClient.disconnect(true);
+            } catch (Exception ex) {
+                log.error("Exception during disconnect:", ex);
+            }
+            try {
+                edgeRpcClient.connect(routingKey, routingSecret,
+                        this::onUplinkResponse,
+                        this::onEdgeUpdate,
+                        this::onDownlink,
+                        this::scheduleReconnect);
+            } catch (Exception ex) {
+                log.error("Exception during connect:", ex);
+            }
+            underReconnectLock(() -> {
+                if (reconnecting) {
+                    currentReconnectTimeoutMs = Math.min(currentReconnectTimeoutMs * 2, reconnectMaxTimeoutMs);
+                    scheduleReconnectAttempt(e);
+                }
+            });
+        }, applyJitter(currentReconnectTimeoutMs), TimeUnit.MILLISECONDS);
+    }
+
+    // Randomizes the delay by ±reconnectJitterFactor so that a fleet of edges that lost the cloud at the
+    // same moment does not retry in synchronized waves. Jitter is applied to the scheduled value only -
+    // currentReconnectTimeoutMs stays the clean base, so the randomness never compounds across attempts.
+    private long applyJitter(long delayMs) {
+        long offset = (long) (delayMs * reconnectJitterFactor);
+        if (offset <= 0) {
+            return delayMs;
+        }
+        return ThreadLocalRandom.current().nextLong(Math.max(0, delayMs - offset), delayMs + offset + 1);
+    }
+
+    // Stops any in-progress reconnect loop and clears its state. Safe to call when no loop is running.
+    private void cancelReconnect() {
+        underReconnectLock(() -> {
+            reconnecting = false;
+            if (reconnectFuture != null) {
+                reconnectFuture.cancel(true);
+                reconnectFuture = null;
+            }
+        });
+    }
+
+    private void shutdownUplinkExecutor() {
+        if (uplinkExecutor != null && !uplinkExecutor.isShutdown()) {
+            uplinkExecutor.shutdownNow();
+        }
+        uplinkExecutor = null;
+    }
+
+    // shutdown(), not shutdownNow(): destroy() may itself be running on this executor's thread.
+    private void shutdownConnect() {
+        if (connectFuture != null) {
+            connectFuture.cancel(false);
+            connectFuture = null;
+        }
+        if (connectExecutor != null) {
+            connectExecutor.shutdown();
+            connectExecutor = null;
+        }
+    }
+
+    private void shutdownReconnect() {
+        underReconnectLock(() -> {
+            reconnecting = false;
+            if (reconnectFuture != null) {
+                reconnectFuture.cancel(true);
+                reconnectFuture = null;
+            }
+            if (reconnectExecutor != null) {
+                reconnectExecutor.shutdownNow();
+                reconnectExecutor = null;
+            }
+        });
     }
 
     private void save(String key, long value) {
@@ -702,7 +805,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 return Futures.immediateFuture(true);
             }
             interruptPreviousSendUplinkMsgsTask();
-            sendUplinkFutureResult = SettableFuture.create();
 
             log.trace("[{}] event(s) are going to be converted.", cloudEvents.size());
             List<UplinkMsg> uplinkMsgPack = cloudEvents.stream()
@@ -714,6 +816,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 return Futures.immediateFuture(false);
             }
 
+            sendUplinkFutureResult = SettableFuture.create();
             processMsgPack(uplinkMsgPack, isGeneralMsg);
         } finally {
             uplinkSendLock.unlock();
@@ -742,7 +845,21 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     private void processMsgPack(List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
         pendingMsgMap.clear();
         uplinkMsgPack.forEach(msg -> pendingMsgMap.put(msg.getUplinkMsgId(), msg));
-        sendUplinkFuture = uplinkExecutor.schedule(() -> {
+        // Read once - replaced on reconnect and cleared on destroy, both from other threads.
+        ScheduledExecutorService executor = uplinkExecutor;
+        try {
+            if (executor == null) {
+                throw new RejectedExecutionException("Uplink executor is unavailable, "
+                        + uplinkMsgPack.size() + " msg(s) are going to be retried later");
+            }
+            scheduleMsgPack(executor, uplinkMsgPack, isGeneralMsg);
+        } catch (RejectedExecutionException e) {
+            sendUplinkFutureResult.setException(e);
+        }
+    }
+
+    private void scheduleMsgPack(ScheduledExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
+        sendUplinkFuture = executor.schedule(() -> {
             try {
                 int attempt = 1;
                 boolean success;
@@ -828,6 +945,18 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     protected interface CloudEventFinder {
         PageData<CloudEvent> find(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
+    }
+
+    // All reconnect state (reconnecting/reconnectFuture/currentReconnectTimeoutMs/reconnectExecutor) is
+    // guarded by reconnectLock, since it is touched from gRPC callback threads, the connect thread and
+    // the reconnect thread.
+    private void underReconnectLock(Runnable action) {
+        reconnectLock.lock();
+        try {
+            action.run();
+        } finally {
+            reconnectLock.unlock();
+        }
     }
 
 }
