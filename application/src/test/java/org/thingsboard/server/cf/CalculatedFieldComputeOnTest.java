@@ -48,7 +48,7 @@ import static org.awaitility.Awaitility.await;
 @TestPropertySource(properties = {
         "edges.enabled=true"
 })
-public class CalculatedFieldComputeOnTest extends AbstractControllerTest {
+public class CalculatedFieldComputeOnTest extends AbstractControllerTest { // edge only: expectations are inverted vs the cloud
 
     private static final int TIMEOUT = 60;
     private static final int POLL_INTERVAL = 1;
@@ -82,7 +82,7 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testDefaultComputeOnIsCalculatedOnCloud() throws Exception {
+    public void testDefaultComputeOnIsCalculatedOnEdge() throws Exception {
         Device device = givenDeviceWithTemperature("Default device", "default-1234");
 
         doPost("/api/calculatedField", cf(device.getId(), null), CalculatedField.class);
@@ -91,43 +91,41 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testComputeOnCloudIsCalculatedOnCloud() throws Exception {
+    public void testComputeOnCloudIsNotCalculatedOnEdge() throws Exception {
         Device device = givenDeviceWithTemperature("Cloud device", "cloud-1234");
 
         doPost("/api/calculatedField", cf(device.getId(), ComputeOn.CLOUD), CalculatedField.class);
 
+        awaitNoOutput(device.getId());
+    }
+
+    @Test
+    public void testComputeOnEdgeIsCalculatedOnEdge() throws Exception {
+        Device device = givenDeviceWithTemperature("Edge device", "edge-1234");
+
+        doPost("/api/calculatedField", cf(device.getId(), ComputeOn.EDGE), CalculatedField.class);
+
         awaitOutput(device.getId(), "77.0");
     }
 
     @Test
-    public void testComputeOnEdgeIsNotCalculatedOnCloud() throws Exception {
-        Device device = givenDeviceWithTemperature("Edge device", "edge-1234");
-        // profile bound so that the edge assignment validation does not apply
-        CalculatedField calculatedField = cf(device.getDeviceProfileId(), ComputeOn.EDGE);
-
-        doPost("/api/calculatedField", calculatedField, CalculatedField.class);
-
-        awaitNoOutput(device.getId());
-    }
-
-    @Test
-    public void testSwitchingComputeOnStartsAndStopsCalculationOnCloud() throws Exception {
+    public void testSwitchingComputeOnStartsAndStopsCalculationOnEdge() throws Exception {
         Device device = givenDeviceWithTemperature("Switching device", "switch-1234");
-        CalculatedField saved = doPost("/api/calculatedField", cf(device.getDeviceProfileId(), ComputeOn.EDGE), CalculatedField.class);
+        CalculatedField saved = doPost("/api/calculatedField", cf(device.getId(), ComputeOn.CLOUD), CalculatedField.class);
 
         awaitNoOutput(device.getId());
 
-        saved.setComputeOn(ComputeOn.CLOUD);
+        saved.setComputeOn(ComputeOn.EDGE);
         saved = doPost("/api/calculatedField", saved, CalculatedField.class);
 
         awaitOutput(device.getId(), "77.0");
 
-        saved.setComputeOn(ComputeOn.EDGE);
+        saved.setComputeOn(ComputeOn.CLOUD);
         doPost("/api/calculatedField", saved, CalculatedField.class);
 
         postTelemetry(device.getId(), "{\"temperature\":30}");
 
-        await().alias("switch back to EDGE -> cloud stops recalculating").during(10, TimeUnit.SECONDS)
+        await().alias("switch back to CLOUD -> edge stops recalculating").during(10, TimeUnit.SECONDS)
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
@@ -147,7 +145,7 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest {
     }
 
     private void awaitOutput(EntityId entityId, String expectedValue) {
-        await().alias("CF is calculated on the cloud").atMost(TIMEOUT, TimeUnit.SECONDS)
+        await().alias("CF is calculated on the edge").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     JsonNode value = getLatestTelemetry(entityId, OUTPUT_KEY).path(OUTPUT_KEY).path(0).path("value");
@@ -156,13 +154,13 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest {
     }
 
     private void awaitNoOutput(EntityId entityId) {
-        await().alias("CF is not calculated on the cloud").during(10, TimeUnit.SECONDS)
+        await().alias("CF is not calculated on the edge").during(10, TimeUnit.SECONDS)
                 .atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     JsonNode value = getLatestTelemetry(entityId, OUTPUT_KEY).path(OUTPUT_KEY).path(0).path("value");
                     assertThat(value.isMissingNode() || value.isNull())
-                            .as("CF must not be calculated on the cloud, but got value %s", value).isTrue();
+                            .as("CF must not be calculated on the edge, but got value %s", value).isTrue();
                 });
     }
 

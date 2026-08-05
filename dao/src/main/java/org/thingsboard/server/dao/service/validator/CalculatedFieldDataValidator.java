@@ -159,20 +159,7 @@ public class CalculatedFieldDataValidator extends DataValidator<CalculatedField>
     }
 
     private void validateComputeOn(TenantId tenantId, CalculatedField calculatedField) {
-        if (ComputeOn.EDGE != calculatedField.getComputeOn()) {
-            return;
-        }
-        if (edgeSynchronizationManager.getEdgeId().get() != null) {
-            return;
-        }
-        EntityId entityId = calculatedField.getEntityId();
-        if (EntityType.DEVICE != entityId.getEntityType() && EntityType.ASSET != entityId.getEntityType()) {
-            return;
-        }
-        if (relationService.findByToAndType(tenantId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.EDGE).isEmpty()) {
-            throw new DataValidationException("Calculated field computed on the edge requires "
-                    + entityId.getEntityType().name().toLowerCase() + " to be assigned to an edge!");
-        }
+        // edge only: the edge assignment relations live on the cloud, so there is nothing to validate here
     }
 
     private static void wrapAsDataValidation(Runnable validation) {

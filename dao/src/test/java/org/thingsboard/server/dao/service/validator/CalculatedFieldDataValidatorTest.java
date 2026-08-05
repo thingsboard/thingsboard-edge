@@ -79,6 +79,13 @@ public class CalculatedFieldDataValidatorTest {
     }
 
     @Test
+    public void testComputeOnIsNotValidatedOnEdge() { // edge only
+        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, edgeOnlyCf(DEVICE_ID))).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, cf(DEVICE_ID, ComputeOn.CLOUD))).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, cf(DEVICE_ID, null))).doesNotThrowAnyException();
+    }
+
+    @Test
     public void testUpdateNonExistingCalculatedField() {
         CalculatedField calculatedField = new CalculatedField(CALCULATED_FIELD_ID);
         calculatedField.setType(CalculatedFieldType.SIMPLE);
@@ -91,65 +98,12 @@ public class CalculatedFieldDataValidatorTest {
                 .hasMessage("Can't update non existing calculated field!");
     }
 
-    @Test
-    public void testEdgeOnlyRejectedWhenDeviceIsNotAssignedToEdge() {
-        givenNotAssignedToEdge(DEVICE_ID);
 
-        assertThatThrownBy(() -> validator.validateDataImpl(TENANT_ID, edgeOnlyCf(DEVICE_ID)))
-                .isInstanceOf(DataValidationException.class)
-                .hasMessage("Calculated field computed on the edge requires device to be assigned to an edge!");
-    }
 
-    @Test
-    public void testEdgeOnlyRejectedWhenAssetIsNotAssignedToEdge() {
-        givenNotAssignedToEdge(ASSET_ID);
 
-        assertThatThrownBy(() -> validator.validateDataImpl(TENANT_ID, edgeOnlyCf(ASSET_ID)))
-                .isInstanceOf(DataValidationException.class)
-                .hasMessage("Calculated field computed on the edge requires asset to be assigned to an edge!");
-    }
 
-    @Test
-    public void testEdgeOnlyAllowedWhenDeviceIsAssignedToEdge() {
-        givenAssignedToEdge(DEVICE_ID);
 
-        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, edgeOnlyCf(DEVICE_ID))).doesNotThrowAnyException();
-    }
 
-    @Test
-    public void testEdgeOnlyAllowedForProfileBoundCalculatedField() {
-        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, edgeOnlyCf(new DeviceProfileId(UUID.randomUUID())))).doesNotThrowAnyException();
-        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, edgeOnlyCf(new AssetProfileId(UUID.randomUUID())))).doesNotThrowAnyException();
-    }
-
-    @Test
-    public void testEdgeOnlyAllowedDuringEdgeSynchronization() {
-        givenNotAssignedToEdge(DEVICE_ID);
-        ThreadLocal<EdgeId> edgeIdHolder = new ThreadLocal<>();
-        edgeIdHolder.set(EDGE_ID);
-        given(edgeSynchronizationManager.getEdgeId()).willReturn(edgeIdHolder);
-
-        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, edgeOnlyCf(DEVICE_ID))).doesNotThrowAnyException();
-    }
-
-    @Test
-    public void testEdgeAllowedWithImmediateOutputStrategy() {
-        givenAssignedToEdge(DEVICE_ID);
-        CalculatedField calculatedField = edgeOnlyCf(DEVICE_ID);
-        ((TimeSeriesOutput) calculatedField.getConfiguration().getOutput()).setStrategy(new TimeSeriesImmediateOutputStrategy());
-
-        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, calculatedField)).doesNotThrowAnyException();
-    }
-
-    @Test
-    public void testComputeOnCloudNeverRequiresAnEdge() {
-        CalculatedField defaulted = cf(DEVICE_ID, null);
-        CalculatedField cloud = cf(DEVICE_ID, ComputeOn.CLOUD);
-        ((TimeSeriesOutput) cloud.getConfiguration().getOutput()).setStrategy(new TimeSeriesImmediateOutputStrategy());
-
-        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, defaulted)).doesNotThrowAnyException();
-        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, cloud)).doesNotThrowAnyException();
-    }
 
     private void givenNotAssignedToEdge(EntityId entityId) {
         given(edgeSynchronizationManager.getEdgeId()).willReturn(new ThreadLocal<>());

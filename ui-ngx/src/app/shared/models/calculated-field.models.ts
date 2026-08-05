@@ -138,7 +138,7 @@ export enum ComputeOn {
 
 export const computeOnValues = Object.values(ComputeOn);
 
-export const defaultComputeOn = ComputeOn.CLOUD;
+export const defaultComputeOn = ComputeOn.EDGE; // edge only
 
 export const ComputeOnTranslations = new Map<ComputeOn, CalculatedFieldTypeTranslate>(
   [

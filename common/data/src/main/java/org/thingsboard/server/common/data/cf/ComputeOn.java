@@ -22,7 +22,7 @@ public enum ComputeOn {
     CLOUD("Cloud"),
     EDGE("Edge");
 
-    public static final ComputeOn DEFAULT = CLOUD;
+    public static final ComputeOn DEFAULT = EDGE; // edge only
 
     @Getter
     private final String displayName;
@@ -36,7 +36,7 @@ public enum ComputeOn {
     }
 
     public static boolean isComputedHere(ComputeOn computeOn) {
-        return orDefault(computeOn) == CLOUD;
+        return orDefault(computeOn) == EDGE; // edge only
     }
 
 }
