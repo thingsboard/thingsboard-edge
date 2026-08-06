@@ -20,24 +20,39 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.CalculatedFieldType;
 import org.thingsboard.server.common.data.cf.ComputeOn;
 import org.thingsboard.server.common.data.cf.configuration.Argument;
 import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
+import org.thingsboard.server.common.data.cf.configuration.AttributesImmediateOutputStrategy;
+import org.thingsboard.server.common.data.cf.configuration.AttributesOutput;
+import org.thingsboard.server.common.data.cf.configuration.PropagationCalculatedFieldConfiguration;
 import org.thingsboard.server.common.data.cf.configuration.ReferencedEntityKey;
 import org.thingsboard.server.common.data.cf.configuration.SimpleCalculatedFieldConfiguration;
+import org.thingsboard.server.common.data.cf.configuration.TimeSeriesImmediateOutputStrategy;
 import org.thingsboard.server.common.data.cf.configuration.TimeSeriesOutput;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.debug.DebugSettings;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationPathLevel;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.controller.AbstractControllerTest;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -55,6 +70,9 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest { // ed
     private static final String OUTPUT_KEY = "fahrenheitTemp";
 
     private Tenant savedTenant;
+
+    @Autowired
+    private CloudEventService cloudEventService;
 
     @Before
     public void beforeTest() throws Exception {
@@ -131,6 +149,148 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest { // ed
                 .untilAsserted(() -> {
                     JsonNode value = getLatestTelemetry(device.getId(), OUTPUT_KEY).path(OUTPUT_KEY).path(0).path("value");
                     assertThat(value.asText()).isEqualTo("77.0");
+                });
+    }
+
+    @Test
+    public void testImmediateResultOfEdgeComputeOnIsPushedToCloud() throws Exception {
+        Device device = givenDeviceWithTemperature("Immediate edge device", "immediate-edge-1234");
+
+        doPost("/api/calculatedField", immediateCf(device.getId(), ComputeOn.EDGE), CalculatedField.class);
+
+        awaitOutput(device.getId(), "77.0");
+        awaitOutputCloudEvent(device.getId());
+    }
+
+    private void awaitOutputCloudEvent(EntityId entityId) {
+        await().alias("IMMEDIATE time series result is queued for the cloud").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(cloudEventBodies(entityId, EdgeEventActionType.TIMESERIES_UPDATED, "data"))
+                        .as("cloud event with the calculated field time series output")
+                        .anySatisfy(body -> {
+                            assertThat(body.path("data").path(OUTPUT_KEY).asText()).isEqualTo("77.0");
+                            assertThat(body.path("ts").asLong()).isPositive();
+                        }));
+    }
+
+    @Test
+    public void testImmediateResultOfDefaultComputeOnIsAlsoPushedToCloud() throws Exception {
+        Device device = givenDeviceWithTemperature("Immediate default device", "immediate-default-1234");
+
+        doPost("/api/calculatedField", immediateCf(device.getId(), null), CalculatedField.class);
+
+        awaitOutput(device.getId(), "77.0");
+        awaitOutputCloudEvent(device.getId());
+    }
+
+    @Test
+    public void testImmediateAttributesResultOfEdgeComputeOnIsPushedToCloud() throws Exception {
+        Device device = givenDeviceWithTemperature("Immediate edge attributes device", "immediate-edge-attr-1234");
+
+        doPost("/api/calculatedField", immediateAttributesCf(device.getId(), ComputeOn.EDGE), CalculatedField.class);
+
+        awaitAttributeOutput(device.getId(), "77.0");
+        await().alias("IMMEDIATE attributes result is queued for the cloud").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(cloudEventBodies(device.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, "kv"))
+                        .as("cloud event with the calculated field attributes output")
+                        .anySatisfy(body -> {
+                            assertThat(body.path("kv").path(OUTPUT_KEY).asText()).isEqualTo("77.0");
+                            assertThat(body.path("scope").asText()).isEqualTo(AttributeScope.SERVER_SCOPE.name());
+                            assertThat(body.path("ts").asLong()).isPositive();
+                        }));
+    }
+
+    @Test
+    public void testImmediatePropagationResultIsPushedToCloudForRelatedEntity() throws Exception {
+        Device device = givenDeviceWithTemperature("Propagation edge device", "propagation-edge-1234");
+        Asset asset = createAsset("Propagated edge asset");
+        createEntityRelation(asset.getId(), device.getId(), EntityRelation.CONTAINS_TYPE);
+
+        doPost("/api/calculatedField", propagationCf(device.getId(), ComputeOn.EDGE), CalculatedField.class);
+
+        // the result is written to the related asset, never to the originating device
+        awaitAttributeOutput(asset.getId(), "77.0");
+        await().alias("IMMEDIATE propagation result is queued for the cloud").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> assertThat(cloudEventBodies(asset.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, "kv"))
+                        .as("cloud event with the propagated calculated field output")
+                        .anySatisfy(body -> {
+                            assertThat(body.path("kv").path(OUTPUT_KEY).asDouble()).isEqualTo(77.0);
+                            assertThat(body.path("scope").asText()).isEqualTo(AttributeScope.SERVER_SCOPE.name());
+                        }));
+        assertThat(cloudEventBodies(device.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, "kv"))
+                .as("originating device must not receive the propagated output").isEmpty();
+    }
+
+    private CalculatedField propagationCf(EntityId entityId, ComputeOn computeOn) {
+        CalculatedField calculatedField = new CalculatedField();
+        calculatedField.setEntityId(entityId);
+        calculatedField.setType(CalculatedFieldType.PROPAGATION);
+        calculatedField.setName("Propagate C to F");
+        calculatedField.setComputeOn(computeOn);
+        calculatedField.setDebugSettings(DebugSettings.all());
+        calculatedField.setConfigurationVersion(1);
+
+        Argument argument = new Argument();
+        argument.setRefEntityKey(new ReferencedEntityKey("temperature", ArgumentType.TS_LATEST, null));
+
+        AttributesOutput output = new AttributesOutput();
+        output.setScope(AttributeScope.SERVER_SCOPE);
+        output.setStrategy(new AttributesImmediateOutputStrategy(false, false, true, true, false));
+
+        PropagationCalculatedFieldConfiguration config = new PropagationCalculatedFieldConfiguration();
+        config.setRelation(new RelationPathLevel(EntitySearchDirection.TO, EntityRelation.CONTAINS_TYPE));
+        config.setApplyExpressionToResolvedArguments(true);
+        config.setArguments(Map.of("T", argument));
+        config.setExpression("return { " + OUTPUT_KEY + ": (T * 9/5) + 32 };");
+        config.setOutput(output);
+        calculatedField.setConfiguration(config);
+
+        return calculatedField;
+    }
+
+    private Asset createAsset(String name) {
+        Asset asset = new Asset();
+        asset.setName(name);
+        return doPost("/api/asset", asset, Asset.class);
+    }
+
+    private List<JsonNode> cloudEventBodies(EntityId entityId, EdgeEventActionType action, String bodyField) {
+        return cloudEventService.findTsKvCloudEvents(savedTenant.getId(), null, null, new TimePageLink(1000)).getData().stream()
+                .filter(event -> action == event.getAction())
+                .filter(event -> entityId.getId().equals(event.getEntityId()))
+                .map(CloudEvent::getEntityBody)
+                .filter(body -> body != null && body.path(bodyField).has(OUTPUT_KEY))
+                .toList();
+    }
+
+    private CalculatedField immediateCf(EntityId entityId, ComputeOn computeOn) {
+        CalculatedField calculatedField = cf(entityId, computeOn);
+        SimpleCalculatedFieldConfiguration config = (SimpleCalculatedFieldConfiguration) calculatedField.getConfiguration();
+        TimeSeriesOutput output = (TimeSeriesOutput) config.getOutput();
+        output.setStrategy(new TimeSeriesImmediateOutputStrategy(0, true, true, true, false));
+        return calculatedField;
+    }
+
+    private CalculatedField immediateAttributesCf(EntityId entityId, ComputeOn computeOn) {
+        CalculatedField calculatedField = cf(entityId, computeOn);
+        SimpleCalculatedFieldConfiguration config = (SimpleCalculatedFieldConfiguration) calculatedField.getConfiguration();
+        AttributesOutput output = new AttributesOutput();
+        output.setName(OUTPUT_KEY);
+        output.setScope(AttributeScope.SERVER_SCOPE);
+        output.setStrategy(new AttributesImmediateOutputStrategy(false, false, true, true, false));
+        config.setOutput(output);
+        return calculatedField;
+    }
+
+    private void awaitAttributeOutput(EntityId entityId, String expectedValue) {
+        await().alias("attributes CF is calculated on the edge").atMost(TIMEOUT, TimeUnit.SECONDS)
+                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
+                .untilAsserted(() -> {
+                    JsonNode attributes = doGetAsync("/api/plugins/telemetry/" + entityId.getEntityType() + "/" + entityId.getId()
+                            + "/values/attributes/" + AttributeScope.SERVER_SCOPE.name() + "?keys=" + OUTPUT_KEY, JsonNode.class);
+                    assertThat(attributes.path(0).path("value").asDouble()).isEqualTo(Double.parseDouble(expectedValue));
                 });
     }
 

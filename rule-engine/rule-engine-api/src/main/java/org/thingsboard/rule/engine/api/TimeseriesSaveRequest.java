@@ -48,6 +48,8 @@ public class TimeseriesSaveRequest implements CalculatedFieldSystemAwareRequest 
     private final List<CalculatedFieldId> previousCalculatedFieldIds;
     private final UUID tbMsgId;
     private final TbMsgType tbMsgType;
+    // edge only
+    private final boolean propagateToCloud;
     private final FutureCallback<Void> callback;
 
     public record Strategy(boolean saveTimeseries, boolean saveLatest, boolean sendWsUpdate, boolean processCalculatedFields) {
@@ -75,6 +77,8 @@ public class TimeseriesSaveRequest implements CalculatedFieldSystemAwareRequest 
         private List<CalculatedFieldId> previousCalculatedFieldIds;
         private UUID tbMsgId;
         private TbMsgType tbMsgType;
+        // edge only
+        private boolean propagateToCloud;
         private FutureCallback<Void> callback;
 
         Builder() {}
@@ -132,6 +136,12 @@ public class TimeseriesSaveRequest implements CalculatedFieldSystemAwareRequest 
             return this;
         }
 
+        // edge only
+        public Builder propagateToCloud(boolean propagateToCloud) {
+            this.propagateToCloud = propagateToCloud;
+            return this;
+        }
+
         public Builder callback(FutureCallback<Void> callback) {
             this.callback = callback;
             return this;
@@ -154,7 +164,7 @@ public class TimeseriesSaveRequest implements CalculatedFieldSystemAwareRequest 
         public TimeseriesSaveRequest build() {
             return new TimeseriesSaveRequest(
                     tenantId, customerId, entityId, entries, ttl, requireNonNullElse(strategy, Strategy.PROCESS_ALL),
-                    previousCalculatedFieldIds, tbMsgId, tbMsgType, requireNonNullElse(callback, NoOpFutureCallback.instance())
+                    previousCalculatedFieldIds, tbMsgId, tbMsgType, propagateToCloud, requireNonNullElse(callback, NoOpFutureCallback.instance())
             );
         }
 

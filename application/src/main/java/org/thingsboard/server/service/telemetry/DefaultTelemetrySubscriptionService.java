@@ -15,6 +15,7 @@
  */
 package org.thingsboard.server.service.telemetry;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rule.engine.api.AttributesDeleteRequest;
 import org.thingsboard.rule.engine.api.AttributesSaveRequest;
@@ -37,9 +39,13 @@ import org.thingsboard.rule.engine.api.TimeseriesDeleteRequest;
 import org.thingsboard.rule.engine.api.TimeseriesSaveRequest;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.AttributeScope;
+import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -54,6 +60,7 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.util.KvUtils;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
@@ -70,6 +77,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingLong;
@@ -90,6 +98,8 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     private final TbApiUsageStateService apiUsageStateService;
     private final CalculatedFieldQueueService calculatedFieldQueueService;
     private final DeviceStateManager deviceStateManager;
+    // edge only
+    private final CloudEventService cloudEventService;
 
     private ExecutorService tsCallBackExecutor;
 
@@ -104,7 +114,8 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
                                                TbApiUsageReportClient apiUsageClient,
                                                TbApiUsageStateService apiUsageStateService,
                                                CalculatedFieldQueueService calculatedFieldQueueService,
-                                               DeviceStateManager deviceStateManager) {
+                                               DeviceStateManager deviceStateManager,
+                                               @Lazy CloudEventService cloudEventService) {
         this.attrService = attrService;
         this.tsService = tsService;
         this.tbEntityViewService = tbEntityViewService;
@@ -112,6 +123,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
         this.apiUsageStateService = apiUsageStateService;
         this.calculatedFieldQueueService = calculatedFieldQueueService;
         this.deviceStateManager = deviceStateManager;
+        this.cloudEventService = cloudEventService;
     }
 
     @PostConstruct
@@ -181,6 +193,10 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
         if (strategy.saveLatest() && entityId.getEntityType().isOneOf(EntityType.DEVICE, EntityType.ASSET)) {
             addMainCallback(resultFuture, __ -> copyLatestToEntityViews(tenantId, entityId, request.getEntries()));
         }
+        // edge only
+        if (request.isPropagateToCloud()) {
+            addMainCallback(resultFuture, __ -> pushTimeseriesToCloud(tenantId, entityId, request.getEntries()));
+        }
         return resultFuture;
     }
 
@@ -228,8 +244,51 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
         if (strategy.sendWsUpdate()) {
             addWsCallback(resultFuture, success -> onAttributesUpdate(tenantId, entityId, request.getScope().name(), request.getEntries()));
         }
+        // edge only
+        if (request.isPropagateToCloud()) {
+            addMainCallback(resultFuture, __ -> pushAttributesToCloud(tenantId, entityId, request.getScope(), request.getEntries()));
+        }
         return resultFuture;
     }
+
+    // edge only START
+    private void pushTimeseriesToCloud(TenantId tenantId, EntityId entityId, List<TsKvEntry> entries) {
+        entries.stream().collect(Collectors.groupingBy(TsKvEntry::getTs)).forEach((ts, tsEntries) -> {
+            ObjectNode entityBody = JacksonUtil.newObjectNode();
+            entityBody.put("ts", ts);
+            ObjectNode data = JacksonUtil.newObjectNode();
+            tsEntries.forEach(entry -> JacksonUtil.addKvEntry(data, entry));
+            entityBody.set("data", data);
+            saveCloudEvent(tenantId, entityId, EdgeEventActionType.TIMESERIES_UPDATED, entityBody);
+        });
+    }
+
+    private void pushAttributesToCloud(TenantId tenantId, EntityId entityId, AttributeScope scope, List<AttributeKvEntry> entries) {
+        if (CollectionUtils.isEmpty(entries)) {
+            return;
+        }
+        ObjectNode entityBody = JacksonUtil.newObjectNode();
+        ObjectNode kv = JacksonUtil.newObjectNode();
+        entries.forEach(entry -> JacksonUtil.addKvEntry(kv, entry));
+        entityBody.set("kv", kv);
+        entityBody.put("ts", entries.stream().mapToLong(AttributeKvEntry::getLastUpdateTs).max().orElseGet(System::currentTimeMillis));
+        entityBody.put(DataConstants.SCOPE, scope.name());
+        saveCloudEvent(tenantId, entityId, EdgeEventActionType.ATTRIBUTES_UPDATED, entityBody);
+    }
+
+    private void saveCloudEvent(TenantId tenantId, EntityId entityId, EdgeEventActionType action, ObjectNode entityBody) {
+        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
+        if (cloudEventType == null) {
+            log.warn("[{}][{}] Unsupported entity type for cloud propagation of the calculated field result", tenantId, entityId);
+            return;
+        }
+        CloudEvent cloudEvent = new CloudEvent(tenantId, action, entityId.getId(), cloudEventType, entityBody);
+        DonAsynchron.withCallback(cloudEventService.saveTsKvAsync(cloudEvent),
+                __ -> log.trace("[{}][{}] Saved cloud event for the calculated field result: {}", tenantId, entityId, entityBody),
+                t -> log.warn("[{}][{}] Failed to save cloud event for the calculated field result: {}", tenantId, entityId, entityBody, t),
+                MoreExecutors.directExecutor());
+    }
+    // edge only END
 
     private static boolean shouldSendSharedAttributesUpdatedNotification(AttributesSaveRequest request) {
         return request.getStrategy().saveAttributes() && shouldSendSharedAttributesNotification(request.getEntityId(), request.getScope(), request.isNotifyDevice());

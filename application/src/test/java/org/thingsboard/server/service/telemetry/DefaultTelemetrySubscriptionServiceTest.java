@@ -65,6 +65,7 @@ import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.QueueKey;
@@ -142,12 +143,14 @@ class DefaultTelemetrySubscriptionServiceTest {
     CalculatedFieldQueueService calculatedFieldQueueService;
     @Mock
     DeviceStateManager deviceStateManager;
+    @Mock
+    CloudEventService cloudEventService;
 
     DefaultTelemetrySubscriptionService telemetryService;
 
     @BeforeEach
     void setup() {
-        telemetryService = new DefaultTelemetrySubscriptionService(attrService, tsService, tbEntityViewService, apiUsageClient, apiUsageStateService, calculatedFieldQueueService, deviceStateManager);
+        telemetryService = new DefaultTelemetrySubscriptionService(attrService, tsService, tbEntityViewService, apiUsageClient, apiUsageStateService, calculatedFieldQueueService, deviceStateManager, cloudEventService);
         ReflectionTestUtils.setField(telemetryService, "clusterService", clusterService);
         ReflectionTestUtils.setField(telemetryService, "partitionService", partitionService);
         ReflectionTestUtils.setField(telemetryService, "subscriptionManagerService", Optional.of(subscriptionManagerService));
