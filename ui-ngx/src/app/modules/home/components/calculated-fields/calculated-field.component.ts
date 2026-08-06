@@ -35,7 +35,7 @@ import {
 import { EntityId } from '@shared/models/id/entity-id';
 import { BaseData } from '@shared/models/base-data';
 import { Observable } from 'rxjs';
-import { getCurrentAuthState, getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import {
   CalculatedFieldsTableConfig,
   CalculatedFieldsTableEntity
@@ -72,7 +72,6 @@ export class CalculatedFieldComponent extends EntityComponent<CalculatedFieldsTa
   readonly CalculatedFieldTypeTranslations = CalculatedFieldTypeTranslations;
   readonly computeOnValues = computeOnValues;
   readonly ComputeOnTranslations = ComputeOnTranslations;
-  readonly edgesSupportEnabled = getCurrentAuthState(this.store).edgesSupportEnabled;
 
   private cfFormService = inject(CalculatedFieldFormService);
   private destroyRef = inject(DestroyRef);

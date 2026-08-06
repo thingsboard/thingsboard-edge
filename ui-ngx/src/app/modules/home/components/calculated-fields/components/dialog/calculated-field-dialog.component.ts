@@ -19,7 +19,6 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Router } from '@angular/router';
-import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { DialogComponent } from '@shared/components/dialog.component';
 import {
   CalculatedField,
@@ -89,7 +88,6 @@ export class CalculatedFieldDialogComponent extends DialogComponent<CalculatedFi
   readonly CalculatedFieldTypeTranslations = CalculatedFieldTypeTranslations;
   readonly computeOnValues = computeOnValues;
   readonly ComputeOnTranslations = ComputeOnTranslations;
-  readonly edgesSupportEnabled = getCurrentAuthState(this.store).edgesSupportEnabled;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
