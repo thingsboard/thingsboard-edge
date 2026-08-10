@@ -19,8 +19,17 @@ import io.grpc.HttpConnectProxiedSocketAddress;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.netty.channel.Channel;
+import io.grpc.netty.shaded.io.netty.channel.EventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.epoll.Epoll;
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollEventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollSocketChannel;
+import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder;
+import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import io.grpc.stub.StreamObserver;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -86,6 +95,8 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     private ManagedChannel channel;
 
+    private EventLoopGroup workerGroup;
+
     private StreamObserver<RequestMsg> inputStream;
 
     private volatile boolean connected;
@@ -100,7 +111,12 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                         Consumer<DownlinkMsg> onDownlink,
                         Consumer<Exception> onError) {
         connected = false;
+        if (workerGroup == null) {
+            workerGroup = createWorkerGroup();
+        }
         NettyChannelBuilder builder = NettyChannelBuilder.forAddress(rpcHost, rpcPort)
+                .eventLoopGroup(workerGroup)
+                .channelType(channelType())
                 .maxInboundMessageSize(maxInboundMessageSize)
                 .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS)
                 .keepAliveTimeout(keepAliveTimeoutSec, TimeUnit.SECONDS)
@@ -149,6 +165,22 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     public static EdgeVersion getNewestEdgeVersion() {
         return EdgeVersionComparator.getNewestEdgeVersion();
+    }
+
+    private static EventLoopGroup createWorkerGroup() {
+        DefaultThreadFactory threadFactory = new DefaultThreadFactory("edge-grpc-worker", true);
+        return Epoll.isAvailable() ? new EpollEventLoopGroup(1, threadFactory) : new NioEventLoopGroup(1, threadFactory);
+    }
+
+    private static Class<? extends Channel> channelType() {
+        return Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (workerGroup != null) {
+            workerGroup.shutdownGracefully();
+        }
     }
 
     private StreamObserver<ResponseMsg> initOutputStream(String edgeKey,
