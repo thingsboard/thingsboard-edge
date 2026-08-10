@@ -95,7 +95,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     private ManagedChannel channel;
 
-    private EventLoopGroup workerGroup;
+    private final EventLoopGroup workerGroup = createWorkerGroup();
 
     private StreamObserver<RequestMsg> inputStream;
 
@@ -111,9 +111,6 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                         Consumer<DownlinkMsg> onDownlink,
                         Consumer<Exception> onError) {
         connected = false;
-        if (workerGroup == null) {
-            workerGroup = createWorkerGroup();
-        }
         NettyChannelBuilder builder = NettyChannelBuilder.forAddress(rpcHost, rpcPort)
                 .eventLoopGroup(workerGroup)
                 .channelType(channelType())
@@ -178,9 +175,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     @PreDestroy
     public void destroy() {
-        if (workerGroup != null) {
-            workerGroup.shutdownGracefully();
-        }
+        workerGroup.shutdownGracefully();
     }
 
     private StreamObserver<ResponseMsg> initOutputStream(String edgeKey,
