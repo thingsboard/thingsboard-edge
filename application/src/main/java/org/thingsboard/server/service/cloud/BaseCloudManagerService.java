@@ -21,8 +21,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
-import io.grpc.netty.shaded.io.netty.buffer.PooledByteBufAllocator;
-import io.grpc.netty.shaded.io.netty.buffer.PooledByteBufAllocatorMetric;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -30,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.rule.engine.api.AttributesSaveRequest;
@@ -69,7 +66,6 @@ import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -962,35 +958,6 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
     private boolean isSystemTenantPartitionMine() {
         return partitionService.resolve(ServiceType.TB_CORE, TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID).isMyPartition();
-    }
-
-    // TODO: temporary diagnostics for the gRPC direct-memory retention investigation, remove before merge.
-    // grpc-netty builds its own PooledByteBufAllocator instead of using PooledByteBufAllocator.DEFAULT,
-    // and the factory that owns it is package private - so the instance has to be pulled out reflectively.
-    @Scheduled(fixedRateString = "${cloud.direct_memory_log_interval_ms:10000}")
-    public void logDirectMemory() {
-        logGrpcAllocator("preferDirect", true);
-        logGrpcAllocator("preferHeap", false);
-    }
-
-    private void logGrpcAllocator(String name, boolean preferDirect) {
-        try {
-            Class<?> utils = Class.forName("io.grpc.netty.shaded.io.grpc.netty.Utils");
-            Method getByteBufAllocator = utils.getDeclaredMethod("getByteBufAllocator", boolean.class);
-            getByteBufAllocator.setAccessible(true);
-            Object allocator = getByteBufAllocator.invoke(null, preferDirect);
-            if (allocator instanceof PooledByteBufAllocator pooled) {
-                PooledByteBufAllocatorMetric metric = pooled.metric();
-                log.info("DIRECT MEMORY [{}] pinned={} used={} chunks={} arenas={} connected={}",
-                        name, pooled.pinnedDirectMemory(), metric.usedDirectMemory(),
-                        metric.usedDirectMemory() / metric.chunkSize(), metric.numDirectArenas(),
-                        edgeRpcClient.isConnected());
-            } else {
-                log.info("DIRECT MEMORY [{}] allocator is not pooled: {}", name, allocator);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to read the gRPC allocator metrics", e);
-        }
     }
 
     @FunctionalInterface
