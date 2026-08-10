@@ -369,6 +369,27 @@ public class BaseCloudManagerServiceTest {
     // already handle ExecutionException, whereas RejectedExecutionException crossing processCloudEvents
     // misses the Kafka catch and the batch is dropped without being committed. Completing as interrupted
     // would instead tell processUplinkMessages to re-query the same page forever.
+    @Test
+    void disconnectedTimeseriesPackStopsRetryingInsteadOfLoopingForever() throws Exception {
+        SettableFuture<Boolean> result = SettableFuture.create();
+        ReflectionTestUtils.setField(service, "sendUplinkFutureResult", result);
+        ScheduledExecutorService uplinkExecutor = Executors.newSingleThreadScheduledExecutor();
+        ReflectionTestUtils.setField(service, "uplinkExecutor", uplinkExecutor);
+        when(edgeRpcClient.isConnected()).thenReturn(false);
+
+        try {
+            ReflectionTestUtils.invokeMethod(service, "processMsgPack", List.of(uplinkMsg()), false);
+
+            // Timeseries packs have no attempt cap, so before the connectivity gate this loop retried a dead
+            // stream forever - parking the uplink thread and freezing the queue offset until a restart.
+            assertThat(result.get(TIMEOUT_MS, TimeUnit.MILLISECONDS))
+                    .as("pack must complete as interrupted so the offset is not advanced").isTrue();
+            verify(edgeRpcClient, never()).sendUplinkMsg(any());
+        } finally {
+            uplinkExecutor.shutdownNow();
+        }
+    }
+
     private void assertPackRejected(ScheduledExecutorService executor) {
         SettableFuture<Boolean> result = SettableFuture.create();
         ReflectionTestUtils.setField(service, "sendUplinkFutureResult", result);

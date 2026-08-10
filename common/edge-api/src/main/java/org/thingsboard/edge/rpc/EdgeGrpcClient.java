@@ -88,6 +88,8 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     private StreamObserver<RequestMsg> inputStream;
 
+    private volatile boolean connected;
+
     private static final ReentrantLock uplinkMsgLock = new ReentrantLock();
 
     @Override
@@ -97,6 +99,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                         Consumer<EdgeConfiguration> onEdgeUpdate,
                         Consumer<DownlinkMsg> onDownlink,
                         Consumer<Exception> onError) {
+        connected = false;
         NettyChannelBuilder builder = NettyChannelBuilder.forAddress(rpcHost, rpcPort)
                 .maxInboundMessageSize(maxInboundMessageSize)
                 .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS)
@@ -164,8 +167,10 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                             serverMaxInboundMessageSize = connectResponseMsg.getMaxInboundMessageSize();
                         }
                         log.info("[{}] Configuration received: {}", edgeKey, connectResponseMsg.getConfiguration());
+                        connected = true;
                         onEdgeUpdate.accept(connectResponseMsg.getConfiguration());
                     } else {
+                        connected = false;
                         log.error("[{}] Failed to establish the connection! Code: {}. Error message: {}.", edgeKey, connectResponseMsg.getResponseCode(), connectResponseMsg.getErrorMsg());
                         try {
                             EdgeGrpcClient.this.disconnect(true);
@@ -188,6 +193,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
             @Override
             public void onError(Throwable t) {
+                connected = false;
                 log.warn("[{}] Stream was terminated due to error:", edgeKey, t);
                 try {
                     EdgeGrpcClient.this.disconnect(true);
@@ -199,6 +205,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
             @Override
             public void onCompleted() {
+                connected = false;
                 log.info("[{}] Stream was closed and completed successfully!", edgeKey);
             }
         };
@@ -206,6 +213,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     @Override
     public void disconnect(boolean onError) throws InterruptedException {
+        connected = false;
         if (!onError) {
             try {
                 if (inputStream != null) {
@@ -239,9 +247,18 @@ public class EdgeGrpcClient implements EdgeRpcClient {
     }
 
     @Override
+    public boolean isConnected() {
+        return connected;
+    }
+
+    @Override
     public void sendUplinkMsg(UplinkMsg msg) {
         uplinkMsgLock.lock();
         try {
+            if (!connected) {
+                log.debug("Uplink msg is skipped, the cloud session is not established: {}", msg);
+                return;
+            }
             this.inputStream.onNext(RequestMsg.newBuilder()
                     .setMsgType(RequestMsgType.UPLINK_RPC_MESSAGE)
                     .setUplinkMsg(msg)
@@ -255,6 +272,10 @@ public class EdgeGrpcClient implements EdgeRpcClient {
     public void sendSyncRequestMsg(boolean fullSyncRequired) {
         uplinkMsgLock.lock();
         try {
+            if (!connected) {
+                log.debug("Sync request msg is skipped, the cloud session is not established");
+                return;
+            }
             SyncRequestMsg syncRequestMsg = SyncRequestMsg.newBuilder()
                     .setFullSync(fullSyncRequired)
                     .build();
@@ -271,6 +292,10 @@ public class EdgeGrpcClient implements EdgeRpcClient {
     public void sendDownlinkResponseMsg(DownlinkResponseMsg downlinkResponseMsg) {
         uplinkMsgLock.lock();
         try {
+            if (!connected) {
+                log.debug("Downlink response msg is skipped, the cloud session is not established: {}", downlinkResponseMsg);
+                return;
+            }
             this.inputStream.onNext(RequestMsg.newBuilder()
                     .setMsgType(RequestMsgType.UPLINK_RPC_MESSAGE)
                     .setDownlinkResponseMsg(downlinkResponseMsg)
