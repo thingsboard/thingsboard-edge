@@ -161,8 +161,14 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
 
                     if (!success) {
                         String batchPrefix = isGeneralMsg ? "General" : "Timeseries";
-                        log.warn("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgs.getQueueSize(), attempt);
+                        log.info("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgs.getQueueSize(), attempt);
                         log.trace("Entities in failed batch: {}", pendingMsgs.getValues());
+                        if (!grpcClientManager.isConnected()) {
+                            log.info("Cloud session is not established. {} uplink msg(s) are going to be retried after reconnect",
+                                    pendingMsgs.getQueueSize());
+                            sendUplinkFutureResult.set(true);
+                            return;
+                        }
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
@@ -195,6 +201,9 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
     }
 
     private boolean sendUplinkMsgPack() {
+        if (!grpcClientManager.isConnected()) {
+            return false;
+        }
         edgeInfo.setSendingInProgress(true);
         LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue = pendingMsgs.getQueue();
         try {

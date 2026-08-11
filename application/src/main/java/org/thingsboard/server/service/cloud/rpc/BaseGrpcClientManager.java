@@ -136,6 +136,11 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     }
 
     @Override
+    public boolean isConnected() {
+        return edgeRpcClient.isConnected();
+    }
+
+    @Override
     public void establishRpcConnection() {
         if (connectFuture != null) {
             connectFuture.cancel(true);

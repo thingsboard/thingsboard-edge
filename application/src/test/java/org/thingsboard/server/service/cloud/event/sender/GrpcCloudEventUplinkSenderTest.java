@@ -36,14 +36,20 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class GrpcCloudEventUplinkSenderTest {
+
+    private static final long TIMEOUT_MS = 5000;
 
     @Mock
     private EdgeInfoHolder edgeInfo;
@@ -126,6 +132,27 @@ public class GrpcCloudEventUplinkSenderTest {
         // A fresh future created before the empty-pack early return would never be completed, and the next
         // interruptPreviousSendUplinkMsgsTask would block for its full 10s timeout on it.
         assertThat(ReflectionTestUtils.getField(sender, "sendUplinkFutureResult")).isSameAs(previous);
+    }
+
+    @Test
+    void disconnectedTimeseriesPackStopsRetryingInsteadOfLoopingForever() throws Exception {
+        SettableFuture<Boolean> result = SettableFuture.create();
+        ReflectionTestUtils.setField(sender, "sendUplinkFutureResult", result);
+        ExecutorService uplinkExecutor = Executors.newSingleThreadExecutor();
+        ReflectionTestUtils.setField(sender, "uplinkExecutor", uplinkExecutor);
+        when(grpcClientManager.isConnected()).thenReturn(false);
+
+        try {
+            ReflectionTestUtils.invokeMethod(sender, "processMsgPack", List.of(uplinkMsg()), false);
+
+            // Timeseries packs have no attempt cap, so before the connectivity gate this loop retried a dead
+            // stream forever - parking the uplink thread and freezing the queue offset until a restart.
+            assertThat(result.get(TIMEOUT_MS, TimeUnit.MILLISECONDS))
+                    .as("pack must complete as interrupted so the offset is not advanced").isTrue();
+            verify(grpcClientManager, never()).sendUplinkMsg(any());
+        } finally {
+            uplinkExecutor.shutdownNow();
+        }
     }
 
     // The pack must surface as a failed future rather than an escaping unchecked exception: callers already
