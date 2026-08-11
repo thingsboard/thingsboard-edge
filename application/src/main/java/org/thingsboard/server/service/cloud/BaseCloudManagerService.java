@@ -332,7 +332,7 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
                 }
                 log.trace("processUplinkMessages state isInterrupted={},total={},hasNext={},isGeneralMsg={},isGeneralProcessInProgress={}",
                         isInterrupted, cloudEvents.getTotalElements(), cloudEvents.hasNext(), isGeneralMsg, isGeneralProcessInProgress);
-            } while (isInterrupted || cloudEvents.hasNext());
+            } while ((isInterrupted || cloudEvents.hasNext()) && edgeRpcClient.isConnected());
         } catch (Exception e) {
             log.error("Failed to process cloud event messages handling!", e);
         } finally {
@@ -881,8 +881,14 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
 
                     if (!success) {
                         String batchPrefix = isGeneralMsg ? "General" : "Timeseries";
-                        log.warn("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgMap.values().size(), attempt);
+                        log.info("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgMap.values().size(), attempt);
                         log.trace("Entities in failed batch: {}", pendingMsgMap.values());
+                        if (!edgeRpcClient.isConnected()) {
+                            log.info("Cloud session is not established. {} uplink msg(s) are going to be retried after reconnect",
+                                    pendingMsgMap.size());
+                            sendUplinkFutureResult.set(true);
+                            return;
+                        }
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
@@ -916,6 +922,9 @@ public abstract class BaseCloudManagerService extends TbApplicationEventListener
     }
 
     private boolean sendUplinkMsgPack(LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue) {
+        if (!edgeRpcClient.isConnected()) {
+            return false;
+        }
         sendingInProgress = true;
         try {
             latch = new CountDownLatch(pendingMsgMap.values().size());
