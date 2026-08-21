@@ -23,8 +23,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -66,15 +66,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DaoSqlTest
 public class TwoFactorAuthConfigTest extends AbstractControllerTest {
 
-    @SpyBean
+    @MockitoSpyBean
     private TotpTwoFaProvider totpTwoFactorAuthProvider;
-    @MockBean
+    @MockitoBean
     private SmsService smsService;
     @Autowired
     private CacheManager cacheManager;
     @Autowired
     private TwoFaConfigManager twoFaConfigManager;
-    @SpyBean
+    @MockitoSpyBean
     private TwoFactorAuthService twoFactorAuthService;
 
     @Before

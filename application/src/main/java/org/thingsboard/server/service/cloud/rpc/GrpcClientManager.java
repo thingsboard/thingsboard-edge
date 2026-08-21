@@ -21,5 +21,6 @@ public interface GrpcClientManager {
 
     void sendUplinkMsg(UplinkMsg msg);
     void establishRpcConnection();
+    boolean isConnected();
 
 }
