@@ -120,8 +120,14 @@ cloud:
   routingKey: "${CLOUD_ROUTING_KEY:}"
   # Secret key for secure communication with the cloud
   secret: "${CLOUD_ROUTING_SECRET:}"
-  # Reconnection timeout in milliseconds if cloud connectivity is lost
+  # Initial reconnection timeout in milliseconds if cloud connectivity is lost; grows exponentially per failed attempt up to reconnect_max_timeout
   reconnect_timeout: "${CLOUD_RECONNECT_TIMEOUT:3000}"
+  # Maximum reconnection timeout in milliseconds - upper bound for the exponential backoff between failed reconnect attempts
+  reconnect_max_timeout: "${CLOUD_RECONNECT_MAX_TIMEOUT:180000}"
+  # Jitter factor applied to the calculated reconnect delay, so that edges that lost the cloud at the same moment do not retry in synchronized waves.
+  # The actual delay is randomized within a range defined by multiplying the base delay by a factor between (1 - jitter_factor) and (1 + jitter_factor).
+  # For example, a jitter_factor of 0.15 means the actual delay may vary by up to ±15% of the base delay. Set to 0 to disable jitter.
+  reconnect_jitter_factor: "${CLOUD_RECONNECT_JITTER_FACTOR:0.15}"
   # Timeout in seconds for packaging uplink data to the cloud
   uplink_pack_timeout_sec: "${CLOUD_UPLINK_PACK_TIMEOUT_SEC:60}"
   rpc:

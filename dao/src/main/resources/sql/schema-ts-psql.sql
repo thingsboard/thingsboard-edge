@@ -34,6 +34,13 @@ CREATE TABLE IF NOT EXISTS key_dictionary
     CONSTRAINT key_dictionary_id_pkey PRIMARY KEY (key)
 );
 
+-- edge-only START
+-- 'ts_kv_cloud_event' does not exist on the Cloud. It is range-partitioned, so besides the parent table the schema
+-- also holds 'ts_kv_cloud_event_<epoch_ms>' children (see SqlPartitioningRepository). They share the 'ts_kv_' prefix
+-- but are not telemetry partitions, so the three loops below skip the whole prefix - otherwise
+-- SPLIT_PART(partition, '_', 3) casts 'cloud' to integer and aborts the entire procedure, leaving every expired
+-- ts_kv partition on disk. Cleanup of those tables is owned by CloudEventsCleanUpService, not by this procedure.
+-- edge-only END
 CREATE OR REPLACE PROCEDURE drop_partitions_by_system_ttl(IN partition_type varchar, IN system_ttl bigint, INOUT deleted bigint)
     LANGUAGE plpgsql AS
 $$
@@ -77,7 +84,9 @@ BEGIN
                                        AND tablename != 'ts_kv_latest'
                                        AND tablename != 'key_dictionary'
                                        AND tablename != 'ts_kv_indefinite'
-                                       AND tablename != 'ts_kv_cloud_event'
+                                       -- edge-only START
+                                       AND tablename NOT LIKE 'ts_kv_cloud_event%'
+                                       -- edge-only END
                                        AND tablename != partition_by_max_ttl_date
                         LOOP
                             partition_year := SPLIT_PART(partition, '_', 3)::integer;
@@ -99,7 +108,9 @@ BEGIN
                                                AND tablename != 'ts_kv_latest'
                                                AND tablename != 'key_dictionary'
                                                AND tablename != 'ts_kv_indefinite'
-                                               AND tablename != 'ts_kv_cloud_event'
+                                               -- edge-only START
+                                               AND tablename NOT LIKE 'ts_kv_cloud_event%'
+                                               -- edge-only END
                                                AND tablename != partition_by_max_ttl_date
                                 LOOP
                                     partition_year := SPLIT_PART(partition, '_', 3)::integer;
@@ -112,7 +123,16 @@ BEGIN
                                             EXECUTE format('DROP TABLE IF EXISTS %I', partition);
                                             deleted := deleted + 1;
                                         ELSE
-                                            partition_month := SPLIT_PART(partition, '_', 4)::integer;
+                                            -- A 'ts_kv_<year>' table has no month part. It shows up once a
+                                            -- year-granularity partition has been detached from ts_kv but not
+                                            -- dropped, and its range covers the ttl cut-off, so it stays. Without
+                                            -- NULLIF the empty token aborts the whole procedure and nothing at all
+                                            -- gets dropped.
+                                            partition_month := NULLIF(SPLIT_PART(partition, '_', 4), '')::integer;
+                                            IF partition_month IS NULL THEN
+                                                RAISE NOTICE 'Skip iteration! Partition: % is not a month partition!', partition;
+                                                CONTINUE;
+                                            END IF;
                                             IF partition_year = partition_by_max_ttl_year::integer THEN
                                                IF  partition_month >= partition_by_max_ttl_month::integer THEN
                                                    RAISE NOTICE 'Skip iteration! Partition: % is valid!', partition;
@@ -142,7 +162,9 @@ BEGIN
                                                        AND tablename != 'ts_kv_latest'
                                                        AND tablename != 'key_dictionary'
                                                        AND tablename != 'ts_kv_indefinite'
-                                                       AND tablename != 'ts_kv_cloud_event'
+                                                       -- edge-only START
+                                                       AND tablename NOT LIKE 'ts_kv_cloud_event%'
+                                                       -- edge-only END
                                                        AND tablename != partition_by_max_ttl_date
                                         LOOP
                                             partition_year := SPLIT_PART(partition, '_', 3)::integer;
@@ -155,7 +177,13 @@ BEGIN
                                                     EXECUTE format('DROP TABLE IF EXISTS %I', partition);
                                                     deleted := deleted + 1;
                                                 ELSE
-                                                    partition_month := SPLIT_PART(partition, '_', 4)::integer;
+                                                    -- See the MONTHS branch: a coarser 'ts_kv_<year>' table has no
+                                                    -- month part and covers the ttl cut-off, so it stays.
+                                                    partition_month := NULLIF(SPLIT_PART(partition, '_', 4), '')::integer;
+                                                    IF partition_month IS NULL THEN
+                                                        RAISE NOTICE 'Skip iteration! Partition: % is not a month partition!', partition;
+                                                        CONTINUE;
+                                                    END IF;
                                                     IF partition_month > partition_by_max_ttl_month::integer THEN
                                                         RAISE NOTICE 'Skip iteration! Partition: % is valid!', partition;
                                                         CONTINUE;
@@ -165,7 +193,13 @@ BEGIN
                                                             EXECUTE format('DROP TABLE IF EXISTS %I', partition);
                                                             deleted := deleted + 1;
                                                         ELSE
-                                                            partition_day := SPLIT_PART(partition, '_', 5)::integer;
+                                                            -- Same for a coarser 'ts_kv_<year>_<month>' table: no day
+                                                            -- part, and its range covers the ttl cut-off day.
+                                                            partition_day := NULLIF(SPLIT_PART(partition, '_', 5), '')::integer;
+                                                            IF partition_day IS NULL THEN
+                                                                RAISE NOTICE 'Skip iteration! Partition: % is not a day partition!', partition;
+                                                                CONTINUE;
+                                                            END IF;
                                                             IF partition_day >= partition_by_max_ttl_day::integer THEN
                                                                 RAISE NOTICE 'Skip iteration! Partition: % is valid!', partition;
                                                                 CONTINUE;
