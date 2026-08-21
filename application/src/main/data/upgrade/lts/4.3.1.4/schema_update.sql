@@ -14,25 +14,49 @@
 -- limitations under the License.
 --
 
-CREATE TABLE IF NOT EXISTS ts_kv
-(
-    entity_id uuid   NOT NULL,
-    key       int    NOT NULL,
-    ts        bigint NOT NULL,
-    bool_v    boolean,
-    str_v     varchar(10000000),
-    long_v    bigint,
-    dbl_v     double precision,
-    json_v    json,
-    CONSTRAINT ts_kv_pkey PRIMARY KEY (entity_id, key, ts)
-) PARTITION BY RANGE (ts);
+-- FIX TIMESERIES TTL PARTITION CLEANUP ON EDGE START
+--
+-- Re-creates 'drop_partitions_by_system_ttl' with the corrected exclusion of 'ts_kv_cloud_event' and its
+-- 'ts_kv_cloud_event_<epoch_ms>' range partitions, together with its unchanged helper
+-- 'get_partition_by_system_ttl_date' so the script is self-contained.
+--
+-- This exists for the NO-DOWNTIME upgrade path only. SystemPatchApplier applies LTS migrations on a normal
+-- service start and then refreshes schema-views.sql alone - it never runs schema-functions.sql - so this script
+-- is the only thing that corrects the procedure on a same-family patch restart (e.g. 4.3.1.3 -> 4.3.1.4).
+-- The offline installer path is covered separately by schema-functions.sql, which it re-executes unconditionally.
+--
+-- The 4.2.2.4 copy of this migration cannot serve the 4.3 family: LtsMigrationService selects migrations with
+-- 'version.sameFamily(to)', so a 4.2.x bean is dormant whenever the target version is 4.3.x. Each family that
+-- ships this fix needs its own migration for the no-downtime path.
+--
+-- FROZEN: this is released migration history, not a live definition. Do NOT edit it to match a later change to
+-- schema-ts-psql.sql / schema-functions.sql - a future correction ships as a new version directory instead.
+-- (TimeseriesTtlRoutinesDuplicationTest deliberately excludes these snapshots for that reason.)
 
-CREATE TABLE IF NOT EXISTS key_dictionary
-(
-    key    varchar(255) NOT NULL,
-    key_id serial UNIQUE,
-    CONSTRAINT key_dictionary_id_pkey PRIMARY KEY (key)
-);
+CREATE OR REPLACE FUNCTION get_partition_by_system_ttl_date(IN partition_type varchar, IN date timestamp, OUT partition varchar) AS
+$$
+BEGIN
+    CASE
+        WHEN partition_type = 'DAYS' THEN
+            partition := 'ts_kv_' || to_char(date, 'yyyy') || '_' || to_char(date, 'MM') || '_' || to_char(date, 'dd');
+        WHEN partition_type = 'MONTHS' THEN
+            partition := 'ts_kv_' || to_char(date, 'yyyy') || '_' || to_char(date, 'MM');
+        WHEN partition_type = 'YEARS' THEN
+            partition := 'ts_kv_' || to_char(date, 'yyyy');
+        ELSE
+            partition := NULL;
+        END CASE;
+    IF partition IS NOT NULL THEN
+        IF NOT EXISTS(SELECT
+                      FROM pg_tables
+                      WHERE schemaname = current_schema()
+                        AND tablename = partition) THEN
+            partition := NULL;
+            RAISE NOTICE 'Failed to found partition by ttl';
+        END IF;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 -- edge-only START
 -- 'ts_kv_cloud_event' does not exist on the Cloud. It is range-partitioned, so besides the parent table the schema
@@ -226,137 +250,4 @@ BEGIN
 END
 $$;
 
-CREATE OR REPLACE FUNCTION get_partition_by_system_ttl_date(IN partition_type varchar, IN date timestamp, OUT partition varchar) AS
-$$
-BEGIN
-    CASE
-        WHEN partition_type = 'DAYS' THEN
-            partition := 'ts_kv_' || to_char(date, 'yyyy') || '_' || to_char(date, 'MM') || '_' || to_char(date, 'dd');
-        WHEN partition_type = 'MONTHS' THEN
-            partition := 'ts_kv_' || to_char(date, 'yyyy') || '_' || to_char(date, 'MM');
-        WHEN partition_type = 'YEARS' THEN
-            partition := 'ts_kv_' || to_char(date, 'yyyy');
-        ELSE
-            partition := NULL;
-        END CASE;
-    IF partition IS NOT NULL THEN
-        IF NOT EXISTS(SELECT
-                      FROM pg_tables
-                      WHERE schemaname = current_schema()
-                        AND tablename = partition) THEN
-            partition := NULL;
-            RAISE NOTICE 'Failed to found partition by ttl';
-        END IF;
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION to_uuid(IN entity_id varchar, OUT uuid_id uuid) AS
-$$
-BEGIN
-    uuid_id := substring(entity_id, 8, 8) || '-' || substring(entity_id, 4, 4) || '-1' || substring(entity_id, 1, 3) ||
-               '-' || substring(entity_id, 16, 4) || '-' || substring(entity_id, 20, 12);
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION delete_device_records_from_ts_kv(tenant_id uuid, customer_id uuid, ttl bigint,
-                                                            OUT deleted bigint) AS
-$$
-BEGIN
-    EXECUTE format(
-            'WITH deleted AS (DELETE FROM ts_kv WHERE entity_id IN (SELECT device.id as entity_id FROM device WHERE tenant_id = %L and customer_id = %L) AND ts < %L::bigint RETURNING *) SELECT count(*) FROM deleted',
-            tenant_id, customer_id, ttl) into deleted;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION delete_asset_records_from_ts_kv(tenant_id uuid, customer_id uuid, ttl bigint,
-                                                           OUT deleted bigint) AS
-$$
-BEGIN
-    EXECUTE format(
-            'WITH deleted AS (DELETE FROM ts_kv WHERE entity_id IN (SELECT asset.id as entity_id FROM asset WHERE tenant_id = %L and customer_id = %L) AND ts < %L::bigint RETURNING *) SELECT count(*) FROM deleted',
-            tenant_id, customer_id, ttl) into deleted;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION delete_customer_records_from_ts_kv(tenant_id uuid, customer_id uuid, ttl bigint,
-                                                              OUT deleted bigint) AS
-$$
-BEGIN
-    EXECUTE format(
-            'WITH deleted AS (DELETE FROM ts_kv WHERE entity_id IN (SELECT customer.id as entity_id FROM customer WHERE tenant_id = %L and id = %L) AND ts < %L::bigint RETURNING *) SELECT count(*) FROM deleted',
-            tenant_id, customer_id, ttl) into deleted;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE PROCEDURE cleanup_timeseries_by_ttl(IN null_uuid uuid,
-                                                      IN system_ttl bigint, INOUT deleted bigint)
-    LANGUAGE plpgsql AS
-$$
-DECLARE
-    tenant_cursor CURSOR FOR select tenant.id as tenant_id
-                             from tenant;
-    tenant_id_record     uuid;
-    customer_id_record   uuid;
-    tenant_ttl           bigint;
-    customer_ttl         bigint;
-    deleted_for_entities bigint;
-    tenant_ttl_ts        bigint;
-    customer_ttl_ts      bigint;
-BEGIN
-    OPEN tenant_cursor;
-    FETCH tenant_cursor INTO tenant_id_record;
-    WHILE FOUND
-        LOOP
-            EXECUTE format(
-                    'select attribute_kv.long_v from attribute_kv where attribute_kv.entity_id = %L and attribute_kv.attribute_key = (select key_id from key_dictionary where key = %L)',
-                    tenant_id_record, 'TTL') INTO tenant_ttl;
-            if tenant_ttl IS NULL THEN
-                tenant_ttl := system_ttl;
-            END IF;
-            IF tenant_ttl > 0 THEN
-                tenant_ttl_ts := (EXTRACT(EPOCH FROM current_timestamp) * 1000 - tenant_ttl::bigint * 1000)::bigint;
-                deleted_for_entities := delete_device_records_from_ts_kv(tenant_id_record, null_uuid, tenant_ttl_ts);
-                deleted := deleted + deleted_for_entities;
-                RAISE NOTICE '% telemetry removed for devices where tenant_id = %', deleted_for_entities, tenant_id_record;
-                deleted_for_entities := delete_asset_records_from_ts_kv(tenant_id_record, null_uuid, tenant_ttl_ts);
-                deleted := deleted + deleted_for_entities;
-                RAISE NOTICE '% telemetry removed for assets where tenant_id = %', deleted_for_entities, tenant_id_record;
-            END IF;
-            FOR customer_id_record IN
-                SELECT customer.id AS customer_id FROM customer WHERE customer.tenant_id = tenant_id_record
-                LOOP
-                    EXECUTE format(
-                            'select attribute_kv.long_v from attribute_kv where attribute_kv.entity_id = %L and attribute_kv.attribute_key = (select key_id from key_dictionary where key = %L)',
-                            customer_id_record, 'TTL') INTO customer_ttl;
-                    IF customer_ttl IS NULL THEN
-                        customer_ttl_ts := tenant_ttl_ts;
-                    ELSE
-                        IF customer_ttl > 0 THEN
-                            customer_ttl_ts :=
-                                    (EXTRACT(EPOCH FROM current_timestamp) * 1000 -
-                                     customer_ttl::bigint * 1000)::bigint;
-                        END IF;
-                    END IF;
-                    IF customer_ttl_ts IS NOT NULL AND customer_ttl_ts > 0 THEN
-                        deleted_for_entities :=
-                                delete_customer_records_from_ts_kv(tenant_id_record, customer_id_record,
-                                                                   customer_ttl_ts);
-                        deleted := deleted + deleted_for_entities;
-                        RAISE NOTICE '% telemetry removed for customer with id = % where tenant_id = %', deleted_for_entities, customer_id_record, tenant_id_record;
-                        deleted_for_entities :=
-                                delete_device_records_from_ts_kv(tenant_id_record, customer_id_record,
-                                                                 customer_ttl_ts);
-                        deleted := deleted + deleted_for_entities;
-                        RAISE NOTICE '% telemetry removed for devices where tenant_id = % and customer_id = %', deleted_for_entities, tenant_id_record, customer_id_record;
-                        deleted_for_entities := delete_asset_records_from_ts_kv(tenant_id_record,
-                                                                                customer_id_record,
-                                                                                customer_ttl_ts);
-                        deleted := deleted + deleted_for_entities;
-                        RAISE NOTICE '% telemetry removed for assets where tenant_id = % and customer_id = %', deleted_for_entities, tenant_id_record, customer_id_record;
-                    END IF;
-                END LOOP;
-            FETCH tenant_cursor INTO tenant_id_record;
-        END LOOP;
-END
-$$;
+-- FIX TIMESERIES TTL PARTITION CLEANUP ON EDGE END

@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -59,17 +60,25 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
 
     private Future<?> sendUplinkFuture;
     private SettableFuture<Boolean> sendUplinkFutureResult;
-    private ExecutorService uplinkExecutor;
+    private volatile ExecutorService uplinkExecutor;
 
     public void init() {
+        // A previous connection may have left its executor running: this is re-entered on every
+        // GrpcConnectionEstablishedEvent, so replace the old one instead of orphaning its thread.
+        shutdownUplinkExecutor();
         uplinkExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
     }
 
     @PreDestroy
     public void shutdown() {
-        if (uplinkExecutor != null) {
+        shutdownUplinkExecutor();
+    }
+
+    private void shutdownUplinkExecutor() {
+        if (uplinkExecutor != null && !uplinkExecutor.isShutdown()) {
             uplinkExecutor.shutdownNow();
         }
+        uplinkExecutor = null;
     }
 
     @Override
@@ -80,7 +89,6 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
                 return Futures.immediateFuture(true);
             }
             interruptPreviousSendUplinkMsgsTask();
-            sendUplinkFutureResult = SettableFuture.create();
 
             cloudEvents = EdgeMsgConstructorUtils.mergeAndFilterUplinkDuplicates(cloudEvents);
 
@@ -90,6 +98,7 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
                 return Futures.immediateFuture(false);
             }
 
+            sendUplinkFutureResult = SettableFuture.create();
             processMsgPack(uplinkMsgPack, isGeneralMsg);
         } finally {
             edgeInfo.unlockSend();
@@ -120,7 +129,27 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
     private void processMsgPack(List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
         pendingMsgs.setNewPack(uplinkMsgPack);
 
-        sendUplinkFuture = uplinkExecutor.submit(() -> {
+        // Read once - replaced on reconnect and cleared on shutdown, both from other threads.
+        ExecutorService executor = uplinkExecutor;
+        try {
+            if (executor == null) {
+                throw new RejectedExecutionException("Uplink executor is unavailable, "
+                        + uplinkMsgPack.size() + " msg(s) are going to be retried later");
+            }
+            // An executor shut down after the read above rejects on its own - submit() throws the same type.
+            submitMsgPack(executor, uplinkMsgPack, isGeneralMsg);
+        } catch (RejectedExecutionException e) {
+            // Fail the future rather than letting this escape: callers already handle ExecutionException,
+            // whereas an unchecked exception crossing sendCloudEvents relies on a catch-all further up - on
+            // the Kafka path it misses the catch entirely and the batch is dropped without being committed.
+            // Completing as interrupted is not an option either: the Postgres runner reads that as "retry
+            // this page" and would re-query it forever, since only a new connection can restore the executor.
+            sendUplinkFutureResult.setException(e);
+        }
+    }
+
+    private void submitMsgPack(ExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
+        sendUplinkFuture = executor.submit(() -> {
             try {
                 int attempt = 1;
                 boolean success;
@@ -132,8 +161,14 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
 
                     if (!success) {
                         String batchPrefix = isGeneralMsg ? "General" : "Timeseries";
-                        log.warn("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgs.getQueueSize(), attempt);
+                        log.info("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgs.getQueueSize(), attempt);
                         log.trace("Entities in failed batch: {}", pendingMsgs.getValues());
+                        if (!grpcClientManager.isConnected()) {
+                            log.info("Cloud session is not established. {} uplink msg(s) are going to be retried after reconnect",
+                                    pendingMsgs.getQueueSize());
+                            sendUplinkFutureResult.set(true);
+                            return;
+                        }
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
@@ -166,6 +201,9 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
     }
 
     private boolean sendUplinkMsgPack() {
+        if (!grpcClientManager.isConnected()) {
+            return false;
+        }
         edgeInfo.setSendingInProgress(true);
         LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue = pendingMsgs.getQueue();
         try {

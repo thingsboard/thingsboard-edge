@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.cloud.rpc;
+package org.thingsboard.server.service.install.lts;
 
-import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-public interface GrpcClientManager {
+@Component
+@TbCoreComponent
+public class V4_3_1_4Migration implements LtsMigration {
 
-    void sendUplinkMsg(UplinkMsg msg);
-    void establishRpcConnection();
-    boolean isConnected();
+    @Override
+    public String getVersion() {
+        return "4.3.1.4";
+    }
 
 }
