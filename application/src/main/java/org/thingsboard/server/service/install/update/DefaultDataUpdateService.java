@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
@@ -46,6 +47,7 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
@@ -53,11 +55,13 @@ import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
 import org.thingsboard.server.service.install.DatabaseSchemaSettingsService;
 import org.thingsboard.server.service.install.DbUpgradeExecutorService;
+import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.lts.LtsMigrationService;
 import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -85,11 +89,53 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private WidgetsBundleService widgetsBundleService;
 
+    @Autowired
+    private AdminSettingsService adminSettingsService;
+
+    @Autowired
+    private SystemDataLoaderService systemDataLoaderService;
+
     @Override
     public void updateData() throws Exception {
         log.info("Updating data ...");
         ltsMigrationService.runDataMigrations(schemaSettingsService.getDbSchemaVersion(), schemaSettingsService.getPackageSchemaVersion());
+        purgeAdminSettings();
         log.info("Data updated.");
+    }
+
+    private void purgeAdminSettings() throws Exception {
+        log.info("Purging admin settings");
+        Set<String> keep = Set.of("general", "connectivity");
+        List<TenantId> scopes = new ArrayList<>();
+        scopes.add(TenantId.SYS_TENANT_ID);
+        new PageDataIterable<>(tenantService::findTenantsIds, DEFAULT_PAGE_SIZE).forEach(scopes::add);
+        boolean systemJwtRemoved = false;
+        for (TenantId scope : scopes) {
+            List<String> keysToDelete = new ArrayList<>();
+            PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+            PageData<AdminSettings> page;
+            do {
+                page = adminSettingsService.findAllByTenantId(scope, pageLink);
+                for (AdminSettings adminSettings : page.getData()) {
+                    if (!keep.contains(adminSettings.getKey())) {
+                        keysToDelete.add(adminSettings.getKey());
+                    }
+                }
+                pageLink = pageLink.nextPageLink();
+            } while (page.hasNext());
+            for (String key : keysToDelete) {
+                adminSettingsService.deleteAdminSettingsByTenantIdAndKey(scope, key);
+                if (TenantId.SYS_TENANT_ID.equals(scope) && "jwt".equals(key)) {
+                    systemJwtRemoved = true;
+                }
+            }
+            if (!keysToDelete.isEmpty()) {
+                log.info("Purged {} admin settings for tenant [{}]: {}", keysToDelete.size(), scope, keysToDelete);
+            }
+        }
+        if (systemJwtRemoved) {
+            systemDataLoaderService.createRandomJwtSettings();
+        }
     }
 
     @Override
