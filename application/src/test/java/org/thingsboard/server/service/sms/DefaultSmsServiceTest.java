@@ -15,150 +15,69 @@
  */
 package org.thingsboard.server.service.sms;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.context.TestPropertySource;
-import org.apache.commons.lang3.RandomStringUtils;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-import org.thingsboard.server.common.data.tenant.profile.TenantProfileConfiguration;
-import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
-import org.thingsboard.server.controller.AbstractControllerTest;
-import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.common.data.sms.config.TestSmsRequest;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-@DaoSqlTest
-@TestPropertySource(properties = {
-        "usage.stats.report.enabled=true",
-        "usage.stats.report.interval=1",
-        "usage.stats.report.urgent_interval=1"
-})
-public class DefaultSmsServiceTest extends AbstractControllerTest {
-    @MockitoSpyBean
-    private DefaultSmsService defaultSmsService;
-    @Autowired
-    private AdminSettingsService adminSettingsService;
+public class DefaultSmsServiceTest {
 
-    private TenantProfile tenantProfile;
+    private final TenantId tenantId = new TenantId(UUID.randomUUID());
 
-    @Before
-    public void before() throws Exception {
-        loginSysAdmin();
-        prepareSmsSystemSetting();
-    }
+    private CloudEventService cloudEventService;
+    private DefaultSmsService smsService;
 
-    @After
-    public void after() throws Exception {
-        saveTenantProfileWitConfiguration(tenantProfile, new DefaultTenantProfileConfiguration());
-        adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "sms");
-        resetTokens();
+    @BeforeEach
+    void setUp() {
+        cloudEventService = mock(CloudEventService.class);
+        smsService = new DefaultSmsService(cloudEventService);
     }
 
     @Test
-    public void testLimitSmsMessagingByTenantProfileSettings() throws Exception {
-        tenantProfile = getDefaultTenantProfile();
-
-        DefaultTenantProfileConfiguration config = createTenantProfileConfigurationWithSmsLimits(10, true);
-        saveTenantProfileWitConfiguration(tenantProfile, config);
-
-        for (int i = 0; i < 10; i++) {
-            doReturn(1).when(defaultSmsService).sendSms(any(), any());
-            defaultSmsService.sendSms(tenantId, null, new String[]{RandomStringUtils.secure().nextNumeric(10)}, "Message");
-        }
-
-        //wait 1 sec so that api usage state is updated
-        TimeUnit.SECONDS.sleep(1);
-        assertThrows(RuntimeException.class, () -> {
-            defaultSmsService.sendSms(tenantId, null, new String[]{RandomStringUtils.secure().nextNumeric(10)}, "Message");
-        }, "SMS sending is disabled due to API limits!");
+    public void sendSms_delegatesToCloud() throws Exception {
+        smsService.sendSms(tenantId, null, new String[]{"+15551234567", "+15559876543"}, "Edge alert");
+        EdgeSmsRequest request = captureRequest(tenantId);
+        assertThat(request.getMethod()).isEqualTo(EdgeSmsRequest.SmsMethod.SEND_SMS);
+        assertThat(request.getNumbers()).containsExactly("+15551234567", "+15559876543");
+        assertThat(request.getMessage()).isEqualTo("Edge alert");
     }
 
     @Test
-    public void testLimitSmsMessagingIfSmsDisabled() throws Exception {
-        tenantProfile = getDefaultTenantProfile();
-
-        DefaultTenantProfileConfiguration config = createTenantProfileConfigurationWithSmsLimits(0, false);
-        saveTenantProfileWitConfiguration(tenantProfile, config);
-
-        TimeUnit.SECONDS.sleep(1);
-        assertThrows(RuntimeException.class, () -> {
-            defaultSmsService.sendSms(tenantId, null, new String[]{RandomStringUtils.secure().nextNumeric(10)}, "Message");
-        }, "SMS sending is disabled due to API limits!");
-
-        //enable sms messaging
-        DefaultTenantProfileConfiguration config2 = createTenantProfileConfigurationWithSmsLimits(0, true);
-        saveTenantProfileWitConfiguration(tenantProfile, config2);
-        TimeUnit.SECONDS.sleep(1);
-
-        for (int i = 0; i < 10; i++) {
-            doReturn(1).when(defaultSmsService).sendSms(any(), any());
-            defaultSmsService.sendSms(tenantId, null, new String[]{RandomStringUtils.secure().nextNumeric(10)}, "Message");
-        }
+    public void sendTestSms_delegatesToCloud() throws Exception {
+        TestSmsRequest testSmsRequest = new TestSmsRequest();
+        testSmsRequest.setNumberTo("+15551234567");
+        testSmsRequest.setMessage("Test");
+        smsService.sendTestSms(testSmsRequest);
+        EdgeSmsRequest request = captureRequest(TenantId.SYS_TENANT_ID);
+        assertThat(request.getMethod()).isEqualTo(EdgeSmsRequest.SmsMethod.SEND_TEST_SMS);
+        assertThat(request.getTestSmsRequest()).isNotNull();
+        assertThat(request.getTestSmsRequest().getNumberTo()).isEqualTo("+15551234567");
+        assertThat(request.getTestSmsRequest().getMessage()).isEqualTo("Test");
     }
 
-    private TenantProfile getDefaultTenantProfile() throws Exception {
-
-        PageLink pageLink = new PageLink(17);
-        PageData<TenantProfile> pageData = doGetTypedWithPageLink("/api/tenantProfiles?",
-                new TypeReference<>(){}, pageLink);
-        Assert.assertFalse(pageData.hasNext());
-        Assert.assertEquals(1, pageData.getTotalElements());
-        List<TenantProfile> tenantProfiles = new ArrayList<>(pageData.getData());
-
-        Optional<TenantProfile> optionalDefaultProfile = tenantProfiles.stream().filter(TenantProfile::isDefault).reduce((a, b) -> null);
-        Assert.assertTrue(optionalDefaultProfile.isPresent());
-
-        return optionalDefaultProfile.get();
+    @Test
+    public void isConfigured_alwaysTrueOnEdge() {
+        assertThat(smsService.isConfigured(tenantId)).isTrue();
     }
 
-    private DefaultTenantProfileConfiguration createTenantProfileConfigurationWithSmsLimits(Integer maxSms, Boolean smsEnabled) {
-        DefaultTenantProfileConfiguration.DefaultTenantProfileConfigurationBuilder builder = DefaultTenantProfileConfiguration.builder();
-        builder.maxSms(maxSms);
-        builder.smsEnabled(smsEnabled);
-        return builder.build();
-
+    private EdgeSmsRequest captureRequest(TenantId expectedTenantId) throws Exception {
+        ArgumentCaptor<JsonNode> bodyCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        verify(cloudEventService).saveCloudEvent(eq(expectedTenantId), eq(CloudEventType.TENANT),
+                eq(EdgeEventActionType.SEND_SMS), eq(expectedTenantId), bodyCaptor.capture());
+        return JacksonUtil.convertValue(bodyCaptor.getValue(), EdgeSmsRequest.class);
     }
 
-    private void saveTenantProfileWitConfiguration(TenantProfile tenantProfile, TenantProfileConfiguration tenantProfileConfiguration) {
-        TenantProfileData tenantProfileData = tenantProfile.getProfileData();
-        tenantProfileData.setConfiguration(tenantProfileConfiguration);
-        TenantProfile savedTenantProfile = doPost("/api/tenantProfile", tenantProfile, TenantProfile.class);
-        Assert.assertNotNull(savedTenantProfile);
-    }
-
-    private void prepareSmsSystemSetting() throws Exception {
-        if (doGet("/api/admin/settings/sms").andReturn().getResponse().getStatus() == 404) {
-            AdminSettings adminSettings = new AdminSettings();
-            ObjectNode value = JacksonUtil.newObjectNode();
-            value.put("numberFrom", "+12543223870");
-            value.put("accountSid", "testAcc");
-            value.put("accountToken", "testToken");
-            value.put("type", "TWILIO");
-            adminSettings.setKey("sms");
-            adminSettings.setJsonValue(value);
-
-            doPost("/api/admin/settings", adminSettings).andExpect(status().isOk());
-        }
-    }
 }
