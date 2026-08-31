@@ -71,6 +71,7 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest { // ed
 
     private Tenant savedTenant;
 
+    // edge only
     @Autowired
     private CloudEventService cloudEventService;
 
@@ -152,6 +153,8 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest { // ed
                 });
     }
 
+    // edge only START
+
     @Test
     public void testImmediateResultOfEdgeComputeOnIsPushedToCloud() throws Exception {
         Device device = givenDeviceWithTemperature("Immediate edge device", "immediate-edge-1234");
@@ -190,15 +193,7 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest { // ed
         doPost("/api/calculatedField", immediateAttributesCf(device.getId(), ComputeOn.EDGE), CalculatedField.class);
 
         awaitAttributeOutput(device.getId(), "77.0");
-        await().alias("IMMEDIATE attributes result is queued for the cloud").atMost(TIMEOUT, TimeUnit.SECONDS)
-                .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
-                .untilAsserted(() -> assertThat(cloudEventBodies(device.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, "kv"))
-                        .as("cloud event with the calculated field attributes output")
-                        .anySatisfy(body -> {
-                            assertThat(body.path("kv").path(OUTPUT_KEY).asText()).isEqualTo("77.0");
-                            assertThat(body.path("scope").asText()).isEqualTo(AttributeScope.SERVER_SCOPE.name());
-                            assertThat(body.path("ts").asLong()).isPositive();
-                        }));
+        awaitAttributesCloudEvent(device.getId(), "cloud event with the calculated field attributes output");
     }
 
     @Test
@@ -211,16 +206,21 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest { // ed
 
         // the result is written to the related asset, never to the originating device
         awaitAttributeOutput(asset.getId(), "77.0");
-        await().alias("IMMEDIATE propagation result is queued for the cloud").atMost(TIMEOUT, TimeUnit.SECONDS)
+        awaitAttributesCloudEvent(asset.getId(), "cloud event with the propagated calculated field output");
+        assertThat(cloudEventBodies(device.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, "kv"))
+                .as("originating device must not receive the propagated output").isEmpty();
+    }
+
+    private void awaitAttributesCloudEvent(EntityId entityId, String description) {
+        await().alias("IMMEDIATE attributes result is queued for the cloud").atMost(TIMEOUT, TimeUnit.SECONDS)
                 .pollInterval(POLL_INTERVAL, TimeUnit.SECONDS)
-                .untilAsserted(() -> assertThat(cloudEventBodies(asset.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, "kv"))
-                        .as("cloud event with the propagated calculated field output")
+                .untilAsserted(() -> assertThat(cloudEventBodies(entityId, EdgeEventActionType.ATTRIBUTES_UPDATED, "kv"))
+                        .as(description)
                         .anySatisfy(body -> {
                             assertThat(body.path("kv").path(OUTPUT_KEY).asDouble()).isEqualTo(77.0);
                             assertThat(body.path("scope").asText()).isEqualTo(AttributeScope.SERVER_SCOPE.name());
+                            assertThat(body.path("ts").asLong()).isPositive();
                         }));
-        assertThat(cloudEventBodies(device.getId(), EdgeEventActionType.ATTRIBUTES_UPDATED, "kv"))
-                .as("originating device must not receive the propagated output").isEmpty();
     }
 
     private CalculatedField propagationCf(EntityId entityId, ComputeOn computeOn) {
@@ -293,6 +293,8 @@ public class CalculatedFieldComputeOnTest extends AbstractControllerTest { // ed
                     assertThat(attributes.path(0).path("value").asDouble()).isEqualTo(Double.parseDouble(expectedValue));
                 });
     }
+
+    // edge only END
 
     private ObjectNode getLatestTelemetry(EntityId entityId, String... keys) throws Exception {
         return doGetAsync("/api/plugins/telemetry/" + entityId.getEntityType() + "/" + entityId.getId() + "/values/timeseries?keys=" + String.join(",", keys), ObjectNode.class);

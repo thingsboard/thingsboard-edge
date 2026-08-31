@@ -50,7 +50,8 @@ public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest 
     private final List<CalculatedFieldId> previousCalculatedFieldIds;
     private final UUID tbMsgId;
     private final TbMsgType tbMsgType;
-    // edge only
+    // edge only: also queue the saved entries as a cloud event, so the cloud receives a result
+    // computed on this edge. Honoured only for the parts of the save the strategy persists.
     private final boolean propagateToCloud;
     private final FutureCallback<Void> callback;
 
@@ -147,7 +148,7 @@ public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest 
             return this;
         }
 
-        // edge only
+        // edge only: see propagateToCloud on the request - no-op on the cloud build
         public Builder propagateToCloud(boolean propagateToCloud) {
             this.propagateToCloud = propagateToCloud;
             return this;

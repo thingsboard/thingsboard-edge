@@ -194,7 +194,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
             addMainCallback(resultFuture, __ -> copyLatestToEntityViews(tenantId, entityId, request.getEntries()));
         }
         // edge only
-        if (request.isPropagateToCloud()) {
+        if (request.isPropagateToCloud() && (strategy.saveTimeseries() || strategy.saveLatest())) {
             addMainCallback(resultFuture, __ -> pushTimeseriesToCloud(tenantId, entityId, request.getEntries()));
         }
         return resultFuture;
@@ -245,7 +245,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
             addWsCallback(resultFuture, success -> onAttributesUpdate(tenantId, entityId, request.getScope().name(), request.getEntries()));
         }
         // edge only
-        if (request.isPropagateToCloud()) {
+        if (request.isPropagateToCloud() && strategy.saveAttributes()) {
             addMainCallback(resultFuture, __ -> pushAttributesToCloud(tenantId, entityId, request.getScope(), request.getEntries()));
         }
         return resultFuture;
@@ -279,13 +279,13 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
     private void saveCloudEvent(TenantId tenantId, EntityId entityId, EdgeEventActionType action, ObjectNode entityBody) {
         CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(entityId.getEntityType());
         if (cloudEventType == null) {
-            log.warn("[{}][{}] Unsupported entity type for cloud propagation of the calculated field result", tenantId, entityId);
+            log.warn("[{}][{}] Unsupported entity type for cloud propagation", tenantId, entityId);
             return;
         }
         CloudEvent cloudEvent = new CloudEvent(tenantId, action, entityId.getId(), cloudEventType, entityBody);
         DonAsynchron.withCallback(cloudEventService.saveTsKvAsync(cloudEvent),
-                __ -> log.trace("[{}][{}] Saved cloud event for the calculated field result: {}", tenantId, entityId, entityBody),
-                t -> log.warn("[{}][{}] Failed to save cloud event for the calculated field result: {}", tenantId, entityId, entityBody, t),
+                __ -> log.trace("[{}][{}] Saved propagated cloud event: {}", tenantId, entityId, entityBody),
+                t -> log.warn("[{}][{}] Failed to save propagated cloud event: {}", tenantId, entityId, entityBody, t),
                 MoreExecutors.directExecutor());
     }
     // edge only END

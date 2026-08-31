@@ -75,11 +75,12 @@ public class CalculatedField extends BaseData<CalculatedFieldId> implements HasN
     @Length(fieldName = "name")
     @Schema(description = "User defined name of the calculated field.")
     private String name;
+    // edge only: the default is inverted on the edge, see ComputeOn.DEFAULT
     @Schema(description = """
             Defines which side of an edge deployment computes this calculated field. \
-            'CLOUD' (default) - computed on the cloud; edges do not compute it. \
-            'EDGE' - computed on the edge, and the cloud stores the edge result without recomputing it.""",
-            example = "CLOUD")
+            'EDGE' (default) - computed on the edge, and the cloud stores the edge result without recomputing it. \
+            'CLOUD' - computed on the cloud; the edge does not compute it.""",
+            example = "EDGE")
     private ComputeOn computeOn;
     @Deprecated
     @Schema(description = "Enable/disable debug. ", example = "false", deprecated = true)
