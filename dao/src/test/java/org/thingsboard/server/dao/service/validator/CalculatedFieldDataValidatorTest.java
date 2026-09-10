@@ -21,14 +21,24 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+import org.thingsboard.server.common.data.cf.ComputeOn;
+import org.thingsboard.server.common.data.cf.configuration.Argument;
+import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
+import org.thingsboard.server.common.data.cf.configuration.ReferencedEntityKey;
+import org.thingsboard.server.common.data.cf.configuration.SimpleCalculatedFieldConfiguration;
+import org.thingsboard.server.common.data.cf.configuration.TimeSeriesOutput;
 import org.thingsboard.server.common.data.id.CalculatedFieldId;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cf.CalculatedFieldDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.usagerecord.DefaultApiLimitService;
+import org.thingsboard.server.exception.DataValidationException;
 
+import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
@@ -37,6 +47,7 @@ public class CalculatedFieldDataValidatorTest {
 
     private final TenantId TENANT_ID = TenantId.fromUUID(UUID.fromString("7b5229e9-166e-41a9-a257-3b1dafad1b04"));
     private final CalculatedFieldId CALCULATED_FIELD_ID = new CalculatedFieldId(UUID.fromString("060fbe45-fbb2-4549-abf3-f72a6be3cb9f"));
+    private final DeviceId DEVICE_ID = new DeviceId(UUID.fromString("9dcb1c1a-7b1a-4b1a-9c0e-1d3a5c6c7b8a"));
 
     @MockitoBean
     private CalculatedFieldDao calculatedFieldDao;
@@ -44,6 +55,13 @@ public class CalculatedFieldDataValidatorTest {
     private DefaultApiLimitService apiLimitService;
     @MockitoSpyBean
     private CalculatedFieldDataValidator validator;
+
+    @Test
+    public void testComputeOnIsNotValidatedOnEdge() { // edge only
+        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, edgeOnlyCf(DEVICE_ID))).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, cf(DEVICE_ID, ComputeOn.CLOUD))).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, cf(DEVICE_ID, null))).doesNotThrowAnyException();
+    }
 
     @Test
     public void testUpdateNonExistingCalculatedField() {
@@ -56,6 +74,33 @@ public class CalculatedFieldDataValidatorTest {
         assertThatThrownBy(() -> validator.validateUpdate(TENANT_ID, calculatedField))
                 .isInstanceOf(DataValidationException.class)
                 .hasMessage("Can't update non existing calculated field!");
+    }
+
+    private CalculatedField edgeOnlyCf(EntityId entityId) {
+        return cf(entityId, ComputeOn.EDGE);
+    }
+
+    private CalculatedField cf(EntityId entityId, ComputeOn computeOn) {
+        CalculatedField calculatedField = new CalculatedField(CALCULATED_FIELD_ID);
+        calculatedField.setTenantId(TENANT_ID);
+        calculatedField.setEntityId(entityId);
+        calculatedField.setType(CalculatedFieldType.SIMPLE);
+        calculatedField.setName("Test");
+        calculatedField.setComputeOn(computeOn);
+
+        Argument argument = new Argument();
+        argument.setRefEntityKey(new ReferencedEntityKey("temperature", ArgumentType.TS_LATEST, null));
+
+        TimeSeriesOutput output = new TimeSeriesOutput();
+        output.setName("result");
+
+        SimpleCalculatedFieldConfiguration configuration = new SimpleCalculatedFieldConfiguration();
+        configuration.setArguments(Map.of("temperature", argument));
+        configuration.setExpression("temperature * 2");
+        configuration.setOutput(output);
+        calculatedField.setConfiguration(configuration);
+
+        return calculatedField;
     }
 
 }

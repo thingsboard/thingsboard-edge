@@ -50,6 +50,9 @@ public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest 
     private final List<CalculatedFieldId> previousCalculatedFieldIds;
     private final UUID tbMsgId;
     private final TbMsgType tbMsgType;
+    // edge only: also queue the saved entries as a cloud event, so the cloud receives a result
+    // computed on this edge. Honoured only for the parts of the save the strategy persists.
+    private final boolean propagateToCloud;
     private final FutureCallback<Void> callback;
 
     public record Strategy(boolean saveAttributes, boolean sendWsUpdate, boolean processCalculatedFields) {
@@ -76,6 +79,8 @@ public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest 
         private List<CalculatedFieldId> previousCalculatedFieldIds;
         private UUID tbMsgId;
         private TbMsgType tbMsgType;
+        // edge only
+        private boolean propagateToCloud;
         private FutureCallback<Void> callback;
 
         Builder() {}
@@ -143,6 +148,12 @@ public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest 
             return this;
         }
 
+        // edge only: see propagateToCloud on the request - no-op on the cloud build
+        public Builder propagateToCloud(boolean propagateToCloud) {
+            this.propagateToCloud = propagateToCloud;
+            return this;
+        }
+
         public Builder callback(FutureCallback<Void> callback) {
             this.callback = callback;
             return this;
@@ -165,7 +176,7 @@ public class AttributesSaveRequest implements CalculatedFieldSystemAwareRequest 
         public AttributesSaveRequest build() {
             return new AttributesSaveRequest(
                     tenantId, entityId, scope, entries, notifyDevice, requireNonNullElse(strategy, Strategy.PROCESS_ALL),
-                    previousCalculatedFieldIds, tbMsgId, tbMsgType, requireNonNullElse(callback, NoOpFutureCallback.instance())
+                    previousCalculatedFieldIds, tbMsgId, tbMsgType, propagateToCloud, requireNonNullElse(callback, NoOpFutureCallback.instance())
             );
         }
 

@@ -27,9 +27,9 @@ import org.thingsboard.server.common.data.cf.configuration.aggregation.single.En
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.dao.cf.CalculatedFieldDao;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +52,7 @@ public class CalculatedFieldDataValidator extends DataValidator<CalculatedField>
         validateRelationQuerySourceArguments(tenantId, calculatedField);
         validateRelatedAggregationConfiguration(tenantId, calculatedField);
         validateEntityAggregationConfiguration(tenantId, calculatedField);
+        validateComputeOn(tenantId, calculatedField);
     }
 
     @Override
@@ -142,6 +143,10 @@ public class CalculatedFieldDataValidator extends DataValidator<CalculatedField>
             throw new IllegalArgumentException("Aggregation interval duration is less than configured " +
                     "minimum allowed aggregation interval in tenant profile: " + minAggregationIntervalInSec + " sec.");
         }
+    }
+
+    private void validateComputeOn(TenantId tenantId, CalculatedField calculatedField) {
+        // edge only: the edge assignment relations live on the cloud, so there is nothing to validate here
     }
 
     private static void wrapAsDataValidation(Runnable validation) {

@@ -27,7 +27,10 @@ import {
   CalculatedFieldTestScriptFn,
   CalculatedFieldType,
   calculatedFieldTypes,
-  CalculatedFieldTypeTranslations
+  CalculatedFieldTypeTranslations,
+  computeOnValues,
+  ComputeOnTranslations,
+  defaultComputeOn
 } from '@shared/models/calculated-field.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -83,6 +86,8 @@ export class CalculatedFieldDialogComponent extends DialogComponent<CalculatedFi
   readonly CalculatedFieldType = CalculatedFieldType;
   readonly fieldTypes = calculatedFieldTypes;
   readonly CalculatedFieldTypeTranslations = CalculatedFieldTypeTranslations;
+  readonly computeOnValues = computeOnValues;
+  readonly ComputeOnTranslations = ComputeOnTranslations;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -163,9 +168,9 @@ export class CalculatedFieldDialogComponent extends DialogComponent<CalculatedFi
   }
 
   private applyDialogData(): void {
-    const { configuration = {} as CalculatedFieldConfiguration, type = CalculatedFieldType.SIMPLE, debugSettings = { failuresEnabled: true, allEnabled: true }, entityId = this.data.entityId, ...value } = this.data.value ?? {};
+    const { configuration = {} as CalculatedFieldConfiguration, type = CalculatedFieldType.SIMPLE, debugSettings = { failuresEnabled: true, allEnabled: true }, entityId = this.data.entityId, computeOn, ...value } = this.data.value ?? {};
     const preparedConfig = this.cfFormService.prepareConfig(configuration);
-    this.fieldFormGroup.patchValue({ configuration: preparedConfig, type, debugSettings, entityId, ...value }, {emitEvent: false});
+    this.fieldFormGroup.patchValue({ configuration: preparedConfig, type, debugSettings, entityId, computeOn: computeOn ?? defaultComputeOn, ...value }, {emitEvent: false});
     setTimeout(() => this.fieldFormGroup.get('type').updateValueAndValidity({onlySelf: true}));
     if (!this.data.entityId) {
       this.fieldFormGroup.get('configuration').disable({emitEvent: false});

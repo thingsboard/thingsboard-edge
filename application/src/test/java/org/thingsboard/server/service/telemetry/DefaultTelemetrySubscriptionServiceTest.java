@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.rule.engine.api.AttributesDeleteRequest;
@@ -62,9 +63,12 @@ import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.QueueKey;
@@ -142,12 +146,14 @@ class DefaultTelemetrySubscriptionServiceTest {
     CalculatedFieldQueueService calculatedFieldQueueService;
     @Mock
     DeviceStateManager deviceStateManager;
+    @Mock
+    CloudEventService cloudEventService;
 
     DefaultTelemetrySubscriptionService telemetryService;
 
     @BeforeEach
     void setup() {
-        telemetryService = new DefaultTelemetrySubscriptionService(attrService, tsService, tbEntityViewService, apiUsageClient, apiUsageStateService, calculatedFieldQueueService, deviceStateManager);
+        telemetryService = new DefaultTelemetrySubscriptionService(attrService, tsService, tbEntityViewService, apiUsageClient, apiUsageStateService, calculatedFieldQueueService, deviceStateManager, cloudEventService);
         ReflectionTestUtils.setField(telemetryService, "clusterService", clusterService);
         ReflectionTestUtils.setField(telemetryService, "partitionService", partitionService);
         ReflectionTestUtils.setField(telemetryService, "subscriptionManagerService", Optional.of(subscriptionManagerService));
@@ -1152,6 +1158,76 @@ class DefaultTelemetrySubscriptionServiceTest {
     }
 
     // used to emulate versions returned by save APIs
+    /* --- Cloud propagation (edge only) --- */
+
+    @Test
+    void shouldNotPushCloudEventWhenPropagateToCloudIsNotSet() {
+        // GIVEN
+        var request = TimeseriesSaveRequest.builder()
+                .tenantId(tenantId)
+                .customerId(customerId)
+                .entityId(entityId)
+                .entries(sampleTimeseries)
+                .ttl(sampleTtl)
+                .strategy(TimeseriesSaveRequest.Strategy.PROCESS_ALL)
+                .build();
+
+        // WHEN
+        telemetryService.saveTimeseries(request);
+
+        // THEN
+        then(cloudEventService).shouldHaveNoInteractions();
+    }
+
+    @Test
+    void shouldPushCloudEventWhenPropagateToCloudIsSet() {
+        // GIVEN
+        given(cloudEventService.saveTsKvAsync(any())).willReturn(immediateFuture(null));
+
+        var request = TimeseriesSaveRequest.builder()
+                .tenantId(tenantId)
+                .customerId(customerId)
+                .entityId(entityId)
+                .entries(sampleTimeseries)
+                .ttl(sampleTtl)
+                .strategy(TimeseriesSaveRequest.Strategy.PROCESS_ALL)
+                .propagateToCloud(true)
+                .build();
+
+        // WHEN
+        telemetryService.saveTimeseries(request);
+
+        // THEN
+        var captor = ArgumentCaptor.forClass(CloudEvent.class);
+        then(cloudEventService).should().saveTsKvAsync(captor.capture());
+
+        CloudEvent cloudEvent = captor.getValue();
+        assertThat(cloudEvent.getAction()).isEqualTo(EdgeEventActionType.TIMESERIES_UPDATED);
+        assertThat(cloudEvent.getEntityId()).isEqualTo(entityId.getId());
+        assertThat(cloudEvent.getEntityBody().get("ts").asLong()).isEqualTo(100L);
+        assertThat(cloudEvent.getEntityBody().get("data").get("temperature").asDouble()).isEqualTo(65.2);
+    }
+
+    @Test
+    void shouldNotPushCloudEventWhenStrategyPersistsNothing() {
+        // GIVEN
+        var request = TimeseriesSaveRequest.builder()
+                .tenantId(tenantId)
+                .customerId(customerId)
+                .entityId(entityId)
+                .entries(sampleTimeseries)
+                .ttl(sampleTtl)
+                .strategy(new TimeseriesSaveRequest.Strategy(false, false, false, false))
+                .propagateToCloud(true)
+                .build();
+
+        // WHEN
+        telemetryService.saveTimeseries(request);
+
+        // THEN
+        then(cloudEventService).shouldHaveNoInteractions();
+    }
+
     private static List<Long> listOfNNumbers(int N) {
         return LongStream.range(0, N).boxed().toList();
     }
