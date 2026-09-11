@@ -15,6 +15,7 @@
  */
 package org.thingsboard.server.service.cloud;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -30,6 +31,7 @@ import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -113,6 +115,9 @@ public class DefaultCloudNotificationService implements CloudNotificationService
 
     private ListenableFuture<Void> processEntity(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
         EdgeEventActionType cloudEventActionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
+        if (cloudEventActionType == EdgeEventActionType.RPC_CALL) {
+            return processRpcNotification(tenantId, cloudNotificationMsg);
+        }
         CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEventType, new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
         return switch (cloudEventActionType) {
@@ -120,6 +125,12 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                     cloudEventService.saveCloudEventAsync(tenantId, cloudEventType, cloudEventActionType, entityId, null);
             default -> Futures.immediateFuture(null);
         };
+    }
+
+    private ListenableFuture<Void> processRpcNotification(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
+        DeviceId deviceId = new DeviceId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
+        JsonNode body = JacksonUtil.toJsonNode(cloudNotificationMsg.getEntityBody());
+        return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL, deviceId, body);
     }
 
     private ListenableFuture<Void> processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {

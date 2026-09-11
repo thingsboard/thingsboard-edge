@@ -18,6 +18,7 @@ package org.thingsboard.server.service.rpc;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -31,6 +32,8 @@ import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
@@ -41,9 +44,11 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 public class TbRpcService {
     private final RpcService rpcService;
     private final TbClusterService tbClusterService;
+    private final ApplicationEventPublisher eventPublisher; // Edge only
 
     public Rpc save(TenantId tenantId, Rpc rpc) {
         Rpc saved = rpcService.save(rpc);
+        publishSaveEvent(tenantId, saved, true); // Edge only
         pushRpcMsgToRuleEngine(tenantId, saved);
         return saved;
     }
@@ -56,10 +61,20 @@ public class TbRpcService {
                 foundRpc.setResponse(response);
             }
             Rpc saved = rpcService.save(foundRpc);
+            publishSaveEvent(tenantId, saved, false); // Edge only
             pushRpcMsgToRuleEngine(tenantId, saved);
         } else {
             log.warn("[{}] Failed to update RPC status because RPC was already deleted", rpcId);
         }
+    }
+
+    private void publishSaveEvent(TenantId tenantId, Rpc rpc, boolean created) {
+        eventPublisher.publishEvent(SaveEntityEvent.<Rpc>builder()
+                .tenantId(tenantId)
+                .entityId(rpc.getId())
+                .entity(rpc)
+                .created(created)
+                .build());
     }
 
     private void pushRpcMsgToRuleEngine(TenantId tenantId, Rpc rpc) {
@@ -78,6 +93,18 @@ public class TbRpcService {
 
     public PageData<Rpc> findAllByDeviceIdAndStatus(TenantId tenantId, DeviceId deviceId, RpcStatus rpcStatus, PageLink pageLink) {
         return rpcService.findAllByDeviceIdAndStatus(tenantId, deviceId, rpcStatus, pageLink);
+    }
+
+    public void deleteRpc(TenantId tenantId, RpcId rpcId) {
+        Rpc rpc = rpcService.findById(tenantId, rpcId);
+        rpcService.deleteRpc(tenantId, rpcId);
+        if (rpc != null) { // Edge only
+            eventPublisher.publishEvent(DeleteEntityEvent.<Rpc>builder()
+                    .tenantId(tenantId)
+                    .entityId(rpc.getId())
+                    .entity(rpc)
+                    .build());
+        }
     }
 
 }

@@ -32,13 +32,17 @@ import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rpc.RpcError;
+import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
@@ -141,10 +145,32 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     public ListenableFuture<Void> processDeviceRpcCallFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
         log.trace("[{}] processDeviceRpcCallFromCloud [{}]", tenantId, deviceRpcCallMsg);
-        if (deviceRpcCallMsg.hasResponseMsg()) {
+        if (deviceRpcCallMsg.hasRpcStatus() && RpcStatus.DELETED.name().equals(deviceRpcCallMsg.getRpcStatus())) {
+            // RPC v2 (persistent) delete/abort propagated from the cloud - remove the edge-local copy.
+            return processDeviceRpcDeleteFromCloud(tenantId, deviceRpcCallMsg);
+        } else if (deviceRpcCallMsg.hasResponseMsg()) {
             return processDeviceRpcResponseFromCloud(deviceRpcCallMsg);
         } else if (deviceRpcCallMsg.hasRequestMsg()) {
             return processDeviceRpcRequestFromCloud(tenantId, deviceRpcCallMsg);
+        }
+        return Futures.immediateFuture(null);
+    }
+
+    private ListenableFuture<Void> processDeviceRpcDeleteFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
+        RpcId rpcId = new RpcId(new UUID(deviceRpcCallMsg.getRequestUuidMSB(), deviceRpcCallMsg.getRequestUuidLSB()));
+        try {
+            cloudSynchronizationManager.getSync().set(true);
+            Rpc rpc = edgeCtx.getTbRpcService().findRpcById(tenantId, rpcId);
+            if (rpc != null) {
+                if (rpc.getStatus().isIntermediate()) {
+                    // clear the pending RPC from the edge device actor so it is not delivered on device reconnect
+                    var removeMsg = new RemoveRpcActorMsg(tenantId, rpc.getDeviceId(), rpc.getUuidId());
+                    edgeCtx.getClusterService().pushMsgToCore(removeMsg, null);
+                }
+                edgeCtx.getTbRpcService().deleteRpc(tenantId, rpcId);
+            }
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }

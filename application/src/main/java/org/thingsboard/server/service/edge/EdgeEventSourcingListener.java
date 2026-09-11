@@ -227,7 +227,7 @@ public class EdgeEventSourcingListener {
                     break;
                 case TENANT:
                     return !event.getCreated();
-                case API_USAGE_STATE, EDGE, AI_MODEL:
+                case API_USAGE_STATE, EDGE, AI_MODEL, RPC:
                     return false;
                 case DOMAIN:
                     if (entity instanceof Domain domain) {
