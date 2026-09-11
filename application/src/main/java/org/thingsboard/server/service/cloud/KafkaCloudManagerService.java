@@ -137,7 +137,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
             if (!isProcessed) {
                 sleep();
             }
-        } while (!isProcessed);
+        } while (!isProcessed && !consumer.isStopped());
     }
 
     private void processTsUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs,
@@ -157,7 +157,7 @@ public class KafkaCloudManagerService extends BaseCloudManagerService {
             if (!isProcessed) {
                 sleep();
             }
-        } while (!isProcessed);
+        } while (!isProcessed && !consumer.isStopped());
     }
 
     // Readiness gates so the cloud-event consumers pause polling (instead of polling and risking event loss/interruption)

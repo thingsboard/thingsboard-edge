@@ -234,6 +234,10 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
                 .comment(JacksonUtil.newObjectNode().put("text", String.format("Comment was deleted by user %s",
                         CUSTOMER_USER_EMAIL)))
                 .build();
+        // The audit log receives the persisted comment, and AlarmComment equality covers the
+        // inherited id and createdTime, which the builder cannot populate.
+        expectedAlarmComment.setId(alarmComment.getId());
+        expectedAlarmComment.setCreatedTime(alarmComment.getCreatedTime());
         testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, customerUserId, CUSTOMER_USER_EMAIL, ActionType.DELETED_COMMENT, 1, expectedAlarmComment);
     }
 
@@ -258,6 +262,10 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
                 .comment(JacksonUtil.newObjectNode().put("text", String.format("Comment was deleted by user %s",
                         TENANT_ADMIN_EMAIL)))
                 .build();
+        // The audit log receives the persisted comment, and AlarmComment equality covers the
+        // inherited id and createdTime, which the builder cannot populate.
+        expectedAlarmComment.setId(alarmComment.getId());
+        expectedAlarmComment.setCreatedTime(alarmComment.getCreatedTime());
         testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, expectedAlarmComment);
     }
 
@@ -289,6 +297,10 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
                 .comment(JacksonUtil.newObjectNode().put("text", String.format("Comment was deleted by user %s",
                         TENANT_ADMIN_EMAIL)))
                 .build();
+        // The audit log receives the persisted comment, and AlarmComment equality covers the
+        // inherited id and createdTime, which the builder cannot populate.
+        expectedAlarmComment.setId(alarmComment.getId());
+        expectedAlarmComment.setCreatedTime(alarmComment.getCreatedTime());
         testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, expectedAlarmComment);
     }
 
