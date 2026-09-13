@@ -18,45 +18,47 @@ package org.thingsboard.server.service.notification.channels;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-import com.google.firebase.messaging.FirebaseMessagingException;
-import com.google.firebase.messaging.MessagingErrorCode;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.api.notification.FirebaseService;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
 import org.thingsboard.server.common.data.notification.info.NotificationInfo;
-import org.thingsboard.server.common.data.notification.settings.MobileAppNotificationDeliveryMethodConfig;
-import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.template.MobileAppDeliveryMethodNotificationTemplate;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.notification.NotificationService;
-import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.service.notification.EdgeNotificationRequest;
 import org.thingsboard.server.service.notification.NotificationProcessingContext;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.thingsboard.server.common.data.notification.NotificationDeliveryMethod.MOBILE_APP;
 
+/**
+ * On the Edge the mobile-app channel keeps everything that is Edge-local - the notification record, the
+ * user's device-token lookup and the unread count - and delegates only the FCM push to the Cloud, because
+ * the Firebase credentials live only on the Cloud (in the {@code notifications} admin settings that no
+ * longer sync to the Edge). The already-built payload and the device tokens are enqueued as a
+ * SEND_NOTIFICATION cloud event; the Cloud resolves the credentials and pushes via FCM. Invalid-token
+ * pruning is not performed on the Edge for delegated pushes (the fire-and-forget uplink has no return path).
+ */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class MobileAppNotificationChannel implements NotificationChannel<User, MobileAppDeliveryMethodNotificationTemplate> {
 
-    private final FirebaseService firebaseService;
     private final UserService userService;
     private final NotificationService notificationService;
-    private final NotificationSettingsService notificationSettingsService;
+    private final CloudEventService cloudEventService;
 
     @Override
     public void sendNotification(User recipient, MobileAppDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) throws Exception {
@@ -92,31 +94,17 @@ public class MobileAppNotificationChannel implements NotificationChannel<User, M
             throw new IllegalArgumentException("User doesn't use the mobile app");
         }
 
-        MobileAppNotificationDeliveryMethodConfig config = ctx.getDeliveryMethodConfig(MOBILE_APP);
-        String credentials = config.getFirebaseServiceAccountCredentials();
-        Set<String> validTokens = new HashSet<>(mobileSessions.keySet());
-
-        String subject = processedTemplate.getSubject();
-        String body = processedTemplate.getBody();
-        Map<String, String> data = getNotificationData(processedTemplate, ctx);
         int unreadCount = notificationService.countUnreadNotificationsByRecipientId(ctx.getTenantId(), MOBILE_APP, recipient.getId());
-        for (String token : mobileSessions.keySet()) {
-            try {
-                firebaseService.sendMessage(ctx.getTenantId(), credentials, token, subject, body, data, unreadCount);
-            } catch (FirebaseMessagingException e) {
-                MessagingErrorCode errorCode = e.getMessagingErrorCode();
-                if (errorCode == MessagingErrorCode.UNREGISTERED || errorCode == MessagingErrorCode.INVALID_ARGUMENT || errorCode == MessagingErrorCode.SENDER_ID_MISMATCH) {
-                    validTokens.remove(token);
-                    userService.removeMobileSession(recipient.getTenantId(), token);
-                    log.debug("[{}][{}] Removed invalid FCM token due to {} {} ({})", recipient.getTenantId(), recipient.getId(), errorCode, e.getMessage(), token);
-                    continue;
-                }
-                throw new RuntimeException("Failed to send message via FCM: " + e.getMessage(), e);
-            }
-        }
-        if (validTokens.isEmpty()) {
-            throw new IllegalArgumentException("User doesn't use the mobile app");
-        }
+        EdgeNotificationRequest edgeRequest = EdgeNotificationRequest.builder()
+                .method(EdgeNotificationRequest.NotificationMethod.SEND_MOBILE_PUSH)
+                .fcmTokens(new HashSet<>(mobileSessions.keySet()))
+                .subject(processedTemplate.getSubject())
+                .body(processedTemplate.getBody())
+                .data(getNotificationData(processedTemplate, ctx))
+                .badge(unreadCount)
+                .build();
+        cloudEventService.saveCloudEvent(ctx.getTenantId(), CloudEventType.TENANT, EdgeEventActionType.SEND_NOTIFICATION,
+                ctx.getTenantId(), JacksonUtil.valueToTree(edgeRequest));
     }
 
     private Map<String, String> getNotificationData(MobileAppDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) {
@@ -146,10 +134,7 @@ public class MobileAppNotificationChannel implements NotificationChannel<User, M
 
     @Override
     public void check(TenantId tenantId) throws Exception {
-        NotificationSettings systemSettings = notificationSettingsService.findNotificationSettings(TenantId.SYS_TENANT_ID);
-        if (!systemSettings.getDeliveryMethodsConfigs().containsKey(MOBILE_APP)) {
-            throw new RuntimeException("Push-notifications to mobile are not configured");
-        }
+        // Firebase credentials live on the Cloud; the Edge delegates the push, so nothing to verify locally.
     }
 
     @Override

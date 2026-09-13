@@ -65,7 +65,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private final TenantService tenantService;
     private final EdgeSettingsService edgeSettingsService;
     private final WidgetsBundleService widgetsBundleService;
-
     @Override
     public void updateData() throws Exception {
         log.info("Updating data ...");

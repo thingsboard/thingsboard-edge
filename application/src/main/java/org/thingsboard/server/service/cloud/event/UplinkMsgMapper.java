@@ -55,6 +55,9 @@ public class UplinkMsgMapper {
                 case RELATION_REQUEST -> cloudCtx.getRelationProcessor().convertRelationRequestEventToUplink(cloudEvent);
                 case CALCULATED_FIELD_REQUEST -> cloudCtx.getCalculatedFieldProcessor().convertCalculatedFieldRequestEventToUplink(cloudEvent);
                 case RPC_CALL -> cloudCtx.getDeviceProcessor().convertRpcCallEventToUplink(cloudEvent);
+                case SEND_EMAIL -> cloudCtx.getMailProcessor().convertSendEmailEventToUplink(cloudEvent);
+                case SEND_SMS -> cloudCtx.getSmsProcessor().convertSendSmsEventToUplink(cloudEvent);
+                case SEND_NOTIFICATION -> cloudCtx.getSendNotificationProcessor().convertSendNotificationEventToUplink(cloudEvent);
                 default -> {
                     log.warn("Unsupported action type [{}]", cloudEvent);
                     yield null;
