@@ -1,18 +1,5 @@
-/**
- * Copyright © 2016-2026 The Thingsboard Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.cloud.rpc;
 
 import com.google.common.util.concurrent.Futures;
@@ -316,7 +303,10 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        boolean edgeCustomerIdUpdated = updateCustomerIdIfRequired(downlinkMsg);
+        // Keeps the in-memory customer id in step with the cloud. The ownership change itself is
+        // delivered by the regular edge assignment / change-owner event flow, so it must not trigger a
+        // sync request: a sync interrupts general downlink delivery and blocks uplink processing on both sides.
+        updateCustomerIdIfRequired(downlinkMsg);
         if (edgeInfo.isSyncInProgress() && downlinkMsg.hasSyncCompletedMsg()) {
             log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
             edgeInfo.setSyncInProgress(false);
@@ -324,15 +314,13 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         }
         Futures.addCallback(
                 downlinkMessageService.processDownlinkMsg(edgeInfo.getTenantId(), edgeInfo.getCustomerId(), downlinkMsg, edgeInfo.getSettings()),
-                new DownlinkMsgProcessedCallback(edgeRpcClient, edgeInfo, downlinkMsg, edgeCustomerIdUpdated),
+                new DownlinkMsgProcessedCallback(edgeRpcClient, edgeInfo, downlinkMsg),
                 MoreExecutors.directExecutor());
     }
 
-    private boolean updateCustomerIdIfRequired(DownlinkMsg downlinkMsg) {
+    private void updateCustomerIdIfRequired(DownlinkMsg downlinkMsg) {
         if (downlinkMsg.hasEdgeConfiguration()) {
-            return edgeConfigurationHandler.setOrUpdateCustomerId(downlinkMsg.getEdgeConfiguration());
-        } else {
-            return false;
+            edgeConfigurationHandler.setOrUpdateCustomerId(downlinkMsg.getEdgeConfiguration());
         }
     }
 

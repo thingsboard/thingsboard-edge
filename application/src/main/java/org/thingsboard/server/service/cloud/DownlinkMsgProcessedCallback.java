@@ -1,18 +1,5 @@
-/**
- * Copyright © 2016-2026 The Thingsboard Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.cloud;
 
 import com.google.common.util.concurrent.FutureCallback;
@@ -31,13 +18,11 @@ public class DownlinkMsgProcessedCallback implements FutureCallback<List<Void>> 
     private final EdgeRpcClient client;
     private final EdgeInfoHolder edgeInfo;
     private final DownlinkMsg downlinkMsg;
-    private final boolean edgeCustomerIdUpdated;
 
-    public DownlinkMsgProcessedCallback(EdgeRpcClient client, EdgeInfoHolder edgeInfo, DownlinkMsg downlinkMsg, boolean edgeCustomerIdUpdated) {
+    public DownlinkMsgProcessedCallback(EdgeRpcClient client, EdgeInfoHolder edgeInfo, DownlinkMsg downlinkMsg) {
         this.client = client;
         this.edgeInfo = edgeInfo;
         this.downlinkMsg = downlinkMsg;
-        this.edgeCustomerIdUpdated = edgeCustomerIdUpdated;
     }
 
     @Override
@@ -48,12 +33,6 @@ public class DownlinkMsgProcessedCallback implements FutureCallback<List<Void>> 
                 .setSuccess(true).build();
 
         client.sendDownlinkResponseMsg(downlinkResponseMsg);
-        if (downlinkMsg.hasEdgeConfiguration()) {
-            if (edgeCustomerIdUpdated && !edgeInfo.isSyncInProgress()) {
-                log.info("Edge customer id has been updated. Sending sync request...");
-                requestSyncToCloud();
-            }
-        }
     }
 
     @Override
@@ -65,10 +44,5 @@ public class DownlinkMsgProcessedCallback implements FutureCallback<List<Void>> 
                 .setSuccess(false).setErrorMsg(errorMsg).build();
 
         client.sendDownlinkResponseMsg(downlinkResponseMsg);
-    }
-
-    private void requestSyncToCloud() {
-        client.sendSyncRequestMsg(false);
-        edgeInfo.setSyncInProgress(true);
     }
 }
