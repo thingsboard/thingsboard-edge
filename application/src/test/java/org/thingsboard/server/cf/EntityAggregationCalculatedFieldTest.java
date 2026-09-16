@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.cf;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
@@ -93,7 +94,7 @@ public class EntityAggregationCalculatedFieldTest extends AbstractControllerTest
                 .untilAsserted(() -> {
                     ObjectNode result = getLatestTelemetry(device.getId(), "consumption", "avgConsumption");
                     assertThat(result).isNotNull();
-                    assertThat(result.get("consumption").get(0).get("value").asText()).isEqualTo("9999");
+                    assertNumericValue(result, "consumption", 9999);
                     assertThat(result.get("avgConsumption").get(0).get("value").isNull()).isTrue();
                 });
     }
@@ -124,8 +125,8 @@ public class EntityAggregationCalculatedFieldTest extends AbstractControllerTest
                 .untilAsserted(() -> {
                     ObjectNode result = getLatestTelemetry(device.getId(), "consumption", "avgConsumption");
                     assertThat(result).isNotNull();
-                    assertThat(result.get("consumption").get(0).get("value").asText()).isEqualTo("400");
-                    assertThat(result.get("avgConsumption").get(0).get("value").asText()).isEqualTo("133");
+                    assertNumericValue(result, "consumption", 400);
+                    assertNumericValue(result, "avgConsumption", 133);
                 });
 
         postTelemetry(device.getId(), String.format("{\"ts\": \"%s\", \"values\": {\"energy\":500}}", tsInInterval_1));
@@ -136,8 +137,8 @@ public class EntityAggregationCalculatedFieldTest extends AbstractControllerTest
                 .untilAsserted(() -> {
                     ObjectNode result = getLatestTelemetry(device.getId(), "consumption", "avgConsumption");
                     assertThat(result).isNotNull();
-                    assertThat(result.get("consumption").get(0).get("value").asText()).isEqualTo("400");
-                    assertThat(result.get("avgConsumption").get(0).get("value").asText()).isEqualTo("133");
+                    assertNumericValue(result, "consumption", 400);
+                    assertNumericValue(result, "avgConsumption", 133);
                 });
     }
 
@@ -168,8 +169,8 @@ public class EntityAggregationCalculatedFieldTest extends AbstractControllerTest
                 .untilAsserted(() -> {
                     ObjectNode result = getLatestTelemetry(device.getId(), "consumption", "avgConsumption");
                     assertThat(result).isNotNull();
-                    assertThat(result.get("consumption").get(0).get("value").asText()).isEqualTo("400");
-                    assertThat(result.get("avgConsumption").get(0).get("value").asText()).isEqualTo("133");
+                    assertNumericValue(result, "consumption", 400);
+                    assertNumericValue(result, "avgConsumption", 133);
                 });
 
         postTelemetry(device.getId(), String.format("{\"ts\": \"%s\", \"values\": {\"energy\":300}}", tsInInterval_1));
@@ -180,8 +181,8 @@ public class EntityAggregationCalculatedFieldTest extends AbstractControllerTest
                 .untilAsserted(() -> {
                     ObjectNode result = getLatestTelemetry(device.getId(), "consumption", "avgConsumption");
                     assertThat(result).isNotNull();
-                    assertThat(result.get("consumption").get(0).get("value").asText()).isEqualTo("600");
-                    assertThat(result.get("avgConsumption").get(0).get("value").asText()).isEqualTo("200");
+                    assertNumericValue(result, "consumption", 600);
+                    assertNumericValue(result, "avgConsumption", 200);
                 });
     }
 
@@ -218,8 +219,8 @@ public class EntityAggregationCalculatedFieldTest extends AbstractControllerTest
                 .untilAsserted(() -> {
                     ObjectNode result = getLatestTelemetry(device.getId(), "consumption", "avgConsumption");
                     assertThat(result).isNotNull();
-                    assertThat(result.get("consumption").get(0).get("value").asText()).isEqualTo("400");
-                    assertThat(result.get("avgConsumption").get(0).get("value").asText()).isEqualTo("133");
+                    assertNumericValue(result, "consumption", 400);
+                    assertNumericValue(result, "avgConsumption", 133);
                 });
 
         postTelemetry(device.getId(), String.format("{\"ts\": \"%s\", \"values\": {\"energy\":500}}", currentIntervalStartTs + 4500L));
@@ -230,9 +231,9 @@ public class EntityAggregationCalculatedFieldTest extends AbstractControllerTest
                 .untilAsserted(() -> {
                     ObjectNode result = getLatestTelemetry(device.getId(), "consumption", "avgConsumption");
                     assertThat(result).isNotNull();
-                    assertThat(result.get("consumption").get(0).get("value").asText()).isEqualTo("500");
+                    assertNumericValue(result, "consumption", 500);
                     assertThat(result.get("consumption").get(0).get("ts").asLong()).isEqualTo(currentIntervalStartTs + 4000L);
-                    assertThat(result.get("avgConsumption").get(0).get("value").asText()).isEqualTo("500");
+                    assertNumericValue(result, "avgConsumption", 500);
                     assertThat(result.get("avgConsumption").get(0).get("ts").asLong()).isEqualTo(currentIntervalStartTs + 4000L);
                 });
     }
@@ -293,8 +294,8 @@ public class EntityAggregationCalculatedFieldTest extends AbstractControllerTest
                 .untilAsserted(() -> {
                     ObjectNode result = getLatestTelemetry(device.getId(), "consumption", "avgTemperature");
                     assertThat(result).isNotNull();
-                    assertThat(result.get("consumption").get(0).get("value").asText()).isEqualTo("400");
-                    assertThat(result.get("avgTemperature").get(0).get("value").asText()).isEqualTo("39");
+                    assertNumericValue(result, "consumption", 400);
+                    assertNumericValue(result, "avgTemperature", 39);
                 });
     }
 
@@ -359,8 +360,20 @@ public class EntityAggregationCalculatedFieldTest extends AbstractControllerTest
         return saveCalculatedField(calculatedField);
     }
 
+    // useStrictDataTypes=true so the value node keeps its stored type (numeric -> JSON number, str_v -> JSON string).
+    // Without it the endpoint returns every value via getValueAsString(), masking the string-vs-number distinction.
     private ObjectNode getLatestTelemetry(EntityId entityId, String... keys) throws Exception {
-        return doGetAsync("/api/plugins/telemetry/" + entityId.getEntityType() + "/" + entityId.getId() + "/values/timeseries?keys=" + String.join(",", keys), ObjectNode.class);
+        return doGetAsync("/api/plugins/telemetry/" + entityId.getEntityType() + "/" + entityId.getId() + "/values/timeseries?useStrictDataTypes=true&keys=" + String.join(",", keys), ObjectNode.class);
+    }
+
+    // Regression guard: a numeric aggregation result must be stored as a numeric JSON node (ts_kv.dbl_v/long_v),
+    // not a JSON string (ts_kv.str_v) - otherwise server-side AVG/SUM return no data. A value-only check would
+    // not catch this: asLong()/asText() coerce a string node like "400" to the same value/text, so the node type
+    // is asserted explicitly; the numeric comparison then verifies the aggregated value.
+    private static void assertNumericValue(ObjectNode result, String key, long expectedValue) {
+        JsonNode value = result.get(key).get(0).get("value");
+        assertThat(value.isNumber()).as(key + " should be stored as a numeric node").isTrue();
+        assertThat(value.asLong()).isEqualTo(expectedValue);
     }
 
 }
