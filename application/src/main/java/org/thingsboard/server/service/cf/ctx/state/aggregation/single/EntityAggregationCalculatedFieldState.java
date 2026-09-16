@@ -280,7 +280,7 @@ public class EntityAggregationCalculatedFieldState extends BaseCalculatedFieldSt
                     Object resultValue = argumentEntry.getValue() instanceof Number number
                             ? NumberUtils.roundResult(number.doubleValue(), precision)
                             : argumentEntry.getValue();
-                    metricsNode.put(metricName, JacksonUtil.toString(resultValue));
+                    metricsNode.set(metricName, JacksonUtil.valueToTree(resultValue));
                 }
             }
             if (!metricsNode.isEmpty()) {
