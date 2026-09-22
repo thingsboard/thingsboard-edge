@@ -25,8 +25,11 @@ import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.MailCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.NotificationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.OAuth2CloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.SendNotificationCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.SmsCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.OtaPackageCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.QueueCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
@@ -153,6 +156,15 @@ public class CloudContextComponent {
 
     @Autowired
     private CalculatedFieldCloudProcessor calculatedFieldProcessor;
+
+    @Autowired
+    private MailCloudProcessor mailProcessor;
+
+    @Autowired
+    private SmsCloudProcessor smsProcessor;
+
+    @Autowired
+    private SendNotificationCloudProcessor sendNotificationProcessor;
 
     // callback
     @Autowired
