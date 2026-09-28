@@ -46,9 +46,11 @@ public abstract class AbstractPostgresCloudEventUplinkBatchDispatcher {
                 }
                 cloudEvents = finder.find(edgeInfo.getTenantId(), queueSeqIdStart, null, pageLink);
                 if (cloudEvents.getData().isEmpty()) {
-                    log.info("seqId column of table started new cycle. queueSeqIdStart={}, queueStartTsAttrKey={}, queueSeqIdAttrKey={}, isGeneralMsg={}",
-                            queueSeqIdStart, queueStartTsAttrKey, queueSeqIdAttrKey, isGeneralMsg);
-                    cloudEvents = cloudEventUplinkRetriever.findCloudEventsFromBeginning(edgeInfo.getTenantId(), pageLink, finder);
+                    cloudEvents = cloudEventUplinkRetriever.findCloudEventsFromBeginning(edgeInfo.getTenantId(), queueSeqIdStart, queueStartTsAttrKey, pageLink, finder);
+                    if (!cloudEvents.getData().isEmpty()) {
+                        log.info("seqId column of table started new cycle. queueSeqIdStart={}, queueStartTsAttrKey={}, queueSeqIdAttrKey={}, isGeneralMsg={}",
+                                queueSeqIdStart, queueStartTsAttrKey, queueSeqIdAttrKey, isGeneralMsg);
+                    }
                 }
                 isInterrupted = getCloudEventUplinkSender().sendCloudEvents(cloudEvents.getData(), isGeneralMsg).get();
                 if (!isInterrupted && cloudEvents.getTotalElements() > 0) {
