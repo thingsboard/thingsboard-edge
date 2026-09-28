@@ -95,16 +95,17 @@ public class TbRpcService {
         return rpcService.findAllByDeviceIdAndStatus(tenantId, deviceId, rpcStatus, pageLink);
     }
 
-    public void deleteRpc(TenantId tenantId, RpcId rpcId) {
-        Rpc rpc = rpcService.findById(tenantId, rpcId);
-        rpcService.deleteRpc(tenantId, rpcId);
-        if (rpc != null) { // Edge only
-            eventPublisher.publishEvent(DeleteEntityEvent.<Rpc>builder()
-                    .tenantId(tenantId)
-                    .entityId(rpc.getId())
-                    .entity(rpc)
-                    .build());
-        }
+    /**
+     * The only cloud-aware RPC delete: propagates the delete to the cloud (Edge -> Cloud) via DeleteEntityEvent.
+     * Other delete paths (RpcService.deleteRpc, TTL clean-up) intentionally do not sync, so each side expires its own copies.
+     */
+    public void deleteRpc(TenantId tenantId, Rpc rpc) {
+        rpcService.deleteRpc(tenantId, rpc.getId());
+        eventPublisher.publishEvent(DeleteEntityEvent.<Rpc>builder() // Edge only
+                .tenantId(tenantId)
+                .entityId(rpc.getId())
+                .entity(rpc)
+                .build());
     }
 
 }

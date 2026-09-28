@@ -221,7 +221,8 @@ public class CloudEventSourcingListener {
             body.put("requestUUID", rpc.getId().getId().toString());
             body.put("rpcStatus", rpc.getStatus().name());
             if (rpc.getResponse() != null) {
-                body.set("response", rpc.getResponse());
+                // serialized as a JSON string: the uplink reads "response" via asText(), which is empty for object nodes
+                body.put("response", JacksonUtil.toString(rpc.getResponse()));
             }
             return JacksonUtil.toString(body);
         }

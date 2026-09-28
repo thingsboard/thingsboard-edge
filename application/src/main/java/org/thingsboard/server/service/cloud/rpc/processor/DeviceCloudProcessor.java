@@ -167,7 +167,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                     var removeMsg = new RemoveRpcActorMsg(tenantId, rpc.getDeviceId(), rpc.getUuidId());
                     edgeCtx.getClusterService().pushMsgToCore(removeMsg, null);
                 }
-                edgeCtx.getTbRpcService().deleteRpc(tenantId, rpcId);
+                edgeCtx.getTbRpcService().deleteRpc(tenantId, rpc);
             }
         } finally {
             cloudSynchronizationManager.getSync().remove();
