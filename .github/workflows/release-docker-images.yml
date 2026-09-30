@@ -1,0 +1,126 @@
+#
+# SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+# SPDX-License-Identifier: Apache-2.0
+#
+
+name: Release Docker Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'What do you want to build?'
+        required: true
+        type: choice
+        default: 'LTS Release'
+        options:
+          - LTS Release
+          - Major Release
+      allow_snapshot:
+        description: 'Allow pushing a -SNAPSHOT version'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: release-docker-images-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-push:
+    name: ${{ inputs.release_type }} (${{ github.ref_name }})
+    runs-on: ubuntu-latest
+    environment: docker-hub-release
+    timeout-minutes: 240
+    permissions:
+      contents: read
+
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Cache Yarn packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Resolve version and profile
+        id: meta
+        env:
+          RELEASE_TYPE: ${{ inputs.release_type }}
+          ALLOW_SNAPSHOT: ${{ inputs.allow_snapshot }}
+        run: |
+          VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
+          if [[ "$RELEASE_TYPE" == "LTS Release" ]]; then
+            PROFILE=push-lts-docker-amd-arm-images
+            if [[ "$GITHUB_REF_NAME" != lts-* ]]; then
+              echo "::error::LTS Release must be built from an lts-* branch (got '$GITHUB_REF_NAME')"
+              exit 1
+            fi
+            LTS_TAG=$(mvn -q -pl msa help:evaluate -P "$PROFILE" -Dexpression=docker.lts.tag -DforceStdout)
+            TAGS="$VERSION $LTS_TAG"
+          else
+            PROFILE=push-docker-amd-arm-images
+            TAGS="$VERSION latest"
+          fi
+          if [[ "$VERSION" == *-SNAPSHOT && "$ALLOW_SNAPSHOT" != "true" ]]; then
+            echo "::error::Version $VERSION is a SNAPSHOT. Set the release version first or enable 'allow_snapshot'."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "profile=$PROFILE" >> "$GITHUB_OUTPUT"
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
+          echo "Branch: $GITHUB_REF_NAME | Version: $VERSION | Profile: $PROFILE | Tags: $TAGS"
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push images
+        env:
+          MAVEN_OPTS: '-Xmx6g'
+          PROFILE: ${{ steps.meta.outputs.profile }}
+        run: |
+          mvn clean install -DskipTests -Ddockerfile.skip=false -P "$PROFILE"
+
+      - name: Verify pushed images
+        env:
+          RELEASE_TYPE: ${{ inputs.release_type }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          echo "### Pushed images ($RELEASE_TYPE, \`$GITHUB_REF_NAME\`)" >> "$GITHUB_STEP_SUMMARY"
+          for image in tb-edge tb-edge-node; do
+            for tag in $TAGS; do
+              ref="thingsboard/$image:$tag"
+              platforms=$(docker buildx imagetools inspect "$ref" --format '{{range .Manifest.Manifests}}{{.Platform.OS}}/{{.Platform.Architecture}} {{end}}')
+              echo "$ref -> $platforms"
+              if [[ "$platforms" != *linux/amd64* || "$platforms" != *linux/arm64* ]]; then
+                echo "::error::$ref is missing linux/amd64 or linux/arm64 (got: $platforms)"
+                exit 1
+              fi
+              echo "- \`$ref\` (linux/amd64, linux/arm64)" >> "$GITHUB_STEP_SUMMARY"
+            done
+          done
