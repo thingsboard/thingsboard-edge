@@ -68,8 +68,8 @@ jobs:
           VERSION=$(mvn -q help:evaluate -Dexpression=project.version -DforceStdout)
           if [[ "$RELEASE_TYPE" == "LTS Release" ]]; then
             PROFILE=push-lts-docker-amd-arm-images
-            if [[ "$GITHUB_REF_NAME" != lts-* ]]; then
-              echo "::error::LTS Release must be built from an lts-* branch (got '$GITHUB_REF_NAME')"
+            if [[ "$GITHUB_REF_NAME" != lts-* && "$GITHUB_REF_NAME" != release-* ]]; then
+              echo "::error::LTS Release must be built from an lts-* or release-* branch (got '$GITHUB_REF_NAME')"
               exit 1
             fi
             LTS_TAG=$(mvn -q -pl msa help:evaluate -P "$PROFILE" -Dexpression=docker.lts.tag -DforceStdout)
