@@ -44,11 +44,18 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Detect Java version
+        id: java
+        run: |
+          JAVA_VERSION=$(grep -m1 -oP '(?<=<maven.compiler.source>)[^<]+' pom.xml)
+          echo "Java version from pom.xml: $JAVA_VERSION"
+          echo "version=$JAVA_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK ${{ steps.java.outputs.version }}
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: ${{ steps.java.outputs.version }}
           cache: 'maven'
 
       - name: Cache Yarn packages
