@@ -102,6 +102,11 @@ class DefaultCommunityGrantServiceConcurrencyTest {
         }
 
         @Override
+        public void deleteAdminSettingsByKey(TenantId tenantId, String key) {
+            throw new UnsupportedOperationException("Not used by CommunityGrantFlowStateStore");
+        }
+
+        @Override
         public AdminSettings saveAdminSettings(TenantId tenantId, AdminSettings adminSettings) {
             if (adminSettings.getId() == null) {
                 adminSettings.setId(new AdminSettingsId(UUID.randomUUID()));
