@@ -5,6 +5,7 @@ package org.thingsboard.server.service.cloud.event.postgres;
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -28,6 +29,7 @@ public abstract class AbstractPostgresCloudEventUplinkBatchDispatcher {
     private PostgresResetQueueOffsetEventHandler resetQueueOffsetEventHandler;
     @Autowired
     private EdgeInfoHolder edgeInfo;
+    @Lazy
     @Autowired
     private GrpcClientManager grpcClientManager;
 

@@ -155,8 +155,8 @@ public class NotificationApiClientTest extends AbstractApiClientTest {
                 notificationsPage.getData().get(0).getId().getId());
 
         // Mark all as read
-        client.markAllNotificationsAsRead(null);
-        Integer unreadAfterMarkAll = client.getUnreadNotificationsCount(null);
+        client.markAllNotificationsAsRead((String) null);
+        Integer unreadAfterMarkAll = client.getUnreadNotificationsCount((String) null);
         assertEquals("Expected no unread notifications after marking all as read", 0, unreadAfterMarkAll.intValue());
 
         // === 4. Notification Settings ===
