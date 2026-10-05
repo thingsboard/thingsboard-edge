@@ -20,6 +20,7 @@ import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -34,11 +35,11 @@ public class PostgresCloudEventUplinkRetriever {
 
     public TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart, String key, CloudEventFinder finder) {
         try {
-            long queueStartTs = getLongAttrByKey(tenantId, key).get();
+            long lastProcessedTs = getLongAttrByKey(tenantId, key).get();
             // Subtract MISORDERING_COMPENSATION_MILLIS to ensure no events are missed in a clustered environment.
             // While events are identified using seqId, we use partitioning for performance reasons
             // and partitioning is based on created_time.
-            queueStartTs = queueStartTs > 0 ? queueStartTs - cloudCtx.getCloudEventStorageSettings().getMisorderingCompensationMillis() : 0;
+            long queueStartTs = lastProcessedTs > 0 ? lastProcessedTs - cloudCtx.getCloudEventStorageSettings().getMisorderingCompensationMillis() : 0;
             long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
             log.trace("newCloudEventsAvailable, queueSeqIdStart = {}, key = {}, queueStartTs = {}, queueEndTs = {}",
                     queueSeqIdStart, key, queueStartTs, queueEndTs);
@@ -46,13 +47,9 @@ public class PostgresCloudEventUplinkRetriever {
                     0, null, null, queueStartTs, queueEndTs);
             PageData<CloudEvent> cloudEvents = finder.find(tenantId, queueSeqIdStart, null, pageLink);
             if (cloudEvents.getData().isEmpty()) {
-                if (queueSeqIdStart > cloudEventStorageSettings.getMaxReadRecordsCount()) {
-                    // check if new cycle started (seq_id starts from '1')
-                    cloudEvents = findCloudEventsFromBeginning(tenantId, pageLink, finder);
-                    if (cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() == 1)) {
-                        log.info("newCloudEventsAvailable: new cycle started (seq_id starts from '1')!");
-                        return pageLink;
-                    }
+                if (!findCloudEventsFromBeginning(tenantId, queueSeqIdStart, lastProcessedTs, pageLink, finder).getData().isEmpty()) {
+                    log.info("newCloudEventsAvailable: new cycle started (seq_id starts from '1')!");
+                    return pageLink;
                 }
                 while (queueEndTs < System.currentTimeMillis()) {
                     log.trace("newCloudEventsAvailable: queueEndTs < System.currentTimeMillis() [{}] [{}]", queueEndTs, System.currentTimeMillis());
@@ -75,10 +72,21 @@ public class PostgresCloudEventUplinkRetriever {
         }
     }
 
-    public PageData<CloudEvent> findCloudEventsFromBeginning(TenantId tenantId, TimePageLink pageLink, CloudEventFinder finder) {
-        long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
-        seqIdEnd = Math.max(seqIdEnd, 50L);
-        return finder.find(tenantId, 0L, seqIdEnd, pageLink);
+    public PageData<CloudEvent> findCloudEventsFromBeginning(TenantId tenantId, Long queueSeqIdStart, String queueStartTsAttrKey, TimePageLink pageLink, CloudEventFinder finder) throws ExecutionException, InterruptedException {
+        return findCloudEventsFromBeginning(tenantId, queueSeqIdStart, getLongAttrByKey(tenantId, queueStartTsAttrKey).get(), pageLink, finder);
+    }
+
+    // a wrapped sequence hands out seq_id 1 after the last processed event, a young table handed it out before
+    private PageData<CloudEvent> findCloudEventsFromBeginning(TenantId tenantId, Long queueSeqIdStart, long lastProcessedTs, TimePageLink pageLink, CloudEventFinder finder) {
+        if (queueSeqIdStart <= cloudEventStorageSettings.getMaxReadRecordsCount()) {
+            return new PageData<>();
+        }
+        long seqIdEnd = Math.max(Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount()), 50L);
+        PageData<CloudEvent> cloudEvents = finder.find(tenantId, 0L, seqIdEnd, pageLink);
+        if (cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() == 1 && ce.getCreatedTime() >= lastProcessedTs)) {
+            return cloudEvents;
+        }
+        return new PageData<>();
     }
 
     private ListenableFuture<Long> getLongAttrByKey(TenantId tenantId, String attrKey) {
