@@ -13,7 +13,7 @@
         <artifactId>common</artifactId>
     </parent>
     <groupId>org.thingsboard.common</groupId>
-    <artifactId>dao-api</artifactId>§
+    <artifactId>dao-api</artifactId>
     <packaging>jar</packaging>
 
     <name>Thingsboard Server Common DAO API</name>
