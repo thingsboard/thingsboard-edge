@@ -1,19 +1,5 @@
-///
-/// Copyright © 2016-2026 The Thingsboard Authors
-///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
-///
-///     http://www.apache.org/licenses/LICENSE-2.0
-///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
-///
-
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
 import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -109,6 +95,12 @@ export class TbDeviceInstallDialogComponent extends DialogComponent<TbDeviceInst
   wizardSteps: WizardStep[] = [];
   wizardStarted = false;
   reviewMode = false;
+  /**
+   * Set once the server has an installed item for this device. From that moment every way out of
+   * the wizard — including the header X and the Cancel button on a still-pending later step —
+   * has to report 'installed', or the caller keeps showing pre-install counts and badges.
+   */
+  private installRegistered = false;
 
   // Variable resolution state
   formValues: Record<string, any> = {};
@@ -371,7 +363,7 @@ export class TbDeviceInstallDialogComponent extends DialogComponent<TbDeviceInst
   }
 
   cancel(): void {
-    this.dialogRef.close(false);
+    this.dialogRef.close(this.installRegistered ? 'installed' : false);
   }
 
   retryEntitySteps(step: WizardStep): void {
@@ -823,6 +815,7 @@ export class TbDeviceInstallDialogComponent extends DialogComponent<TbDeviceInst
           { ignoreLoading: true }
         )
       );
+      this.installRegistered = true;
     } catch (_e) {
       // Non-critical — entities are created, tracking registration failed
       console.error('Failed to register device install', _e);

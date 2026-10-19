@@ -1,19 +1,5 @@
-///
-/// Copyright © 2016-2026 The Thingsboard Authors
-///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this file except in compliance with the License.
-/// You may obtain a copy of the License at
-///
-///     http://www.apache.org/licenses/LICENSE-2.0
-///
-/// Unless required by applicable law or agreed to in writing, software
-/// distributed under the License is distributed on an "AS IS" BASIS,
-/// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-/// See the License for the specific language governing permissions and
-/// limitations under the License.
-///
-
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
@@ -65,6 +51,11 @@ export class TbIotHubBrowseComponent implements OnInit, AfterViewInit, OnDestroy
   @Input() mode: 'default' | 'add' = 'default';
   @Input() fixedSubType: string;
   @Output() addItem = new EventEmitter<MpItemVersionView>();
+  /**
+   * Fired whenever an install, update or delete changed what this tenant has installed, so a host
+   * page showing its own installed-items counter can refresh it instead of waiting for a reload.
+   */
+  @Output() installedItemsChanged = new EventEmitter<void>();
   @Input() set activeType(value: ItemType) {
     if (value && value !== this._activeType) {
       const wasInit = !!this._activeType;
@@ -641,7 +632,11 @@ export class TbIotHubBrowseComponent implements OnInit, AfterViewInit, OnDestroy
     });
   }
 
-  private reloadInstalledItems(): void {
+  /**
+   * Re-reads what is installed for the active type and announces the change. Public so a host page
+   * that opens the item detail dialog itself can refresh this grid through the same path.
+   */
+  reloadInstalledItems(): void {
     const config = {ignoreLoading: true};
     const pageLink = new PageLink(10000, 0);
     if (this.activeType === ItemType.WIDGET) {
@@ -657,6 +652,7 @@ export class TbIotHubBrowseComponent implements OnInit, AfterViewInit, OnDestroy
         this.installedItemCounts = counts;
       });
     }
+    this.installedItemsChanged.emit();
   }
 
   private loadFilterInfo(): void {
