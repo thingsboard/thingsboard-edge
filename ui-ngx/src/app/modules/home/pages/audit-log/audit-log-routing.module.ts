@@ -11,7 +11,7 @@ export const auditLogsRoutes: Routes = [
     path: 'auditLogs',
     component: AuditLogTableComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN],
+      auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
       title: 'audit-log.audit-logs',
       breadcrumb: {
         menuId: MenuId.audit_log

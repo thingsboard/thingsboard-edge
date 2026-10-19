@@ -31,8 +31,7 @@ public class OAuth2AppTokenFactory {
         Jws<Claims> jwsClaims;
         try {
             jwsClaims = Jwts.parser().verifyWith(Keys.hmacShaKeyFor(Base64.getDecoder().decode(appSecret))).build().parseSignedClaims(appToken);
-        }
-        catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
+        } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException | SignatureException ex) {
             throw new IllegalArgumentException("Invalid Application token: ", ex);
         } catch (ExpiredJwtException expiredEx) {
             throw new IllegalArgumentException("Application token expired", expiredEx);

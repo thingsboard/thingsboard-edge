@@ -12,6 +12,7 @@ import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.ImageContainerDao;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -73,6 +74,8 @@ public interface WidgetsBundleDao extends Dao<WidgetsBundle>, ExportableEntityDa
     PageData<WidgetsBundle> findTenantWidgetsBundlesByTenantId(WidgetsBundleFilter widgetsBundleFilter, PageLink pageLink);
 
     PageData<WidgetsBundle> findAllWidgetsBundles(PageLink pageLink);
+
+    List<WidgetsBundle> findSystemOrTenantWidgetBundlesByIds(UUID tenantId, List<UUID> widgetsBundleIds);
 
 }
 

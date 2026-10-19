@@ -3,6 +3,7 @@
 package org.thingsboard.server.common.data.ai.model.chat;
 
 import dev.langchain4j.model.chat.ChatModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
@@ -14,8 +15,10 @@ import lombok.With;
 import org.thingsboard.server.common.data.ai.provider.AiProvider;
 import org.thingsboard.server.common.data.ai.provider.OllamaProviderConfig;
 
+@Schema
 @Builder
 public record OllamaChatModelConfig(
+        @Schema(ref = "#/components/schemas/OllamaProviderConfig")
         @NotNull @Valid OllamaProviderConfig providerConfig,
         @NotBlank String modelId,
         @PositiveOrZero Double temperature,

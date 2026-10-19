@@ -9,6 +9,7 @@ import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ImageContainerDao;
 import org.thingsboard.server.dao.ResourceContainerDao;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -67,5 +68,7 @@ public interface DashboardInfoDao extends Dao<DashboardInfo>, ImageContainerDao<
     DashboardInfo findFirstByTenantIdAndName(UUID tenantId, String name);
 
     String findTitleById(UUID tenantId, UUID dashboardId);
+
+    List<DashboardInfo> findDashboardsByIds(UUID tenantId, List<UUID> dashboardIds);
 
 }

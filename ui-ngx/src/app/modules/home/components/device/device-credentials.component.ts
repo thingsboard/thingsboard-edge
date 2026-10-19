@@ -22,6 +22,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { generateSecret, isDefinedAndNotNull } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { DeviceId } from "@shared/models/id/device-id";
 
 @Component({
     selector: 'tb-device-credentials',
@@ -76,6 +77,8 @@ export class DeviceCredentialsComponent implements ControlValueAccessor, OnInit,
 
   credentialTypeNamesMap = credentialTypeNames;
 
+  deviceId: DeviceId;
+
   private propagateChange = null;
   private propagateChangePending = false;
 
@@ -114,6 +117,7 @@ export class DeviceCredentialsComponent implements ControlValueAccessor, OnInit,
 
   writeValue(value: DeviceCredentials | null): void {
     if (isDefinedAndNotNull(value)) {
+      this.deviceId = value.deviceId;
       const credentialsType = this.credentialsTypes.includes(value.credentialsType) ? value.credentialsType : this.credentialsTypes[0];
       this.deviceCredentialsFormGroup.patchValue({
         credentialsType,

@@ -6,6 +6,7 @@ import { CustomerId } from './id/customer-id';
 import { EntityId } from './id/entity-id';
 import { UserId } from './id/user-id';
 import { TenantId } from './id/tenant-id';
+import { isArraysEqualIgnoreUndefined } from "@core/utils";
 
 export enum AuditLogMode {
   TENANT,
@@ -50,7 +51,10 @@ export enum ActionType {
   TIMESERIES_DELETED = 'TIMESERIES_DELETED',
   ASSIGNED_TO_EDGE = 'ASSIGNED_TO_EDGE',
   UNASSIGNED_FROM_EDGE = 'UNASSIGNED_FROM_EDGE',
-  SMS_SENT = 'SMS_SENT'
+  SMS_SENT = 'SMS_SENT',
+  COMMUNITY_GRANT_OFFLINE_CHECKER_RUN = 'COMMUNITY_GRANT_OFFLINE_CHECKER_RUN',
+  COMMUNITY_GRANT_REQUEST_ACCESS = 'COMMUNITY_GRANT_REQUEST_ACCESS',
+  COMMUNITY_GRANT_ENROLLMENT = 'COMMUNITY_GRANT_ENROLLMENT'
 }
 
 export enum ActionStatus {
@@ -96,6 +100,9 @@ export const actionTypeTranslations = new Map<ActionType, string>(
     [ActionType.ASSIGNED_TO_EDGE, 'audit-log.type-assigned-to-edge'],
     [ActionType.UNASSIGNED_FROM_EDGE, 'audit-log.type-unassigned-from-edge'],
     [ActionType.SMS_SENT, 'audit-log.type-sms-sent'],
+    [ActionType.COMMUNITY_GRANT_OFFLINE_CHECKER_RUN, 'audit-log.type-community-grant-offline-checker-run'],
+    [ActionType.COMMUNITY_GRANT_REQUEST_ACCESS, 'audit-log.type-community-grant-request-access'],
+    [ActionType.COMMUNITY_GRANT_ENROLLMENT, 'audit-log.type-community-grant-enrollment'],
   ]
 );
 
@@ -118,3 +125,11 @@ export interface AuditLog extends BaseData<AuditLogId> {
   actionStatus: ActionStatus;
   actionFailureDetails: string;
 }
+
+export interface AuditLogFilter {
+  actionTypes: string[];
+}
+
+export const auditLogFilterEquals = (filter1?: AuditLogFilter, filter2?: AuditLogFilter): boolean => {
+  return isArraysEqualIgnoreUndefined(filter1.actionTypes, filter2.actionTypes);
+};

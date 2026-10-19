@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data.query;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+@Schema
 @Data
 public class BooleanFilterPredicate implements SimpleKeyFilterPredicate<Boolean> {
 
@@ -15,6 +17,7 @@ public class BooleanFilterPredicate implements SimpleKeyFilterPredicate<Boolean>
         return FilterPredicateType.BOOLEAN;
     }
 
+    @Schema
     public enum BooleanOperation {
         EQUAL,
         NOT_EQUAL

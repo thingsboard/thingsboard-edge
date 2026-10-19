@@ -13,10 +13,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.rule.engine.api.AttributesSaveRequest;
 import org.thingsboard.server.cache.SimpleTbCacheValueWrapper;
 import org.thingsboard.server.cache.TbTransactionalCache;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.trigger.EdgeConnectionTrigger;
+import org.thingsboard.server.common.data.notification.rule.trigger.NotificationRuleTrigger;
+import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
@@ -28,6 +30,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -49,16 +52,16 @@ public class EdgeGrpcServiceTest {
     private TbServiceInfoProvider serviceInfoProvider;
 
     @Mock
-    private PartitionService partitionService;
+    private EdgeContextComponent ctx;
+
+    @Mock
+    private NotificationRuleProcessor ruleProcessor;
 
     @Mock
     private TelemetrySubscriptionService tsSubService;
 
     @Mock
-    private TbClusterService clusterService;
-
-    @Mock
-    private EdgeContextComponent ctx;
+    private PartitionService partitionService;
 
     @InjectMocks
     private EdgeGrpcService edgeGrpcService;
@@ -72,6 +75,93 @@ public class EdgeGrpcServiceTest {
         edge = new Edge(edgeId);
         edge.setTenantId(TenantId.fromUUID(UUID.randomUUID()));
         edge.setName("test-edge");
+    }
+
+    @Test
+    public void givenCacheOwnedByThisNode_whenEvict_thenEntryIsEvicted() {
+        when(serviceInfoProvider.getServiceId()).thenReturn(THIS_NODE);
+        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(SimpleTbCacheValueWrapper.wrap(THIS_NODE));
+
+        evictServiceIdCacheIfOwnedByThisNode();
+
+        verify(edgeIdServiceIdCache, times(1)).evict(edgeId);
+    }
+
+    @Test
+    public void givenCacheOwnedByAnotherNode_whenEvict_thenEntryIsKept() {
+        // The edge already reconnected to another node within the keep-alive window: must NOT wipe the live owner.
+        when(serviceInfoProvider.getServiceId()).thenReturn(THIS_NODE);
+        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(SimpleTbCacheValueWrapper.wrap(OTHER_NODE));
+
+        evictServiceIdCacheIfOwnedByThisNode();
+
+        verify(edgeIdServiceIdCache, never()).evict(edgeId);
+    }
+
+    @Test
+    public void givenEmptyCache_whenEvict_thenNothingEvicted() {
+        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(null);
+
+        evictServiceIdCacheIfOwnedByThisNode();
+
+        verify(edgeIdServiceIdCache, never()).evict(edgeId);
+    }
+
+    // --- fireDelayedDisconnectNotification re-verify guard ---
+
+    @Test
+    public void givenEdgeReconnectedToThisNode_whenDelayFires_thenNotificationSuppressed() {
+        // A live session exists again on this node - suppress the stale disconnect notification.
+        sessions().put(edgeId, mock(EdgeGrpcSession.class));
+
+        fireDelayedDisconnectNotification();
+
+        verify(ruleProcessor, never()).process(any());
+    }
+
+    @Test
+    public void givenEdgeReconnectedToAnotherNode_whenDelayFires_thenNotificationSuppressed() {
+        // No local session, but the cluster cache still points at some node: the edge is connected elsewhere.
+        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(SimpleTbCacheValueWrapper.wrap(OTHER_NODE));
+
+        fireDelayedDisconnectNotification();
+
+        verify(ruleProcessor, never()).process(any());
+    }
+
+    @Test
+    public void givenEdgeStaysDisconnectedClusterWide_whenDelayFires_thenNotificationSent() {
+        // No local session and no cache entry on any node: the edge is genuinely down - fire the notification.
+        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(null);
+        when(ctx.getRuleProcessor()).thenReturn(ruleProcessor);
+
+        fireDelayedDisconnectNotification();
+
+        verify(ruleProcessor, times(1)).process(argThat(disconnectTrigger()));
+    }
+
+    @Test
+    public void givenPendingDisconnect_whenDestroy_thenNotificationFlushed() {
+        // The edge is genuinely down (no session, no cache). A graceful shutdown must flush the pending
+        // notification rather than drop it, otherwise a restart within the delay window swallows the alert.
+        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(null);
+        when(ctx.getRuleProcessor()).thenReturn(ruleProcessor);
+        pendingDisconnects().put(edgeId, new EdgeGrpcService.PendingDisconnect(edge));
+
+        destroy();
+
+        verify(ruleProcessor, times(1)).process(argThat(disconnectTrigger()));
+    }
+
+    @Test
+    public void givenPendingDisconnectButReconnectedElsewhere_whenDestroy_thenNotificationSuppressed() {
+        // The flush still honors the re-verify guard: an edge that reconnected to another node must not alert.
+        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(SimpleTbCacheValueWrapper.wrap(OTHER_NODE));
+        pendingDisconnects().put(edgeId, new EdgeGrpcService.PendingDisconnect(edge));
+
+        destroy();
+
+        verify(ruleProcessor, never()).process(any());
     }
 
     // --- activity-state write guard on disconnect ---
@@ -90,31 +180,6 @@ public class EdgeGrpcServiceTest {
         onEdgeDisconnect(sessionId);
 
         verify(tsSubService, never()).saveAttributes(argThat(inactiveStateWrite()));
-    }
-
-    @Test
-    public void givenEdgeOwnedByThisNode_whenDisconnect_thenInactiveStateIsPersisted() {
-        UUID sessionId = UUID.randomUUID();
-        sessions().put(edgeId, sessionFor(sessionId));
-        when(serviceInfoProvider.getServiceId()).thenReturn(THIS_NODE);
-        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(SimpleTbCacheValueWrapper.wrap(THIS_NODE));
-
-        onEdgeDisconnect(sessionId);
-
-        verify(tsSubService, times(1)).saveAttributes(argThat(inactiveStateWrite()));
-    }
-
-    @Test
-    public void givenNoCacheEntry_whenDisconnect_thenInactiveStateIsPersisted() {
-        // Ownership unknown (entry absent or expired): keep the pre-guard behaviour, otherwise a genuinely
-        // disconnected edge would stay marked active forever.
-        UUID sessionId = UUID.randomUUID();
-        sessions().put(edgeId, sessionFor(sessionId));
-        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(null);
-
-        onEdgeDisconnect(sessionId);
-
-        verify(tsSubService, times(1)).saveAttributes(argThat(inactiveStateWrite()));
     }
 
     @Test
@@ -152,10 +217,8 @@ public class EdgeGrpcServiceTest {
         verify(tsSubService, never()).saveAttributes(argThat(inactiveStateWrite()));
     }
 
-    // --- service-id cache eviction guard ---
-
     @Test
-    public void givenCacheOwnedByThisNode_whenDisconnect_thenEntryIsEvicted() {
+    public void givenEdgeOwnedByThisNode_whenDisconnect_thenInactiveStateIsPersisted() {
         UUID sessionId = UUID.randomUUID();
         sessions().put(edgeId, sessionFor(sessionId));
         when(serviceInfoProvider.getServiceId()).thenReturn(THIS_NODE);
@@ -163,22 +226,20 @@ public class EdgeGrpcServiceTest {
 
         onEdgeDisconnect(sessionId);
 
-        verify(edgeIdServiceIdCache, times(1)).evict(edgeId);
+        verify(tsSubService, times(1)).saveAttributes(argThat(inactiveStateWrite()));
     }
 
     @Test
-    public void givenCacheOwnedByAnotherNode_whenDisconnect_thenEntryIsKept() {
-        // The edge already reconnected elsewhere: wiping the live owner's claim would defeat the
-        // activity-state guard for any later disconnect callback.
+    public void givenNoCacheEntry_whenDisconnect_thenInactiveStateIsPersisted() {
+        // Ownership unknown (entry absent or expired): keep the pre-guard behaviour, otherwise a genuinely
+        // disconnected edge would stay marked active forever.
         UUID sessionId = UUID.randomUUID();
         sessions().put(edgeId, sessionFor(sessionId));
-        when(serviceInfoProvider.getServiceId()).thenReturn(THIS_NODE);
-        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(SimpleTbCacheValueWrapper.wrap(OTHER_NODE));
-        when(partitionService.getAllServiceIds(ServiceType.TB_CORE)).thenReturn(Set.of(THIS_NODE, OTHER_NODE));
+        when(edgeIdServiceIdCache.get(edgeId)).thenReturn(null);
 
         onEdgeDisconnect(sessionId);
 
-        verify(edgeIdServiceIdCache, never()).evict(edgeId);
+        verify(tsSubService, times(1)).saveAttributes(argThat(inactiveStateWrite()));
     }
 
     private void onEdgeDisconnect(UUID sessionId) {
@@ -192,17 +253,39 @@ public class EdgeGrpcServiceTest {
         return session;
     }
 
-    @SuppressWarnings("unchecked")
-    private ConcurrentMap<EdgeId, EdgeGrpcSession> sessions() {
-        return (ConcurrentMap<EdgeId, EdgeGrpcSession>) ReflectionTestUtils.getField(edgeGrpcService, "sessions");
-    }
-
     private ArgumentMatcher<AttributesSaveRequest> inactiveStateWrite() {
         return request -> request != null
                 && edgeId.equals(request.getEntityId())
                 && request.getEntries().stream().anyMatch(entry ->
                         ACTIVITY_STATE.equals(entry.getKey())
                                 && Boolean.FALSE.equals(entry.getBooleanValue().orElse(null)));
+    }
+
+    private void destroy() {
+        ReflectionTestUtils.invokeMethod(edgeGrpcService, "destroy");
+    }
+
+    private void evictServiceIdCacheIfOwnedByThisNode() {
+        ReflectionTestUtils.invokeMethod(edgeGrpcService, "evictServiceIdCacheIfOwnedByThisNode", edgeId);
+    }
+
+    private void fireDelayedDisconnectNotification() {
+        EdgeGrpcService.PendingDisconnect pending = new EdgeGrpcService.PendingDisconnect(edge);
+        ReflectionTestUtils.invokeMethod(edgeGrpcService, "fireDelayedDisconnectNotification", pending);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ConcurrentMap<EdgeId, EdgeGrpcSession> sessions() {
+        return (ConcurrentMap<EdgeId, EdgeGrpcSession>) ReflectionTestUtils.getField(edgeGrpcService, "sessions");
+    }
+
+    @SuppressWarnings("unchecked")
+    private ConcurrentMap<EdgeId, EdgeGrpcService.PendingDisconnect> pendingDisconnects() {
+        return (ConcurrentMap<EdgeId, EdgeGrpcService.PendingDisconnect>) ReflectionTestUtils.getField(edgeGrpcService, "pendingDisconnectNotifications");
+    }
+
+    private static ArgumentMatcher<NotificationRuleTrigger> disconnectTrigger() {
+        return trigger -> trigger instanceof EdgeConnectionTrigger edgeTrigger && !edgeTrigger.isConnected();
     }
 
 }

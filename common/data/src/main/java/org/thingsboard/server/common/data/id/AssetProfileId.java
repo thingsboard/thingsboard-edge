@@ -9,6 +9,7 @@ import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
 
+@Schema(allOf = EntityId.class)
 public class AssetProfileId extends UUIDBased implements EntityId {
 
     private static final long serialVersionUID = 1L;
@@ -22,7 +23,7 @@ public class AssetProfileId extends UUIDBased implements EntityId {
         return new AssetProfileId(UUID.fromString(assetProfileId));
     }
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "ASSET_PROFILE", allowableValues = "ASSET_PROFILE")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, accessMode = Schema.AccessMode.READ_ONLY, description = "string", example = "ASSET_PROFILE", allowableValues = "ASSET_PROFILE")
     @Override
     public EntityType getEntityType() {
         return EntityType.ASSET_PROFILE;

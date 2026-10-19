@@ -11,6 +11,7 @@ import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ExportableEntityDao;
 import org.thingsboard.server.dao.TenantEntityDao;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -64,5 +65,7 @@ public interface CustomerDao extends Dao<Customer>, TenantEntityDao<Customer>, E
      * @return the page of customer objects
      */
     PageData<Customer> findCustomersWithTheSameTitle(PageLink pageLink);
+
+    List<Customer> findCustomersByTenantIdAndIds(UUID tenantId, List<UUID> customerIds);
 
 }

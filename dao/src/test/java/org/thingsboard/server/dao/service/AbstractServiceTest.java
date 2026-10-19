@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.oauth2.MapperType;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.oauth2.OAuth2CustomMapperConfig;
@@ -79,11 +80,13 @@ public abstract class AbstractServiceTest {
     @Autowired
     protected EntityServiceRegistry entityServiceRegistry;
 
+    protected Tenant tenant;
     protected TenantId tenantId;
 
     @Before
     public void beforeAbstractService() {
-        tenantId = createTenant().getId();
+        tenant = createTenant();
+        tenantId = tenant.getId();
     }
 
     @After
@@ -172,8 +175,13 @@ public abstract class AbstractServiceTest {
     }
 
     public Tenant createTenant() {
+        return createTenant(null);
+    }
+
+    public Tenant createTenant(TenantProfileId tenantProfileId) {
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant " + UUID.randomUUID());
+        tenant.setTenantProfileId(tenantProfileId);
         Tenant savedTenant = tenantService.saveTenant(tenant);
         assertNotNull(savedTenant);
         return savedTenant;

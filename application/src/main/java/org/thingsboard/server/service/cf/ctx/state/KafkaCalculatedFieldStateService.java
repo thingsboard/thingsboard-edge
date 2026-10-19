@@ -86,9 +86,9 @@ public class KafkaCalculatedFieldStateService extends AbstractCalculatedFieldSta
 
                         try {
                             if (msg.getValue() != null) {
-                                processRestoredState(msg.getValue(), callback);
+                                processRestoredState(msg.getValue(), consumerKey.partition(), callback);
                             } else {
-                                processRestoredState(getStateId(msg.getHeaders()), null, callback);
+                                processRestoredState(getStateId(msg.getHeaders()), null, consumerKey.partition(), callback);
                             }
                         } catch (Throwable t) {
                             callback.onFailure(t);

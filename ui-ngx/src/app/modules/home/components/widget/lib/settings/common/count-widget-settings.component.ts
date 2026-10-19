@@ -48,6 +48,9 @@ export class CountWidgetSettingsComponent extends PageComponent implements OnIni
   @Input()
   alarmElseEntity: boolean;
 
+  @Input()
+  predefinedValues: string[];
+  
   private propagateChange = null;
 
   countCardLayouts = countCardLayouts;
@@ -56,7 +59,6 @@ export class CountWidgetSettingsComponent extends PageComponent implements OnIni
   countCardLayoutImageMap: Map<CountCardLayout, string>;
 
   countWidgetConfigForm: UntypedFormGroup;
-
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder,
               private destroyRef: DestroyRef) {

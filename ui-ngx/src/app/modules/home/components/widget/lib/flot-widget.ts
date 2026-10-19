@@ -510,7 +510,6 @@ export class TbFlot {
                   lineWidth: threshold.lineWidth,
                   color: threshold.color
                 } as TbFlotThresholdKeySettings,
-                _hash: Math.random()
               };
               if (datasource) {
                 datasource.dataKeys.push(dataKey);

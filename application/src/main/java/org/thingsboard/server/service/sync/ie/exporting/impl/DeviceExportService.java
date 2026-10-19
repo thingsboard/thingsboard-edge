@@ -36,11 +36,6 @@ public class DeviceExportService extends BaseEntityExportService<DeviceId, Devic
     }
 
     @Override
-    protected DeviceExportData newExportData() {
-        return new DeviceExportData();
-    }
-
-    @Override
     public Set<EntityType> getSupportedEntityTypes() {
         return Set.of(EntityType.DEVICE);
     }

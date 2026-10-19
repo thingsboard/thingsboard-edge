@@ -3,6 +3,18 @@
 -- SPDX-License-Identifier: Apache-2.0
 --
 
+-- Also created by upgrade/lts/4.3.1.6/schema_update.sql; keep the two in sync.
+CREATE TABLE IF NOT EXISTS tb_cluster (
+    cluster_id uuid NOT NULL,
+    license_claim_token varchar,
+    license_secret varchar,
+    CONSTRAINT tb_cluster_pkey PRIMARY KEY (cluster_id)
+);
+
+-- Backstop against two concurrent install jobs both minting an id: a unique index on a constant
+-- expression allows at most one row in the table, no matter how many rows race to insert.
+CREATE UNIQUE INDEX IF NOT EXISTS tb_cluster_single_row ON tb_cluster ((true));
+
 CREATE TABLE IF NOT EXISTS tb_schema_settings
 (
     schema_version bigint NOT NULL,
@@ -698,6 +710,18 @@ CREATE TABLE IF NOT EXISTS api_usage_state (
     CONSTRAINT api_usage_state_unq_key UNIQUE (tenant_id, entity_id)
 );
 
+CREATE TABLE IF NOT EXISTS api_key (
+    id uuid NOT NULL CONSTRAINT api_key_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    user_id uuid,
+    value varchar(512),
+    enabled boolean NOT NULL DEFAULT TRUE,
+    expiration_time bigint DEFAULT 0,
+    description varchar(255),
+    CONSTRAINT api_key_value_unq_key UNIQUE (value)
+);
+
 CREATE TABLE IF NOT EXISTS resource (
     id uuid NOT NULL CONSTRAINT resource_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
@@ -939,17 +963,8 @@ CREATE TABLE IF NOT EXISTS calculated_field (
     configuration varchar(1000000),
     version BIGINT DEFAULT 1,
     debug_settings varchar(1024),
-    CONSTRAINT calculated_field_unq_key UNIQUE (entity_id, name)
-);
-
-CREATE TABLE IF NOT EXISTS calculated_field_link (
-    id uuid NOT NULL CONSTRAINT calculated_field_link_pkey PRIMARY KEY,
-    created_time bigint NOT NULL,
-    tenant_id uuid NOT NULL,
-    entity_type VARCHAR(32),
-    entity_id uuid NOT NULL,
-    calculated_field_id uuid NOT NULL,
-    CONSTRAINT fk_calculated_field_id FOREIGN KEY (calculated_field_id) REFERENCES calculated_field(id) ON DELETE CASCADE
+    additional_info varchar,
+    CONSTRAINT calculated_field_unq_key UNIQUE (entity_id, type, name)
 );
 
 CREATE TABLE IF NOT EXISTS cf_debug_event (

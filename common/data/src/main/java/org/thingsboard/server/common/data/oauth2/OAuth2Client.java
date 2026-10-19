@@ -80,7 +80,10 @@ public class OAuth2Client extends BaseDataWithAdditionalInfo<OAuth2ClientId> imp
     @Schema(description = "List of platforms for which usage of the OAuth2 client is allowed (empty for all allowed)")
     @Length(fieldName = "platforms")
     private List<PlatformType> platforms;
-    @Schema(description = "Additional info of OAuth2 client (e.g. providerName)", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Additional info of OAuth2 client. " +
+                          "Must include: 'providerName' (string, name of the OAuth2 provider).",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            example = "{\"providerName\":\"Google\"}")
     private JsonNode additionalInfo;
 
     public OAuth2Client() {
@@ -115,4 +118,5 @@ public class OAuth2Client extends BaseDataWithAdditionalInfo<OAuth2ClientId> imp
     public String getName() {
         return title;
     }
+
 }

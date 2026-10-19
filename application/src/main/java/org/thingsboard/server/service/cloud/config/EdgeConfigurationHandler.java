@@ -1,0 +1,12 @@
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
+package org.thingsboard.server.service.cloud.config;
+
+import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
+
+public interface EdgeConfigurationHandler {
+
+    EdgeSettings initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception;
+    boolean setOrUpdateCustomerId(EdgeConfiguration edgeConfiguration);
+}

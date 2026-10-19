@@ -108,9 +108,9 @@ public class KafkaTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory, 
                                          TbQueueTransportNotificationSettings transportNotificationSettings,
                                          TbQueueEdgeSettings edgeSettings,
                                          TbQueueCalculatedFieldSettings calculatedFieldSettings,
+                                         EdqsConfig edqsConfig,
                                          TbQueueCloudEventSettings cloudEventSettings,
                                          TbQueueCloudEventTSSettings cloudEventTSSettings,
-                                         EdqsConfig edqsConfig,
                                          TbKafkaTopicConfigs kafkaTopicConfigs) {
         this.topicService = topicService;
         this.kafkaSettings = kafkaSettings;

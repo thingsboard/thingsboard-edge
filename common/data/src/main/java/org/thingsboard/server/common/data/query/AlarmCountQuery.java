@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data.query;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString
+@Schema
 public class AlarmCountQuery extends EntityCountQuery {
     private long startTs;
     private long endTs;

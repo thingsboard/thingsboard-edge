@@ -72,7 +72,9 @@ export enum MenuId {
   domains = 'domains',
   clients = 'clients',
   audit_log = 'audit_log',
+  alarms_center = 'alarms_center',
   alarms = 'alarms',
+  alarm_rules = 'alarm_rules',
   dashboards = 'dashboards',
   entities = 'entities',
   devices = 'devices',
@@ -83,6 +85,7 @@ export enum MenuId {
   device_profiles = 'device_profiles',
   asset_profiles = 'asset_profiles',
   customers = 'customers',
+  calculated_fields = 'calculated_fields',
   rule_chains = 'rule_chains',
   edge_management = 'edge_management',
   edges = 'edges',
@@ -92,12 +95,12 @@ export enum MenuId {
   otaUpdates = 'otaUpdates',
   version_control = 'version_control',
   api_usage = 'api_usage',
+  trendz_settings = 'trendz_settings',
+  ai_models = 'ai_models',
   edge = 'edge',
   edge_status = 'edge_status',
   cloud_events = 'cloud_events',
-  trendz_settings = 'trendz_settings',
-  ai_models = 'ai_models',
-  iot_hub = 'iot_hub'
+  // iot_hub = 'iot_hub'
 }
 
 declare type MenuFilter = (authState: AuthState) => boolean;
@@ -486,13 +489,33 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     }
   ],
   [
-    MenuId.alarms,
+    MenuId.alarms_center,
     {
-      id: MenuId.alarms,
+      id: MenuId.alarms_center,
       name: 'alarm.alarms',
       type: 'link',
       path: '/alarms',
       icon: 'mdi:alert-outline'
+    }
+  ],
+  [
+    MenuId.alarms,
+    {
+      id: MenuId.alarms,
+      name: 'alarm.alarm-list',
+      type: 'link',
+      path: '/alarms/alarms',
+      icon: 'mdi:alert-outline'
+    }
+  ],
+  [
+    MenuId.alarm_rules,
+    {
+      id: MenuId.alarm_rules,
+      name: 'alarm-rule.alarm-rules',
+      type: 'link',
+      path: '/alarms/alarm-rules',
+      icon: 'tune'
     }
   ],
   [
@@ -593,6 +616,16 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/customers',
       icon: 'supervisor_account'
+    }
+  ],
+  [
+    MenuId.calculated_fields,
+    {
+      id: MenuId.calculated_fields,
+      name: 'entity.type-calculated-fields',
+      type: 'link',
+      path: '/calculatedFields',
+      icon: 'mdi:function-variant',
     }
   ],
   [
@@ -730,16 +763,46 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     }
   ],
   [
-    MenuId.iot_hub,
+    MenuId.edge,
     {
-      id: MenuId.iot_hub,
-      name: 'iot-hub.iot-hub',
-      type: 'link',
-      path: '/iot-hub',
-      icon: 'hub',
-      isNew: true
+      id: MenuId.edge,
+      name: 'edge.edge',
+      type: 'toggle',
+      path: '/edge',
+      icon: 'router'
     }
-  ]
+  ],
+  [
+    MenuId.edge_status,
+    {
+      id: MenuId.edge_status,
+      name: 'edge.status',
+      type: 'link',
+      path: '/edge/status',
+      icon: 'info'
+    }
+  ],
+  [
+    MenuId.cloud_events,
+    {
+      id: MenuId.cloud_events,
+      name: 'edge.cloud-events',
+      type: 'link',
+      path: '/edge/cloudEvents',
+      icon: 'date_range'
+    }
+  ],
+  // [
+  //   MenuId.iot_hub,
+  //   {
+  //     id: MenuId.iot_hub,
+  //     name: 'iot-hub.iot-hub',
+  //     type: 'link',
+  //     path: '/iot-hub',
+  //     icon: 'hub',
+  //     isNew: true
+  //   }
+  // ]
 ]);
 
 const menuFilters = new Map<MenuId, MenuFilter>([
@@ -763,6 +826,9 @@ const menuFilters = new Map<MenuId, MenuFilter>([
     MenuId.auto_commit_settings, () => false
   ],
   [
+    MenuId.trendz_settings, () => false
+  ],
+  [
     MenuId.edge_instances, () => false
   ],
   [
@@ -773,12 +839,6 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.mobile_bundles, () => false
-  ],
-  [
-    MenuId.ai_models, () => false
-  ],
-  [
-    MenuId.iot_hub, () => false
   ]
 ]);
 
@@ -843,7 +903,8 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
               {id: MenuId.domains},
               {id: MenuId.clients}
             ]
-          }
+          },
+          {id: MenuId.audit_log}
         ]
       }
     ]
@@ -859,9 +920,15 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.cloud_events}
         ]
       },
-      {id: MenuId.alarms},
+      {
+        id: MenuId.alarms_center,
+        pages: [
+          {id: MenuId.alarms},
+          {id: MenuId.alarm_rules}
+        ]
+      },
       {id: MenuId.dashboards},
-      {id: MenuId.iot_hub},
+      // {id: MenuId.iot_hub},
       {
         id: MenuId.entities,
         pages: [
@@ -879,6 +946,7 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
         ]
       },
       {id: MenuId.customers},
+      {id: MenuId.calculated_fields},
       {id: MenuId.rule_chains},
       {
         id: MenuId.edge_management,

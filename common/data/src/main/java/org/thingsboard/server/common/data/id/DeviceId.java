@@ -9,7 +9,7 @@ import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
 
-@Schema
+@Schema(allOf = EntityId.class)
 public class DeviceId extends UUIDBased implements EntityId {
 
     private static final long serialVersionUID = 1L;
@@ -24,7 +24,7 @@ public class DeviceId extends UUIDBased implements EntityId {
     }
 
     @Override
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "DEVICE", allowableValues = "DEVICE")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, accessMode = Schema.AccessMode.READ_ONLY, description = "string", example = "DEVICE", allowableValues = "DEVICE")
     public EntityType getEntityType() {
         return EntityType.DEVICE;
     }

@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -74,7 +74,7 @@ public class AlarmCommentServiceTest extends AbstractServiceTest {
         AlarmComment alarmComment = AlarmComment.builder().alarmId(alarm.getId())
                 .userId(user.getId())
                 .type(OTHER)
-                .comment(JacksonUtil.newObjectNode().put("text", RandomStringUtils.randomAlphanumeric(10)))
+                .comment(JacksonUtil.newObjectNode().put("text", RandomStringUtils.secure().nextAlphanumeric(10)))
                 .build();
 
         AlarmComment createdComment = alarmCommentService.createOrUpdateAlarmComment(tenantId, alarmComment);
@@ -102,7 +102,7 @@ public class AlarmCommentServiceTest extends AbstractServiceTest {
         AlarmComment alarmComment = AlarmComment.builder().alarmId(alarm.getId())
                 .userId(userId)
                 .type(OTHER)
-                .comment(JacksonUtil.newObjectNode().put("text", RandomStringUtils.randomAlphanumeric(10)))
+                .comment(JacksonUtil.newObjectNode().put("text", RandomStringUtils.secure().nextAlphanumeric(10)))
                 .build();
 
         AlarmComment createdComment = alarmCommentService.createOrUpdateAlarmComment(tenantId, alarmComment);
@@ -138,7 +138,7 @@ public class AlarmCommentServiceTest extends AbstractServiceTest {
         AlarmComment alarmComment = AlarmComment.builder().alarmId(alarm.getId())
                 .userId(userId)
                 .type(OTHER)
-                .comment(JacksonUtil.newObjectNode().put("text", RandomStringUtils.randomAlphanumeric(10)))
+                .comment(JacksonUtil.newObjectNode().put("text", RandomStringUtils.secure().nextAlphanumeric(10)))
                 .build();
 
         AlarmComment createdComment = alarmCommentService.createOrUpdateAlarmComment(tenantId, alarmComment);

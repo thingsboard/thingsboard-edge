@@ -10,6 +10,7 @@ import org.thingsboard.server.common.data.DeviceInfoFilter;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntitySubtype;
+import org.thingsboard.server.common.data.NameConflictStrategy;
 import org.thingsboard.server.common.data.ProfileEntityIdInfo;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -45,7 +46,11 @@ public interface DeviceService extends EntityDaoService {
 
     Device saveDeviceWithAccessToken(Device device, String accessToken);
 
+    Device saveDeviceWithAccessToken(Device device, String accessToken, NameConflictStrategy nameConflictStrategy);
+
     Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials);
+
+    Device saveDeviceWithCredentials(Device device, DeviceCredentials deviceCredentials, NameConflictStrategy nameConflictStrategy);
 
     Device saveDevice(ProvisionRequest provisionRequest, DeviceProfile profile);
 

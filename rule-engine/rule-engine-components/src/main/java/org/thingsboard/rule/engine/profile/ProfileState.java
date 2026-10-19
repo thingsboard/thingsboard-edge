@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
+@Deprecated
 class ProfileState {
 
     private DeviceProfile deviceProfile;

@@ -6,6 +6,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntityRelationPathQuery;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 
@@ -57,5 +58,7 @@ public interface RelationDao {
     List<EntityRelation> deleteInboundRelations(TenantId tenantId, EntityId entity, RelationTypeGroup relationTypeGroup);
 
     List<EntityRelation> findRuleNodeToRuleChainRelations(RuleChainType ruleChainType, int limit);
+
+    List<EntityRelation> findByRelationPathQuery(TenantId tenantId, EntityRelationPathQuery relationPathQuery, int limit);
 
 }

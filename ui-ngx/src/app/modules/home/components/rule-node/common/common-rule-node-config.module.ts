@@ -19,7 +19,6 @@ import { RelationsQueryConfigOldComponent } from './relations-query-config-old.c
 import { SelectAttributesComponent } from './select-attributes.component';
 import { AlarmStatusSelectComponent } from './alarm-status-select.component';
 import { ExampleHintComponent } from './example-hint.component';
-import { TimeUnitInputComponent } from './time-unit-input.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +37,6 @@ import { TimeUnitInputComponent } from './time-unit-input.component';
     SelectAttributesComponent,
     AlarmStatusSelectComponent,
     ExampleHintComponent,
-    TimeUnitInputComponent
   ],
   imports: [
     CommonModule,
@@ -61,7 +59,6 @@ import { TimeUnitInputComponent } from './time-unit-input.component';
     SelectAttributesComponent,
     AlarmStatusSelectComponent,
     ExampleHintComponent,
-    TimeUnitInputComponent
   ]
 })
 

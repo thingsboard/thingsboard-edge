@@ -12,6 +12,7 @@ import {
   legendPositions,
   legendPositionTranslationMap,
   WidgetConfig,
+  widgetTitleAutocompleteValues,
 } from '@shared/models/widget.models';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
@@ -32,7 +33,7 @@ import {
 } from '@home/components/widget/lib/chart/range-chart-widget.models';
 import {
   lineSeriesStepTypes,
-  lineSeriesStepTypeTranslations
+  lineSeriesStepTypeTranslations, updateLatestDataKeys
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import {
   chartLabelPositions,
@@ -88,6 +89,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
   tooltipValuePreviewFn = this._tooltipValuePreviewFn.bind(this);
 
   tooltipDatePreviewFn = this._tooltipDatePreviewFn.bind(this);
+
+  predefinedValues = widgetTitleAutocompleteValues;
 
   constructor(protected store: Store<AppState>,
               protected widgetConfigComponent: WidgetConfigComponent,
@@ -270,6 +273,11 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
 
     this.widgetConfig.config.actions = config.actions;
     return this.widgetConfig;
+  }
+
+  protected onConfigChanged(widgetConfig: WidgetConfigComponentData) {
+    updateLatestDataKeys([widgetConfig.config.settings.yAxis], this.datasource, this.callbacks);
+    super.onConfigChanged(widgetConfig);
   }
 
   protected validatorTriggers(): string[] {

@@ -406,7 +406,7 @@ public class AdminController extends BaseController {
             "provider sends authorization code to specified redirect uri.)")
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
     @GetMapping(value = "/mail/oauth2/authorize", produces = "application/text")
-    public String getAuthorizationUrl(HttpServletRequest request, HttpServletResponse response) throws ThingsboardException {
+    public String getMailOAuth2AuthorizationUrl(HttpServletRequest request, HttpServletResponse response) throws ThingsboardException {
         String state = StringUtils.generateSafeToken();
         String prevUriParam = request.getParameter(PREV_URI_PARAMETER);
         if (PrevUriValidator.isValid(prevUriParam)) {
@@ -432,7 +432,7 @@ public class AdminController extends BaseController {
     }
 
     @GetMapping(value = "/mail/oauth2/code", params = {"code", "state"})
-    public void codeProcessingUrl(
+    public void handleMailOAuth2Callback(
             @RequestParam(value = "code") String code, @RequestParam(value = "state") String state,
             HttpServletRequest request, HttpServletResponse response) throws ThingsboardException, IOException {
         String redirectUrl = getMailOAuth2RedirectUrl(request);

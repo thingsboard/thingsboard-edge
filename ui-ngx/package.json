@@ -1,6 +1,6 @@
 {
   "name": "thingsboard",
-  "version": "4.2.2.7EDGE",
+  "version": "4.3.1.7EDGE",
   "scripts": {
     "ng": "ng",
     "start": "node --max_old_space_size=8048 ./node_modules/@angular/cli/bin/ng serve --configuration development --host 0.0.0.0 --open",
@@ -93,6 +93,7 @@
     "tooltipster": "^4.2.8",
     "tslib": "^2.8.1",
     "typeface-roboto": "^1.1.13",
+    "typeface-roboto-mono": "^1.1.13",
     "zone.js": "~0.15.1"
   },
   "devDependencies": {

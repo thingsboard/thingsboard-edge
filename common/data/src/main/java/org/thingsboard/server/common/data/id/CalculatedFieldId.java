@@ -10,7 +10,7 @@ import org.thingsboard.server.common.data.EntityType;
 import java.io.Serial;
 import java.util.UUID;
 
-@Schema
+@Schema(allOf = EntityId.class)
 public class CalculatedFieldId extends UUIDBased implements EntityId {
 
     @Serial
@@ -25,7 +25,7 @@ public class CalculatedFieldId extends UUIDBased implements EntityId {
         return new CalculatedFieldId(UUID.fromString(calculatedFieldId));
     }
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "CALCULATED_FIELD", allowableValues = "CALCULATED_FIELD")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, accessMode = Schema.AccessMode.READ_ONLY, description = "string", example = "CALCULATED_FIELD", allowableValues = "CALCULATED_FIELD")
     @Override
     public EntityType getEntityType() {
         return EntityType.CALCULATED_FIELD;

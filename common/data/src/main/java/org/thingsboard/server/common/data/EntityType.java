@@ -4,6 +4,7 @@ package org.thingsboard.server.common.data;
 
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -12,6 +13,7 @@ import java.util.List;
 import static org.thingsboard.server.common.data.StringUtils.removeStart;
 
 public enum EntityType {
+
     TENANT(1),
     CUSTOMER(2),
     USER(3, "tb_user"),
@@ -50,7 +52,7 @@ public enum EntityType {
     MOBILE_APP(37),
     MOBILE_APP_BUNDLE(38),
     CALCULATED_FIELD(39),
-    CALCULATED_FIELD_LINK(40),
+    // CALCULATED_FIELD_LINK(40), - was removed in 4.3
     JOB(41),
     ADMIN_SETTINGS(42),
     AI_MODEL(43, "ai_model") {
@@ -58,7 +60,8 @@ public enum EntityType {
         public String getNormalName() {
             return "AI model";
         }
-    };
+    },
+    API_KEY(44);
 
     @Getter
     private final int protoNumber; // Corresponds to EntityTypeProto

@@ -3,5 +3,5 @@
 package org.thingsboard.server.service.cf.ctx.state;
 
 public enum ArgumentEntryType {
-    SINGLE_VALUE, TS_ROLLING
+    SINGLE_VALUE, TS_ROLLING, GEOFENCING, PROPAGATION, RELATED_ENTITIES, ENTITY_AGGREGATION
 }

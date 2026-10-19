@@ -1,0 +1,211 @@
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
+package org.thingsboard.server.service.cloud.event.sender;
+
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
+import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
+import org.thingsboard.server.dao.eventsourcing.InterruptSendUplinkEvent;
+import org.thingsboard.server.gen.edge.v1.UplinkMsg;
+import org.thingsboard.server.service.cloud.event.UplinkMsgMapper;
+import org.thingsboard.server.service.cloud.info.EdgeInfoHolder;
+import org.thingsboard.server.service.cloud.info.PendingUplinkMsgPackHolder;
+import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
+import org.thingsboard.server.service.cloud.rpc.GrpcClientManager;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
+
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, CloudEventUplinkInterrupter {
+
+    private static final int MAX_SEND_UPLINK_ATTEMPTS = 3;
+
+    private final EdgeInfoHolder edgeInfo;
+    private final PendingUplinkMsgPackHolder pendingMsgs;
+    private final UplinkMsgMapper uplinkMsgMapper;
+    private final CloudEventStorageSettings cloudEventStorageSettings;
+    private final CloudStatsCounterService statsCounterService;
+    private final GrpcClientManager grpcClientManager;
+
+    private Future<?> sendUplinkFuture;
+    private SettableFuture<Boolean> sendUplinkFutureResult;
+    private volatile ExecutorService uplinkExecutor;
+
+    public void init() {
+        // A previous connection may have left its executor running: this is re-entered on every
+        // GrpcConnectionEstablishedEvent, so replace the old one instead of orphaning its thread.
+        shutdownUplinkExecutor();
+        uplinkExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("cloud-manager-uplink"));
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        shutdownUplinkExecutor();
+    }
+
+    private void shutdownUplinkExecutor() {
+        if (uplinkExecutor != null && !uplinkExecutor.isShutdown()) {
+            uplinkExecutor.shutdownNow();
+        }
+        uplinkExecutor = null;
+    }
+
+    @Override
+    public ListenableFuture<Boolean> sendCloudEvents(List<CloudEvent> cloudEvents, boolean isGeneralMsg) {
+        edgeInfo.lockSend();
+        try {
+            if (!isGeneralMsg && edgeInfo.isGeneralProcessInProgress()) {
+                return Futures.immediateFuture(true);
+            }
+            interruptPreviousSendUplinkMsgsTask();
+
+            cloudEvents = EdgeMsgConstructorUtils.mergeAndFilterUplinkDuplicates(cloudEvents);
+
+            List<UplinkMsg> uplinkMsgPack = uplinkMsgMapper.convertCloudEventsToUplink(cloudEvents);
+
+            if (uplinkMsgPack.isEmpty()) {
+                return Futures.immediateFuture(false);
+            }
+
+            sendUplinkFutureResult = SettableFuture.create();
+            processMsgPack(uplinkMsgPack, isGeneralMsg);
+        } finally {
+            edgeInfo.unlockSend();
+        }
+        return sendUplinkFutureResult;
+    }
+
+    @Override
+    @EventListener(InterruptSendUplinkEvent.class)
+    public void interruptPreviousSendUplinkMsgsTask() {
+        if (sendUplinkFutureResult != null) {
+            try {
+                // wait before interrupting sending previous uplink pack
+                sendUplinkFutureResult.get(10, TimeUnit.SECONDS);
+            } catch (Exception ignored) {}
+
+            if (!sendUplinkFutureResult.isDone()) {
+                log.debug("[{}] Stopping send uplink future now!", edgeInfo.getTenantId());
+                sendUplinkFutureResult.set(true);
+            }
+        }
+        if (sendUplinkFuture != null && !sendUplinkFuture.isCancelled()) {
+            sendUplinkFuture.cancel(true);
+            sendUplinkFuture = null;
+        }
+    }
+
+    private void processMsgPack(List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
+        pendingMsgs.setNewPack(uplinkMsgPack);
+
+        // Read once - replaced on reconnect and cleared on shutdown, both from other threads.
+        ExecutorService executor = uplinkExecutor;
+        try {
+            if (executor == null) {
+                throw new RejectedExecutionException("Uplink executor is unavailable, "
+                        + uplinkMsgPack.size() + " msg(s) are going to be retried later");
+            }
+            // An executor shut down after the read above rejects on its own - submit() throws the same type.
+            submitMsgPack(executor, uplinkMsgPack, isGeneralMsg);
+        } catch (RejectedExecutionException e) {
+            // Fail the future rather than letting this escape: callers already handle ExecutionException,
+            // whereas an unchecked exception crossing sendCloudEvents relies on a catch-all further up - on
+            // the Kafka path it misses the catch entirely and the batch is dropped without being committed.
+            // Completing as interrupted is not an option either: the Postgres runner reads that as "retry
+            // this page" and would re-query it forever, since only a new connection can restore the executor.
+            sendUplinkFutureResult.setException(e);
+        }
+    }
+
+    private void submitMsgPack(ExecutorService executor, List<UplinkMsg> uplinkMsgPack, boolean isGeneralMsg) {
+        sendUplinkFuture = executor.submit(() -> {
+            try {
+                int attempt = 1;
+                boolean success;
+                do {
+                    log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgs.getQueueSize());
+
+                    long startTime = System.currentTimeMillis();
+                    success = sendUplinkMsgPack() && pendingMsgs.isQueueEmpty();
+
+                    if (!success) {
+                        String batchPrefix = isGeneralMsg ? "General" : "Timeseries";
+                        log.info("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgs.getQueueSize(), attempt);
+                        log.trace("Entities in failed batch: {}", pendingMsgs.getValues());
+                        if (!grpcClientManager.isConnected()) {
+                            log.info("Cloud session is not established. {} uplink msg(s) are going to be retried after reconnect",
+                                    pendingMsgs.getQueueSize());
+                            sendUplinkFutureResult.set(true);
+                            return;
+                        }
+                        try {
+                            Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
+
+                            if (edgeInfo.clearRateLimitViolationIfSet()) {
+                                TimeUnit.SECONDS.sleep(60);
+                            }
+                        } catch (InterruptedException e) {
+                            log.error("Error during sleep between batches or on rate limit violation", e);
+                        }
+                    } else {
+                        log.info("Sending of [{}] uplink msg(s) took {} ms.", uplinkMsgPack.size(), System.currentTimeMillis() - startTime);
+                    }
+
+                    attempt++;
+
+                    if (isGeneralMsg && attempt > MAX_SEND_UPLINK_ATTEMPTS) {
+                        log.warn("Failed to deliver the batch: after {} attempts. Next messages are going to be discarded {}",
+                                MAX_SEND_UPLINK_ATTEMPTS, pendingMsgs.getValues());
+                        statsCounterService.recordEvent(CloudStatsKey.UPLINK_MSGS_PERMANENTLY_FAILED, edgeInfo.getTenantId(), pendingMsgs.getQueueSize());
+                        sendUplinkFutureResult.set(false);
+                        return;
+                    }
+                } while (!success);
+                sendUplinkFutureResult.set(false);
+            } catch (Exception e) {
+                sendUplinkFutureResult.set(true);
+                log.error("Error during send uplink msg", e);
+            }
+        });
+    }
+
+    private boolean sendUplinkMsgPack() {
+        if (!grpcClientManager.isConnected()) {
+            return false;
+        }
+        edgeInfo.setSendingInProgress(true);
+        LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue = pendingMsgs.getQueue();
+        try {
+            pendingMsgs.startPendingBatch();
+            orderedPendingMsgQueue.forEach(grpcClientManager::sendUplinkMsg);
+
+            return pendingMsgs.awaitBatchCompletion();
+        } catch (Exception e) {
+            log.error("Interrupted while waiting for latch, isGeneralProcessInProgress={}", edgeInfo.isGeneralProcessInProgress(), e);
+            for (UplinkMsg value : pendingMsgs.getValues()) {
+                log.warn("Message not send due to exception: {}", value);
+            }
+            return false;
+        } finally {
+            edgeInfo.setSendingInProgress(false);
+        }
+    }
+}

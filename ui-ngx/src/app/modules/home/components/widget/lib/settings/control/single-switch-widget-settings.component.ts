@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright The Thingsboard Authors
 // SPDX-License-Identifier: Apache-2.0
 import { Component } from '@angular/core';
-import { TargetDevice, WidgetSettings, WidgetSettingsComponent, widgetType } from '@shared/models/widget.models';
+import { TargetDevice, WidgetSettings, WidgetSettingsComponent, widgetTitleAutocompleteValues, widgetType } from '@shared/models/widget.models';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -37,6 +37,8 @@ export class SingleSwitchWidgetSettingsComponent extends WidgetSettingsComponent
   valueType = ValueType;
 
   singleSwitchWidgetSettingsForm: UntypedFormGroup;
+
+  predefinedValues = widgetTitleAutocompleteValues;
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {

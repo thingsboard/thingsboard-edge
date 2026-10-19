@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright The Thingsboard Authors
 // SPDX-License-Identifier: Apache-2.0
 import { Component, Injector } from '@angular/core';
-import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
+import {WidgetSettings, WidgetSettingsComponent, widgetTitleAutocompleteValues} from '@shared/models/widget.models';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -19,6 +19,8 @@ export class AggregatedValueCardWidgetSettingsComponent extends WidgetSettingsCo
   aggregatedValueCardWidgetSettingsForm: UntypedFormGroup;
 
   datePreviewFn = this._datePreviewFn.bind(this);
+
+  predefinedValues = widgetTitleAutocompleteValues;
 
   constructor(protected store: Store<AppState>,
               private $injector: Injector,

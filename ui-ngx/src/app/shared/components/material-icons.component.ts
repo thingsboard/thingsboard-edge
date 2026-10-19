@@ -23,6 +23,7 @@ import { TbPopoverComponent } from '@shared/components/popover.component';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { isTbImage } from '@shared/models/resource.models';
 
 @Component({
     selector: 'tb-material-icons',
@@ -49,6 +50,10 @@ export class MaterialIconsComponent extends PageComponent implements OnInit {
   showTitle = true;
 
   @Input()
+  @coerceBoolean()
+  allowedCustomIcon = false;
+
+  @Input()
   popover: TbPopoverComponent;
 
   @Output()
@@ -57,6 +62,8 @@ export class MaterialIconsComponent extends PageComponent implements OnInit {
   iconRows$: Observable<MaterialIcon[][]>;
   showAllSubject = new BehaviorSubject<boolean>(false);
   searchIconControl: UntypedFormControl;
+
+  isCustomIcon = false;
 
   iconsRowHeight = 48;
 
@@ -109,14 +116,15 @@ export class MaterialIconsComponent extends PageComponent implements OnInit {
       map((data) => data.iconRows),
       share()
     );
+    this.isCustomIcon = isTbImage(this.selectedIcon)
   }
 
   clearSearch() {
     this.searchIconControl.patchValue('', {emitEvent: true});
   }
 
-  selectIcon(icon: MaterialIcon) {
-    this.iconSelected.emit(icon.name);
+  selectIcon(icon: string) {
+    this.iconSelected.emit(icon);
   }
 
   clearIcon() {

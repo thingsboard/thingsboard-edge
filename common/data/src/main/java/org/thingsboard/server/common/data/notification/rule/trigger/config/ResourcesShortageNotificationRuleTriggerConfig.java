@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +15,7 @@ import java.io.Serial;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Schema
 public class ResourcesShortageNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
     @Serial

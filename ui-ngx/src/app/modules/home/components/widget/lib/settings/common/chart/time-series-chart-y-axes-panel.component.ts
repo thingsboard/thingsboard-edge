@@ -22,17 +22,23 @@ import {
   Validator
 } from '@angular/forms';
 import {
+  checkLatestDataKeys,
   defaultTimeSeriesChartYAxisSettings,
   getNextTimeSeriesYAxisId,
-  TimeSeriesChartYAxes, TimeSeriesChartYAxisId,
+  TimeSeriesChartYAxes,
+  TimeSeriesChartYAxisId,
   TimeSeriesChartYAxisSettings,
   timeSeriesChartYAxisValid,
-  timeSeriesChartYAxisValidator
+  timeSeriesChartYAxisValidator,
+  updateLatestDataKeys
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { mergeDeep } from '@core/utils';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { IAliasController } from '@app/core/public-api';
+import { DataKeysCallbacks } from '@home/components/widget/lib/settings/common/key/data-keys.component.models';
+import { Datasource } from '@app/shared/public-api';
 
 @Component({
     selector: 'tb-time-series-chart-y-axes-panel',
@@ -54,6 +60,15 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     standalone: false
 })
 export class TimeSeriesChartYAxesPanelComponent implements ControlValueAccessor, OnInit, Validator {
+
+  @Input()
+  aliasController: IAliasController;
+
+  @Input()
+  dataKeyCallbacks: DataKeysCallbacks;
+
+  @Input()
+  datasource: Datasource;
 
   @Input()
   disabled: boolean;
@@ -100,6 +115,7 @@ export class TimeSeriesChartYAxesPanelComponent implements ControlValueAccessor,
         for (const axis of axes) {
           yAxes[axis.id] = axis;
         }
+        updateLatestDataKeys(Object.values(yAxes), this.datasource, this.dataKeyCallbacks);
         this.propagateChange(yAxes);
       }
     );
@@ -122,7 +138,7 @@ export class TimeSeriesChartYAxesPanelComponent implements ControlValueAccessor,
   }
 
   writeValue(value: TimeSeriesChartYAxes | undefined): void {
-    const yAxes: TimeSeriesChartYAxes = value || {};
+    const yAxes: TimeSeriesChartYAxes = checkLatestDataKeys(value || {}, this.datasource);
     if (!yAxes.default) {
       yAxes.default = mergeDeep({} as TimeSeriesChartYAxisSettings, defaultTimeSeriesChartYAxisSettings,
         {id: 'default', order: 0} as TimeSeriesChartYAxisSettings);
@@ -181,4 +197,5 @@ export class TimeSeriesChartYAxesPanelComponent implements ControlValueAccessor,
     });
     return this.fb.array(axesControls);
   }
+
 }

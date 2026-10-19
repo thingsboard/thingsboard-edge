@@ -22,9 +22,6 @@ import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 
-/**
- * Created by Valerii Sosliuk on 4/21/2017.
- */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity

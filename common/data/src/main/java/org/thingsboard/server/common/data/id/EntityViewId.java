@@ -12,6 +12,7 @@ import java.util.UUID;
 /**
  * Created by Victor Basanets on 8/27/2017.
  */
+@Schema(allOf = EntityId.class)
 public class EntityViewId extends UUIDBased implements EntityId {
 
     private static final long serialVersionUID = 1L;
@@ -25,7 +26,7 @@ public class EntityViewId extends UUIDBased implements EntityId {
         return new EntityViewId(UUID.fromString(entityViewID));
     }
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "ENTITY_VIEW", allowableValues = "ENTITY_VIEW")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, accessMode = Schema.AccessMode.READ_ONLY, description = "string", example = "ENTITY_VIEW", allowableValues = "ENTITY_VIEW")
     @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_VIEW;

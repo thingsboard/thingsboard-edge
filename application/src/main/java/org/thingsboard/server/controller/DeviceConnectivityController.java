@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,7 @@ public class DeviceConnectivityController extends BaseController {
                             description = "OK",
                             content = @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(implementation = JsonNode.class),
                                     examples = {
                                             @ExampleObject(
                                                     name = "http",
@@ -92,7 +94,18 @@ public class DeviceConnectivityController extends BaseController {
         return deviceConnectivityService.findDevicePublishTelemetryCommands(baseUrl, device);
     }
 
-    @ApiOperation(value = "Download server certificate using file path defined in device.connectivity properties (downloadServerCertificate)", notes = "Download server certificate.")
+    @ApiOperation(value = "Download server certificate using file path defined in device.connectivity properties (downloadServerCertificate)",
+            notes = "Download server certificate.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "OK",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                                    schema = @Schema(type = "string", format = "binary")
+                            )
+                    )
+            })
     @RequestMapping(value = "/device-connectivity/{protocol}/certificate/download", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<org.springframework.core.io.Resource> downloadServerCertificate(@Parameter(description = PROTOCOL_PARAM_DESCRIPTION)
@@ -109,7 +122,18 @@ public class DeviceConnectivityController extends BaseController {
                 .body(pemCert);
     }
 
-    @ApiOperation(value = "Download generated docker-compose.yml file for gateway (downloadGatewayDockerCompose)", notes = "Download generated docker-compose.yml for gateway.")
+    @ApiOperation(value = "Download generated docker-compose.yml file for gateway (downloadGatewayDockerCompose)",
+            notes = "Download generated docker-compose.yml for gateway.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "OK",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE,
+                                    schema = @Schema(type = "string", format = "binary")
+                            )
+                    )
+            })
     @RequestMapping(value = "/device-connectivity/gateway-launch/{deviceId}/docker-compose/download", method = RequestMethod.GET)
     @ResponseBody
     public ResponseEntity<org.springframework.core.io.Resource> downloadGatewayDockerCompose(@Parameter(description = DEVICE_ID_PARAM_DESCRIPTION)

@@ -7,7 +7,6 @@
 <mat-form-field [formGroup]="selectEntityFormGroup"
                 [class.tb-inline-field]="inlineField"
                 [class.flex]="inlineField"
-                [class.tb-suffix-absolute]="inlineField && !selectEntityFormGroup.get('entity').value"
                 class="mat-block"
                 [appearance]="inlineField ? 'outline' : appearance"
                 [subscriptSizing]="inlineField ? 'dynamic' : subscriptSizing"
@@ -49,7 +48,7 @@
                     #entityAutocomplete="matAutocomplete"
                     [displayWith]="displayEntityFn">
     <mat-option *ngFor="let entity of filteredEntities | async" [value]="entity">
-      <span [innerHTML]="entity.name | highlight:searchText:true:'ig'"></span>
+      <span [innerHTML]="displayEntityFn(entity) | highlight:searchText:true:'ig'"></span>
     </mat-option>
     <mat-option *ngIf="!(filteredEntities | async)?.length" [value]="null">
       <div (click)="$event.stopPropagation()">
@@ -60,6 +59,11 @@
           <span>
               {{ noEntitiesMatchingText | translate: {entity: searchText} }}
           </span>
+          @if (allowCreateNew) {
+            <span>
+              <a translate (click)="createNewEntity($event, searchText)">entity.create-new-key</a>
+            </span>
+          }
         </ng-template>
       </div>
     </mat-option>

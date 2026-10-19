@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.entitiy;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,7 @@ public class DefaultTbLogEntityActionService implements TbLogEntityActionService
     }
 
     @Override
-    public <E extends HasName, I extends EntityId> void logEntityAction(TenantId tenantId, I entityId, E entity,
+    public <E extends HasName, I extends EntityId> void logEntityAction(TenantId tenantId, @NotNull I entityId, E entity,
                                                                         CustomerId customerId, ActionType actionType,
                                                                         User user, Exception e, Object... additionalInfo) {
         if (user != null) {

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,8 +17,10 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Schema
 public class RateLimitsNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
+    @ArraySchema(schema = @Schema(implementation = LimitedApi.class))
     private Set<LimitedApi> apis;
 
     @Override

@@ -9,7 +9,7 @@ import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
 
-@Schema
+@Schema(allOf = EntityId.class)
 public class ApiUsageStateId extends UUIDBased implements EntityId {
 
     @JsonCreator
@@ -21,7 +21,7 @@ public class ApiUsageStateId extends UUIDBased implements EntityId {
         return new ApiUsageStateId(UUID.fromString(userId));
     }
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "API_USAGE_STATE", allowableValues = "API_USAGE_STATE")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, accessMode = Schema.AccessMode.READ_ONLY, description = "string", example = "API_USAGE_STATE", allowableValues = "API_USAGE_STATE")
     @Override
     public EntityType getEntityType() {
         return EntityType.API_USAGE_STATE;

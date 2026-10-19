@@ -3,6 +3,7 @@
 package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -44,7 +45,7 @@ import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportReques
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
 import org.thingsboard.server.config.annotations.ApiOperation;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -256,7 +257,7 @@ public class EdgeController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         TenantId tenantId = getCurrentUser().getTenantId();
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        if (type != null && type.trim().length() > 0) {
+        if (type != null && !type.trim().isEmpty()) {
             return checkNotNull(edgeService.findEdgesByTenantIdAndType(tenantId, type, pageLink));
         } else {
             return checkNotNull(edgeService.findEdgesByTenantId(tenantId, pageLink));
@@ -267,7 +268,7 @@ public class EdgeController extends BaseController {
             notes = "Returns a page of edges info objects owned by tenant. " +
                     PAGE_DATA_PARAMETERS + EDGE_INFO_DESCRIPTION + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @GetMapping(value = "/tenant/edgeInfos", params = {"pageSize", "page"})
+    @GetMapping(value = "/tenant/edgeInfos")
     public PageData<EdgeInfo> getTenantEdgeInfos(
             @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
             @RequestParam int pageSize,
@@ -283,22 +284,29 @@ public class EdgeController extends BaseController {
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         TenantId tenantId = getCurrentUser().getTenantId();
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        if (type != null && type.trim().length() > 0) {
+        if (type != null && !type.trim().isEmpty()) {
             return checkNotNull(edgeService.findEdgeInfosByTenantIdAndType(tenantId, type, pageLink));
         } else {
             return checkNotNull(edgeService.findEdgeInfosByTenantId(tenantId, pageLink));
         }
     }
 
-    @ApiOperation(value = "Get Tenant Edge (getTenantEdge)",
+    @Hidden
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @GetMapping(value = "/tenant/edges", params = {"edgeName"})
+    public Edge getTenantEdge(@RequestParam String edgeName) throws ThingsboardException {
+        TenantId tenantId = getCurrentUser().getTenantId();
+        return checkNotNull(edgeService.findEdgeByTenantIdAndName(tenantId, edgeName));
+    }
+
+    @ApiOperation(value = "Get Tenant Edge by name (getTenantEdgeByName)",
             notes = "Requested edge must be owned by tenant or customer that the user belongs to. " +
                     "Edge name is an unique property of edge. So it can be used to identify the edge." + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @GetMapping(value = "/tenant/edges", params = {"edgeName"})
-    public Edge getTenantEdge(@Parameter(description = "Unique name of the edge", required = true)
-                              @RequestParam String edgeName) throws ThingsboardException {
-        TenantId tenantId = getCurrentUser().getTenantId();
-        return checkNotNull(edgeService.findEdgeByTenantIdAndName(tenantId, edgeName));
+    @GetMapping(value = "/tenant/edge")
+    public Edge getTenantEdgeByName(@Parameter(description = "Unique name of the edge", required = true)
+                                    @RequestParam String edgeName) throws ThingsboardException {
+        return getTenantEdge(edgeName);
     }
 
     @ApiOperation(value = "Set root rule chain for provided edge (setEdgeRootRuleChain)",
@@ -324,7 +332,7 @@ public class EdgeController extends BaseController {
             notes = "Returns a page of edges objects assigned to customer. " +
                     PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/customer/{customerId}/edges", params = {"pageSize", "page"})
+    @GetMapping(value = "/customer/{customerId}/edges")
     public PageData<Edge> getCustomerEdges(
             @Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
             @PathVariable("customerId") String strCustomerId,
@@ -347,7 +355,7 @@ public class EdgeController extends BaseController {
         checkCustomerId(customerId, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         PageData<Edge> result;
-        if (type != null && type.trim().length() > 0) {
+        if (type != null && !type.trim().isEmpty()) {
             result = edgeService.findEdgesByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink);
         } else {
             result = edgeService.findEdgesByTenantIdAndCustomerId(tenantId, customerId, pageLink);
@@ -359,7 +367,7 @@ public class EdgeController extends BaseController {
             notes = "Returns a page of edges info objects assigned to customer. " +
                     PAGE_DATA_PARAMETERS + EDGE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/customer/{customerId}/edgeInfos", params = {"pageSize", "page"})
+    @GetMapping(value = "/customer/{customerId}/edgeInfos")
     public PageData<EdgeInfo> getCustomerEdgeInfos(
             @Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
             @PathVariable("customerId") String strCustomerId,
@@ -382,7 +390,7 @@ public class EdgeController extends BaseController {
         checkCustomerId(customerId, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         PageData<EdgeInfo> result;
-        if (type != null && type.trim().length() > 0) {
+        if (type != null && !type.trim().isEmpty()) {
             result = edgeService.findEdgeInfosByTenantIdAndCustomerIdAndType(tenantId, customerId, type, pageLink);
         } else {
             result = edgeService.findEdgeInfosByTenantIdAndCustomerId(tenantId, customerId, pageLink);
@@ -390,12 +398,10 @@ public class EdgeController extends BaseController {
         return checkNotNull(result);
     }
 
-    @ApiOperation(value = "Get Edges By Ids (getEdgesByIds)",
-            notes = "Requested edges must be owned by tenant or assigned to customer which user is performing the request." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+    @Hidden
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/edges", params = {"edgeIds"})
     public List<Edge> getEdgesByIds(
-            @Parameter(description = "A list of edges ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("edgeIds") String[] strEdgeIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("edgeIds", strEdgeIds);
         SecurityUser user = getCurrentUser();
@@ -415,13 +421,23 @@ public class EdgeController extends BaseController {
         return checkNotNull(edges);
     }
 
-    @ApiOperation(value = "Find related edges (findByQuery)",
+    @ApiOperation(value = "Get Edges By Ids (getEdgeList)",
+            notes = "Requested edges must be owned by tenant or assigned to customer which user is performing the request." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/edges/list")
+    public List<Edge> getEdgeList(
+            @Parameter(description = "A list of edges ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
+            @RequestParam("edgeIds") String[] strEdgeIds) throws ThingsboardException, ExecutionException, InterruptedException {
+        return getEdgesByIds(strEdgeIds);
+    }
+
+    @ApiOperation(value = "Find related edges (findEdgesByQuery)",
             notes = "Returns all edges that are related to the specific entity. " +
                     "The entity id, relation type, edge types, depth of the search, and other query parameters defined using complex 'EdgeSearchQuery' object. " +
                     "See 'Model' tab of the Parameters for more info." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping(value = "/edges")
-    public List<Edge> findByQuery(@RequestBody EdgeSearchQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
+    public List<Edge> findEdgesByQuery(@RequestBody EdgeSearchQuery query) throws ThingsboardException, ExecutionException, InterruptedException {
         checkNotNull(query);
         checkNotNull(query.getParameters());
         checkNotNull(query.getEdgeTypes());

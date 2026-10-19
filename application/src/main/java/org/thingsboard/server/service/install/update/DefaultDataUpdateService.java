@@ -2,38 +2,24 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.install.update;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
-import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.query.DynamicValue;
-import org.thingsboard.server.common.data.query.FilterPredicateValue;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
-import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
@@ -63,19 +49,23 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private final LtsMigrationService ltsMigrationService;
 
     // edge-only: for case "edge" in updateData
-    @Autowired
-    private TenantService tenantService;
-
-    @Autowired
-    private EdgeSettingsService edgeSettingsService;
-
-    @Autowired
-    private WidgetsBundleService widgetsBundleService;
+    private final TenantService tenantService;
+    private final EdgeSettingsService edgeSettingsService;
+    private final WidgetsBundleService widgetsBundleService;
 
     @Override
     public void updateData() throws Exception {
         log.info("Updating data ...");
+        //TODO: should be cleaned after each release
         ltsMigrationService.runDataMigrations(schemaSettingsService.getDbSchemaVersion(), schemaSettingsService.getPackageSchemaVersion());
+
+        // Edge-only: always run next config:
+
+        // reset full sync required - to upload latest widgets from cloud
+        tenantsFullSyncRequiredUpdater.updateEntities(null);
+
+        // ... Edge-only
+
         log.info("Data updated.");
     }
 
@@ -145,60 +135,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 ruleChainService.findAllRuleNodeIdsByTypeAndVersionLessThan(type, toVersion, pageLink), DEFAULT_PAGE_SIZE
         ).forEach(ruleNodeIds::add);
         return ruleNodeIds;
-    }
-
-    boolean convertDeviceProfileForVersion330(JsonNode profileData) {
-        boolean isUpdated = false;
-        if (profileData.has("alarms") && !profileData.get("alarms").isNull()) {
-            JsonNode alarms = profileData.get("alarms");
-            for (JsonNode alarm : alarms) {
-                if (alarm.has("createRules")) {
-                    JsonNode createRules = alarm.get("createRules");
-                    for (AlarmSeverity severity : AlarmSeverity.values()) {
-                        if (createRules.has(severity.name())) {
-                            JsonNode spec = createRules.get(severity.name()).get("condition").get("spec");
-                            if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
-                                isUpdated = true;
-                            }
-                        }
-                    }
-                }
-                if (alarm.has("clearRule") && !alarm.get("clearRule").isNull()) {
-                    JsonNode spec = alarm.get("clearRule").get("condition").get("spec");
-                    if (convertDeviceProfileAlarmRulesForVersion330(spec)) {
-                        isUpdated = true;
-                    }
-                }
-            }
-        }
-        return isUpdated;
-    }
-
-    boolean convertDeviceProfileAlarmRulesForVersion330(JsonNode spec) {
-        if (spec != null) {
-            if (spec.has("type") && spec.get("type").asText().equals("DURATION")) {
-                if (spec.has("value")) {
-                    long value = spec.get("value").asLong();
-                    var predicate = new FilterPredicateValue<>(
-                            value, null, new DynamicValue<>(null, null, false)
-                    );
-                    ((ObjectNode) spec).remove("value");
-                    ((ObjectNode) spec).putPOJO("predicate", predicate);
-                    return true;
-                }
-            } else if (spec.has("type") && spec.get("type").asText().equals("REPEATING")) {
-                if (spec.has("count")) {
-                    int count = spec.get("count").asInt();
-                    var predicate = new FilterPredicateValue<>(
-                            count, null, new DynamicValue<>(null, null, false)
-                    );
-                    ((ObjectNode) spec).remove("count");
-                    ((ObjectNode) spec).putPOJO("predicate", predicate);
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public static boolean getEnv(String name, boolean defaultValue) {

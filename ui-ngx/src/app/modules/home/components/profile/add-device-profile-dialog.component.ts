@@ -72,8 +72,6 @@ export class AddDeviceProfileDialogComponent extends
 
   transportConfigFormGroup: UntypedFormGroup;
 
-  alarmRulesFormGroup: UntypedFormGroup;
-
   provisionConfigFormGroup: UntypedFormGroup;
 
   serviceType = ServiceType.TB_RULE_ENGINE;
@@ -119,12 +117,6 @@ export class AddDeviceProfileDialogComponent extends
       this.deviceProfileTransportTypeChanged();
     });
 
-    this.alarmRulesFormGroup = this.fb.group(
-      {
-        alarms: [null]
-      }
-    );
-
     this.provisionConfigFormGroup = this.fb.group(
       {
         provisionConfiguration: [{
@@ -163,8 +155,6 @@ export class AddDeviceProfileDialogComponent extends
       case 1:
         return this.transportConfigFormGroup;
       case 2:
-        return this.alarmRulesFormGroup;
-      case 3:
         return this.provisionConfigFormGroup;
     }
   }
@@ -186,7 +176,6 @@ export class AddDeviceProfileDialogComponent extends
         profileData: {
           configuration: createDeviceProfileConfiguration(DeviceProfileType.DEFAULT),
           transportConfiguration: this.transportConfigFormGroup.get('transportConfiguration').value,
-          alarms: this.alarmRulesFormGroup.get('alarms').value,
           provisionConfiguration: deviceProvisionConfiguration
         }
       };
@@ -214,8 +203,6 @@ export class AddDeviceProfileDialogComponent extends
       case 1:
         return 'device-profile.transport-configuration';
       case 2:
-        return 'device-profile.alarm-rules';
-      case 3:
         return 'device-profile.device-provisioning';
     }
   }

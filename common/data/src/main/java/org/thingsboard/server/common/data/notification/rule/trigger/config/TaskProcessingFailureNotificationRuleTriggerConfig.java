@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
+@Schema
 public class TaskProcessingFailureNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
     @Override

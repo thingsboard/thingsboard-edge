@@ -51,6 +51,11 @@ public class DummyTaskResult extends TaskResult {
         return JobType.DUMMY;
     }
 
+    @Override
+    public String getError() {
+        return failure != null ? failure.getError() : null;
+    }
+
     @Data
     @NoArgsConstructor
     @EqualsAndHashCode(callSuper = true)

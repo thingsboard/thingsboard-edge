@@ -276,6 +276,11 @@ class KafkaEdgeGrpcSessionTest {
             return Collections.emptyList();
         }
 
+        @Override
+        public Set<TopicPartitionInfo> getPartitions() {
+            return Collections.emptySet();
+        }
+
     }
 
 }

@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright The Thingsboard Authors
 // SPDX-License-Identifier: Apache-2.0
 import { Component } from '@angular/core';
-import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
+import { WidgetSettings, WidgetSettingsComponent, widgetTitleAutocompleteValues } from '@shared/models/widget.models';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -19,6 +19,8 @@ export class GatewayEventsWidgetSettingsComponent extends WidgetSettingsComponen
   separatorKeysCodes = [ENTER, COMMA, SEMICOLON];
 
   gatewayEventsWidgetSettingsForm: UntypedFormGroup;
+  
+  predefinedValues = widgetTitleAutocompleteValues;
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {

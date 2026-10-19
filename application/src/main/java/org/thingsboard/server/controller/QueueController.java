@@ -6,7 +6,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -52,8 +54,7 @@ public class QueueController extends BaseController {
             notes = "Returns a page of queues registered in the platform. " +
                     PAGE_DATA_PARAMETERS + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    @RequestMapping(value = "/queues", params = {"serviceType", "pageSize", "page"}, method = RequestMethod.GET)
-    @ResponseBody
+    @GetMapping(value = "/queues")
     public PageData<Queue> getTenantQueuesByServiceType(@Parameter(description = QUEUE_SERVICE_TYPE_DESCRIPTION, schema = @Schema(allowableValues = {"TB-RULE-ENGINE", "TB-CORE", "TB-TRANSPORT", "JS-EXECUTOR"}, requiredMode = Schema.RequiredMode.REQUIRED))
                                                         @RequestParam String serviceType,
                                                         @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
@@ -109,8 +110,7 @@ public class QueueController extends BaseController {
                     "Remove 'id', 'tenantId' from the request body example (below) to create new Queue entity. " +
                     SYSTEM_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
-    @RequestMapping(value = "/queues", params = {"serviceType"}, method = RequestMethod.POST)
-    @ResponseBody
+    @PostMapping(value = "/queues")
     public Queue saveQueue(@Parameter(description = "A JSON value representing the queue.")
                            @RequestBody Queue queue,
                            @Parameter(description = QUEUE_SERVICE_TYPE_DESCRIPTION, schema = @Schema(allowableValues = {"TB-RULE-ENGINE", "TB-CORE", "TB-TRANSPORT", "JS-EXECUTOR"}, requiredMode = Schema.RequiredMode.REQUIRED))

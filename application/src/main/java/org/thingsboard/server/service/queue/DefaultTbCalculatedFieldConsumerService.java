@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.actors.calculatedField.CalculatedFieldEntityActionEventMsg;
 import org.thingsboard.server.actors.calculatedField.CalculatedFieldLinkedTelemetryMsg;
 import org.thingsboard.server.actors.calculatedField.CalculatedFieldTelemetryMsg;
 import org.thingsboard.server.common.data.DataConstants;
@@ -37,7 +38,6 @@ import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbRuleEngineQueueFactory;
 import org.thingsboard.server.queue.util.TbRuleEngineComponent;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
-import org.thingsboard.server.service.cf.CalculatedFieldCache;
 import org.thingsboard.server.service.cf.CalculatedFieldStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
@@ -146,12 +146,7 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractPartitionBa
                 try {
                     ToCalculatedFieldMsg toCfMsg = msg.getValue();
                     pendingMsgHolder.setMsg(toCfMsg);
-                    if (toCfMsg.hasTelemetryMsg()) {
-                        log.trace("[{}] Forwarding regular telemetry message for processing {}", id, toCfMsg.getTelemetryMsg());
-                        forwardToActorSystem(toCfMsg.getTelemetryMsg(), callback);
-                    } else if (toCfMsg.hasLinkedTelemetryMsg()) {
-                        forwardToActorSystem(toCfMsg.getLinkedTelemetryMsg(), callback);
-                    }
+                    processMsg(toCfMsg, id, callback);
                 } catch (Throwable e) {
                     log.warn("[{}] Failed to process message: {}", id, msg, e);
                     callback.onFailure(e);
@@ -167,6 +162,17 @@ public class DefaultTbCalculatedFieldConsumerService extends AbstractPartitionBa
             ctx.getFailedMap().forEach((id, msg) -> log.warn("[{}] Failed to process message: {}", id, msg.getValue()));
         }
         consumer.commit();
+    }
+
+    private void processMsg(ToCalculatedFieldMsg toCfMsg, UUID id, TbCallback callback) {
+        if (toCfMsg.hasTelemetryMsg()) {
+            log.trace("[{}] Forwarding regular telemetry message for processing {}", id, toCfMsg.getTelemetryMsg());
+            forwardToActorSystem(toCfMsg.getTelemetryMsg(), callback);
+        } else if (toCfMsg.hasLinkedTelemetryMsg()) {
+            forwardToActorSystem(toCfMsg.getLinkedTelemetryMsg(), callback);
+        } else if (toCfMsg.hasEventMsg()) {
+            actorContext.tell(CalculatedFieldEntityActionEventMsg.fromProto(toCfMsg.getEventMsg(), callback));
+        }
     }
 
     @Override

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.dao.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.kv.IntervalType;
 
 import java.time.Instant;
@@ -11,6 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.IsoFields;
 import java.time.temporal.WeekFields;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TimeUtils {
 
     public static long calculateIntervalEnd(long startTs, IntervalType intervalType, ZoneId tzId) {
@@ -27,6 +30,10 @@ public class TimeUtils {
             default:
                 throw new RuntimeException("Not supported!");
         }
+    }
+
+    public static ZonedDateTime toZonedDateTime(long ts, ZoneId zoneId) {
+        return ZonedDateTime.ofInstant(Instant.ofEpochMilli(ts), zoneId);
     }
 
 }

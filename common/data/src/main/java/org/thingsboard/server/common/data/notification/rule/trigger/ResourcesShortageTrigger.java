@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data.notification.rule.trigger;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -53,6 +54,7 @@ public class ResourcesShortageTrigger implements NotificationRuleTrigger {
         return NotificationRuleTriggerType.RESOURCES_SHORTAGE;
     }
 
+    @Schema
     public enum Resource {
         CPU, RAM, STORAGE
     }

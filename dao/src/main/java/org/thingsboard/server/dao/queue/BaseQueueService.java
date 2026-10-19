@@ -21,7 +21,7 @@ import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
-import org.thingsboard.server.dao.exception.DataValidationException;
+import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;

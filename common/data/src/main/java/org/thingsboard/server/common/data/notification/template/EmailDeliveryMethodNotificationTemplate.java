@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data.notification.template;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@Schema
 public class EmailDeliveryMethodNotificationTemplate extends DeliveryMethodNotificationTemplate implements HasSubject {
 
     @NoXss(fieldName = "email subject")

@@ -38,4 +38,6 @@ public interface AssetProfileDao extends Dao<AssetProfile>, ExportableEntityDao<
 
     List<EntityInfo> findTenantAssetProfileNames(UUID tenantId, boolean activeOnly);
 
+    List<AssetProfileInfo> findAssetProfilesByTenantIdAndIds(UUID tenantId, List<UUID> assetProfileIds);
+
 }

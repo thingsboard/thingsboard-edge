@@ -6,6 +6,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.EntityViewInfo;
+import org.thingsboard.server.common.data.NameConflictStrategy;
 import org.thingsboard.server.common.data.entityview.EntityViewSearchQuery;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
@@ -21,6 +22,8 @@ import java.util.List;
 public interface EntityViewService extends EntityDaoService {
 
     EntityView saveEntityView(EntityView entityView);
+
+    EntityView saveEntityView(EntityView entityView, NameConflictStrategy nameConflictStrategy);
 
     EntityView saveEntityView(EntityView entityView, boolean doValidate);
 
@@ -51,6 +54,8 @@ public interface EntityViewService extends EntityDaoService {
     PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink);
 
     PageData<EntityView> findEntityViewsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+
+    List<EntityView> findEntityViewsByTenantIdAndIds(TenantId tenantId, List<EntityViewId> entityViewIds);
 
     PageData<EntityViewInfo> findEntityViewInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 

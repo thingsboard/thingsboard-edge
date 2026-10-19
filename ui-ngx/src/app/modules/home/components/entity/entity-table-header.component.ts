@@ -3,8 +3,6 @@
 import { BaseData, HasId } from '@shared/models/base-data';
 import { PageComponent } from '@shared/components/page.component';
 import { Directive, Input, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { PageLink } from '@shared/models/page/page-link';
 
@@ -27,8 +25,8 @@ export abstract class EntityTableHeaderComponent<T extends BaseData<HasId>,
     return this.entitiesTableConfigValue;
   }
 
-  protected constructor(protected store: Store<AppState>) {
-    super(store);
+  protected constructor(...args: unknown[]) {
+    super();
   }
 
   ngOnInit() {

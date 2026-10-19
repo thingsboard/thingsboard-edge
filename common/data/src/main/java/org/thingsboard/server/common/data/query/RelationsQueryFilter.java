@@ -2,15 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data.query;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 
 import java.util.List;
 import java.util.Set;
 
+@Schema
 @Data
 public class RelationsQueryFilter implements EntityFilter {
 
@@ -20,6 +22,7 @@ public class RelationsQueryFilter implements EntityFilter {
     }
 
     private AliasEntityId rootEntity;
+    @JsonProperty("multiRoot")
     private boolean isMultiRoot;
     private EntityType multiRootEntitiesType;
     private Set<String> multiRootEntityIds;

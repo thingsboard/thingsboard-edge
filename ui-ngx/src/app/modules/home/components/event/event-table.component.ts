@@ -3,10 +3,12 @@
 import {
   AfterViewInit,
   ChangeDetectorRef,
-  Component, EventEmitter,
+  Component,
+  EventEmitter,
   Input,
   OnDestroy,
-  OnInit, Output,
+  OnInit,
+  Output,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
@@ -47,6 +49,21 @@ export class EventTableComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   hideClearEventAction: boolean = false;
+
+  private disableDebugEventActionValue = false;
+
+  get disableDebugEventAction() {
+    return this.disableDebugEventActionValue;
+  }
+
+  @Input()
+  set disableDebugEventAction(value) {
+    this.disableDebugEventActionValue = value;
+    if (this.eventTableConfig) {
+      this.eventTableConfig.disableDebugEventAction = this.disableDebugEventAction;
+      this.eventTableConfig.updateCellAction();
+    }
+  };
 
   activeValue = false;
   dirtyValue = false;
@@ -138,7 +155,8 @@ export class EventTableComponent implements OnInit, AfterViewInit, OnDestroy {
       this.store,
       this.functionTestButtonLabel,
       this.debugEventSelected,
-      this.hideClearEventAction
+      this.hideClearEventAction,
+      this.disableDebugEventAction
     );
   }
 

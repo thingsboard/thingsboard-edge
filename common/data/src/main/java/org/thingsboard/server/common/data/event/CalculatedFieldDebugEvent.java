@@ -16,7 +16,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.UUID;
 
-@ToString
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class CalculatedFieldDebugEvent extends Event {
 

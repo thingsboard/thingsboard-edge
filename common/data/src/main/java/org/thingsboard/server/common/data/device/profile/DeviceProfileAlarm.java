@@ -15,6 +15,7 @@ import java.util.TreeMap;
 
 @Schema
 @Data
+@Deprecated
 public class DeviceProfileAlarm implements Serializable {
 
     @Schema(description = "String value representing the alarm rule id", example = "highTemperatureAlarmID")

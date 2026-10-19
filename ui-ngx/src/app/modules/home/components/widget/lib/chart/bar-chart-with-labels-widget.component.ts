@@ -120,6 +120,12 @@ export class BarChartWithLabelsWidgetComponent implements OnInit, OnDestroy, Aft
     }
   }
 
+  public onLatestDataUpdated() {
+    if (this.timeSeriesChart) {
+      this.timeSeriesChart.latestUpdated();
+    }
+  }
+
   public onLegendKeyEnter(key: DataKey) {
     this.timeSeriesChart.keyEnter(key);
   }

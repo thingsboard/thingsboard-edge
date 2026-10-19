@@ -27,13 +27,13 @@ import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -74,11 +74,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                     yield Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
-                    Device deviceById = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
-                    if (deviceById != null) {
-                        edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId);
-                        pushDeviceDeletedEventToRuleEngine(tenantId, deviceById);
-                    }
+                    deleteDevice(tenantId, deviceId);
                     yield Futures.immediateFuture(null);
                 }
                 default -> handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
@@ -103,20 +99,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
         Device device = edgeCtx.getDeviceService().findDeviceById(tenantId, deviceId);
-        pushDeviceEventToRuleEngine(tenantId, device, TbMsgType.ENTITY_CREATED);
-    }
-
-    private void pushDeviceDeletedEventToRuleEngine(TenantId tenantId, Device device) {
-        pushDeviceEventToRuleEngine(tenantId, device, TbMsgType.ENTITY_DELETED);
-    }
-
-    private void pushDeviceEventToRuleEngine(TenantId tenantId, Device device, TbMsgType msgType) {
-        try {
-            String deviceAsString = JacksonUtil.toString(device);
-            pushEntityEventToRuleEngine(tenantId, device.getId(), device.getCustomerId(), msgType, deviceAsString, new TbMsgMetaData());
-        } catch (Exception e) {
-            log.warn("[{}][{}] Failed to push device action to rule engine: {}", tenantId, device.getId(), msgType.name(), e);
-        }
+        pushEntityEventToRuleEngine(tenantId, device, TbMsgType.ENTITY_CREATED);
     }
 
     public ListenableFuture<Void> processDeviceCredentialsMsgFromCloud(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
@@ -260,7 +243,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
                         DeviceProfile deviceProfile = edgeCtx.getDeviceProfileService().findDeviceProfileById(cloudEvent.getTenantId(), device.getDeviceProfileId());
-                        builder.addDeviceProfileUpdateMsg(EdgeMsgConstructorUtils.constructDeviceProfileUpdatedMsg(msgType, deviceProfile));
+                        builder.addDeviceProfileUpdateMsg(EdgeMsgConstructorUtils.constructDeviceProfileUpdatedMsg(msgType, deviceProfile, EdgeVersion.V_LATEST));
                     }
                     return builder.build();
                 } else {

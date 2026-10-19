@@ -81,6 +81,7 @@ import {
 } from '@home/components/widget/lib/maps/panels/select-map-entity-panel.component';
 import { MapTimelinePanelComponent } from '@home/components/widget/lib/maps/panels/map-timeline-panel.component';
 import { HtmlContainerWidgetComponent } from '@home/components/widget/lib/html/html-container-widget.component';
+import { ApiUsageWidgetComponent } from "@home/components/widget/lib/cards/api-usage-widget.component";
 
 @NgModule({
   declarations: [
@@ -139,7 +140,8 @@ import { HtmlContainerWidgetComponent } from '@home/components/widget/lib/html/h
     SelectMapEntityPanelComponent,
     MapTimelinePanelComponent,
     MapWidgetComponent,
-    HtmlContainerWidgetComponent
+    HtmlContainerWidgetComponent,
+    ApiUsageWidgetComponent
   ],
   imports: [
     CommonModule,
@@ -203,7 +205,8 @@ import { HtmlContainerWidgetComponent } from '@home/components/widget/lib/html/h
     NotificationTypeFilterPanelComponent,
     ScadaSymbolWidgetComponent,
     MapWidgetComponent,
-    HtmlContainerWidgetComponent
+    HtmlContainerWidgetComponent,
+    ApiUsageWidgetComponent
   ],
   providers: [
     {provide: WIDGET_COMPONENTS_MODULE_TOKEN, useValue: WidgetComponentsModule},

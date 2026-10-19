@@ -14,7 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.testcontainers.shaded.org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
@@ -529,18 +529,18 @@ public class TbRuleEngineQueueConsumerManagerTest {
             Queue oldConfig = consumerManager.getConfig();
             Queue newConfig = JacksonUtil.clone(oldConfig);
             newConfig.setConsumerPerPartition(RandomUtils.nextBoolean());
-            newConfig.setPollInterval(RandomUtils.nextInt(100, 501));
-            newConfig.setPartitions(RandomUtils.nextInt(1, 10));
+            newConfig.setPollInterval(RandomUtils.secure().randomInt(100, 501));
+            newConfig.setPartitions(RandomUtils.secure().randomInt(1, 10));
             newConfig.setPackProcessingTimeout(RandomUtils.nextLong(100, 5001));
-            newConfig.getSubmitStrategy().setType(SubmitStrategyType.values()[RandomUtils.nextInt(0, SubmitStrategyType.values().length)]);
-            newConfig.getProcessingStrategy().setType(ProcessingStrategyType.values()[RandomUtils.nextInt(0, ProcessingStrategyType.values().length)]);
+            newConfig.getSubmitStrategy().setType(SubmitStrategyType.values()[RandomUtils.secure().randomInt(0, SubmitStrategyType.values().length)]);
+            newConfig.getProcessingStrategy().setType(ProcessingStrategyType.values()[RandomUtils.secure().randomInt(0, ProcessingStrategyType.values().length)]);
             log.info("Generated new config: consumerPerPartition={}, pollInterval={}, processingStrategy={}",
                     newConfig.isConsumerPerPartition(), newConfig.getPollInterval(), newConfig.getProcessingStrategy().getType());
             return newConfig;
         };
         Supplier<Set<TopicPartitionInfo>> partitionsUpdater = () -> {
-            int partitionsCount = RandomUtils.nextInt(0, 20);
-            int[] partitions = IntStream.generate(() -> RandomUtils.nextInt(0, 20))
+            int partitionsCount = RandomUtils.secure().randomInt(0, 20);
+            int[] partitions = IntStream.generate(() -> RandomUtils.secure().randomInt(0, 20))
                     .distinct().limit(partitionsCount)
                     .sorted().toArray();
             log.info("Generated new partitions: {}", Arrays.toString(partitions));
@@ -582,7 +582,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
             await().atMost(5, TimeUnit.SECONDS).until(() -> {
                 for (TopicPartitionInfo partition : expectedPartitions) {
                     if (consumers.stream().noneMatch(consumer -> consumer.subscribed &&
-                            consumer.pollingStarted && Set.of(partition).equals(consumer.getPartitions()))) {
+                                                                 consumer.pollingStarted && Set.of(partition).equals(consumer.getPartitions()))) {
                         return false;
                     }
                 }
@@ -592,7 +592,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
             await().atMost(5, TimeUnit.SECONDS).until(() -> {
                 return consumers.size() == 1 && consumers.stream()
                         .anyMatch(consumer -> consumer.subscribed && consumer.pollingStarted &&
-                                expectedPartitions.equals(consumer.getPartitions()));
+                                              expectedPartitions.equals(consumer.getPartitions()));
             });
         }
         Mockito.reset(ruleEngineConsumerContext.getSubmitStrategyFactory());
@@ -654,8 +654,8 @@ public class TbRuleEngineQueueConsumerManagerTest {
         return await().atMost(5, TimeUnit.SECONDS)
                 .until(() -> consumers.stream()
                         .filter(consumer -> consumer.getPartitions() != null &&
-                                consumer.getPartitions().size() == 1 &&
-                                consumer.getPartitions().contains(tpi))
+                                            consumer.getPartitions().size() == 1 &&
+                                            consumer.getPartitions().contains(tpi))
                         .findFirst().orElse(null), Objects::nonNull);
     }
 
@@ -663,9 +663,9 @@ public class TbRuleEngineQueueConsumerManagerTest {
         return await().atMost(5, TimeUnit.SECONDS)
                 .until(() -> consumers.stream()
                         .filter(consumer -> consumer.getPartitions() != null &&
-                                consumer.getPartitions().size() == 1 &&
-                                consumer.getPartitions().stream()
-                                        .anyMatch(tpi -> tpi.getPartition().get().equals(partition)))
+                                            consumer.getPartitions().size() == 1 &&
+                                            consumer.getPartitions().stream()
+                                                    .anyMatch(tpi -> tpi.getPartition().get().equals(partition)))
                         .findFirst().orElse(null), Objects::nonNull);
     }
 
@@ -765,10 +765,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
             return false;
         }
 
-        public Set<TopicPartitionInfo> getPartitions() {
-            return partitions;
-        }
-
         public void setUpTestMsg() {
             testMsg = TbMsg.newMsg()
                     .type(TbMsgType.POST_TELEMETRY_REQUEST)
@@ -777,6 +773,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
                     .data("{}")
                     .build();
         }
+
     }
 
 }

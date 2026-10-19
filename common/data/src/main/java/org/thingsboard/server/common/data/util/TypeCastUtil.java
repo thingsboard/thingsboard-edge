@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data.util;
 
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.thingsboard.server.common.data.kv.DataType;
@@ -27,6 +28,11 @@ public class TypeCastUtil {
             } catch (RuntimeException ignored) {}
         } else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
             return Pair.of(DataType.BOOLEAN, Boolean.parseBoolean(value));
+        } else if (looksLikeJson(value)) {
+            try {
+                return Pair.of(DataType.JSON, JsonParser.parseString(value));
+            } catch (Exception ignored) {
+            }
         }
         return Pair.of(DataType.STRING, value);
     }
@@ -55,6 +61,12 @@ public class TypeCastUtil {
 
     private static boolean isSimpleDouble(String valueAsString) {
         return valueAsString.contains(".") && !valueAsString.contains("E") && !valueAsString.contains("e");
+    }
+
+    private static boolean looksLikeJson(String value) {
+        String trimmed = value.trim();
+        return (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+                (trimmed.startsWith("[") && trimmed.endsWith("]"));
     }
 
 }

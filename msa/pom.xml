@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>4.2.2.7EDGE-SNAPSHOT</version>
+        <version>4.3.1.7EDGE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>msa</artifactId>
@@ -25,7 +25,7 @@
              pkg.package.phase (which is "none" here since these modules don't produce packaging). -->
         <pkg.deb.phase>package</pkg.deb.phase>
         <docker.repo>thingsboard</docker.repo>
-        <docker.base.image>thingsboard/openjdk17:bookworm-slim</docker.base.image>
+        <docker.base.image>thingsboard/openjdk25:trixie-slim</docker.base.image>
         <dockerfile.skip>true</dockerfile.skip>
         <exec-maven-plugin.version>3.5.1</exec-maven-plugin.version>
         <docker.push-arm-amd-image.phase>none</docker.push-arm-amd-image.phase>
@@ -124,8 +124,8 @@
                 </property>
             </activation>
             <properties>
-                <docker.lts.tag>4.2.2EDGE-latest</docker.lts.tag>
-                <docker.skip.latest.tag>true</docker.skip.latest.tag>
+                <docker.lts.tag>4.3.1EDGE-latest</docker.lts.tag>
+                <docker.skip.latest.tag>false</docker.skip.latest.tag>
             </properties>
             <build>
                 <plugins>

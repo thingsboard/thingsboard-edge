@@ -57,6 +57,7 @@ import java.util.concurrent.TimeUnit;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.leshan.client.object.Security.noSecBootstrap;
 import static org.eclipse.leshan.client.object.Security.psk;
+import static org.eclipse.leshan.core.LwM2mId.SERVER;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MSecurityMode.PSK;
@@ -65,7 +66,7 @@ import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClient
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_REGISTRATION_STARTED;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_REGISTRATION_SUCCESS;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_SUCCESS;
-import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.OBJECT_ID_1;
+import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.OBJECT_INSTANCE_ID_0;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.RESOURCE_ID_9;
 
 @DaoSqlTest
@@ -83,7 +84,6 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
     protected static final String SERVER_STORE_PWD = "server_ks_password";
     protected static final String SERVER_CERT_ALIAS = "server";
     protected static final String SERVER_CERT_ALIAS_BS = "bootstrap";
-    protected static final Security SECURITY_NO_SEC_BS = noSecBootstrap(URI_BS);;
     protected final X509Certificate serverX509Cert;                                               // server certificate signed by rootCA
     protected final X509Certificate serverX509CertBs;                                             // serverBs certificate signed by rootCA
     protected final PublicKey serverPublicKeyFromCert;                                            // server public key used for RPK
@@ -177,13 +177,13 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
                                            LwM2MClientState finishState) throws Exception {
         Lwm2mDeviceProfileTransportConfiguration transportConfiguration = getTransportConfiguration(OBSERVE_ATTRIBUTES_WITHOUT_PARAMS, getBootstrapServerCredentialsNoSec(type));
         LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsNoSec(createNoSecClientCredentials(clientEndpoint));
-        this.basicTestConnection(null , SECURITY_NO_SEC_BS,
+        this.basicTestConnection(null , noSecBootstrap(URI_BS),
                 deviceCredentials,
                 clientEndpoint,
                 transportConfiguration,
                 awaitAlias,
                 expectedStatuses,
-                true,
+                false,
                 finishState,
                 false);
     }
@@ -223,12 +223,19 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
     }
 
 
-    public void basicTestConnectionBootstrapRequestTriggerBefore(String clientEndpoint, String awaitAlias, LwM2MProfileBootstrapConfigType type) throws Exception {
-        Lwm2mDeviceProfileTransportConfiguration transportConfiguration = getTransportConfiguration(OBSERVE_ATTRIBUTES_WITHOUT_PARAMS, getBootstrapServerCredentialsNoSec(type));
+    public void basicTestConnectionBootstrapRequestTriggerBefore(String clientEndpoint, String awaitAlias, LwM2MProfileBootstrapConfigType type, int cnt) throws Exception {
+        List<LwM2MBootstrapServerCredential> bootstrapServerCredentialsNoSec = getBootstrapServerCredentialsNoSec(type);
+        for (int i = 2; i <= cnt; i++) {
+            AbstractLwM2MBootstrapServerCredential bsSectionCredential = getBootstrapSectionServerCredentialNoSec(false);
+            bsSectionCredential.setHost("0.0.0." + i);
+            bsSectionCredential.setShortServerId(bsSectionCredential.getShortServerId() + i);
+            bootstrapServerCredentialsNoSec.add(bsSectionCredential);
+        }
+        Lwm2mDeviceProfileTransportConfiguration transportConfiguration = getTransportConfiguration(OBSERVE_ATTRIBUTES_WITHOUT_PARAMS, bootstrapServerCredentialsNoSec);
         LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsNoSec(createNoSecClientCredentials(clientEndpoint));
         this.basicTestConnectionBootstrapRequestTrigger(
                 SECURITY_NO_SEC,
-                SECURITY_NO_SEC_BS,
+                noSecBootstrap(URI_BS),
                 deviceCredentials,
                 clientEndpoint,
                 transportConfiguration,
@@ -267,8 +274,8 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
                 });
         Assert.assertTrue(lwM2MTestClient.getClientStates().containsAll(expectedStatusesLwm2m));
 
-        String executedPath = "/" + OBJECT_ID_1 + "_" +  lwM2MTestClient.getLeshanClient().getObjectTree().getModel().getObjectModel(OBJECT_ID_1).version
-                + "/" +serverId + "/" + RESOURCE_ID_9;
+        String executedPath = "/" + SERVER + "_" +  lwM2MTestClient.getLeshanClient().getObjectTree().getModel().getObjectModel(SERVER).version
+                + "/" + OBJECT_INSTANCE_ID_0 + "/" + RESOURCE_ID_9;
         lwM2MTestClient.setClientStates(new HashSet<>());
         String actualResult = sendRPCSecurityExecuteById(executedPath, deviceIdStr, endpoint);
         ObjectNode rpcActualResult = JacksonUtil.fromString(actualResult, ObjectNode.class);
@@ -296,46 +303,46 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
         Assert.assertTrue(lwM2MTestClient.getClientStates().containsAll(expectedStatusesBs));
     }
 
-    protected List<LwM2MBootstrapServerCredential> getBootstrapServerCredentialsSecure(LwM2MSecurityMode mode, LwM2MProfileBootstrapConfigType bootstrapConfigType) {
-        List<LwM2MBootstrapServerCredential> bootstrap = new ArrayList<>();
+    protected List<LwM2MBootstrapServerCredential> getBootstrapSectionsServerCredentialsSecure(LwM2MSecurityMode mode, LwM2MProfileBootstrapConfigType bootstrapConfigType) {
+        List<LwM2MBootstrapServerCredential> bootstrapSections = new ArrayList<>();
         switch (bootstrapConfigType) {
             case BOTH:
-                bootstrap.add(getBootstrapServerCredential(mode, false));
-                bootstrap.add(getBootstrapServerCredential(mode, true));
+                bootstrapSections.add(getBootstrapSectionServerCredential(mode, false));
+                bootstrapSections.add(getBootstrapSectionServerCredential(mode, true));
                 break;
             case BOOTSTRAP_ONLY:
-                bootstrap.add(getBootstrapServerCredential(mode, true));
+                bootstrapSections.add(getBootstrapSectionServerCredential(mode, true));
                 break;
             case LWM2M_ONLY:
-                bootstrap.add(getBootstrapServerCredential(mode, false));
+                bootstrapSections.add(getBootstrapSectionServerCredential(mode, false));
                 break;
             case NONE:
         }
-        return bootstrap;
+        return bootstrapSections;
     }
 
-    private AbstractLwM2MBootstrapServerCredential getBootstrapServerCredential(LwM2MSecurityMode mode, boolean isBootstrap) {
-        AbstractLwM2MBootstrapServerCredential bootstrapServerCredential;
+    private AbstractLwM2MBootstrapServerCredential getBootstrapSectionServerCredential(LwM2MSecurityMode mode, boolean isBootstrap) {
+        AbstractLwM2MBootstrapServerCredential bootstrapSectionServerCredential;
         switch (mode) {
             case PSK:
-                bootstrapServerCredential = new PSKLwM2MBootstrapServerCredential();
-                bootstrapServerCredential.setServerPublicKey("");
+                bootstrapSectionServerCredential = new PSKLwM2MBootstrapServerCredential();
+                bootstrapSectionServerCredential.setServerPublicKey("");
                 break;
             case RPK:
-                bootstrapServerCredential = new RPKLwM2MBootstrapServerCredential();
+                bootstrapSectionServerCredential = new RPKLwM2MBootstrapServerCredential();
                 if (isBootstrap) {
-                    bootstrapServerCredential.setServerPublicKey(Base64.encodeBase64String(serverPublicKeyFromCertBs.getEncoded()));
+                    bootstrapSectionServerCredential.setServerPublicKey(Base64.encodeBase64String(serverPublicKeyFromCertBs.getEncoded()));
                 } else {
-                    bootstrapServerCredential.setServerPublicKey(Base64.encodeBase64String(serverPublicKeyFromCert.getEncoded()));
+                    bootstrapSectionServerCredential.setServerPublicKey(Base64.encodeBase64String(serverPublicKeyFromCert.getEncoded()));
                 }
                 break;
             case X509:
-                bootstrapServerCredential = new X509LwM2MBootstrapServerCredential();
+                bootstrapSectionServerCredential = new X509LwM2MBootstrapServerCredential();
                 try {
                     if (isBootstrap) {
-                        bootstrapServerCredential.setServerPublicKey(Base64.encodeBase64String(serverX509CertBs.getEncoded()));
+                        bootstrapSectionServerCredential.setServerPublicKey(Base64.encodeBase64String(serverX509CertBs.getEncoded()));
                     } else {
-                        bootstrapServerCredential.setServerPublicKey(Base64.encodeBase64String(serverX509Cert.getEncoded()));
+                        bootstrapSectionServerCredential.setServerPublicKey(Base64.encodeBase64String(serverX509Cert.getEncoded()));
                     }
                 } catch (CertificateEncodingException e) {
                     e.printStackTrace();
@@ -344,11 +351,11 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
             default:
                 throw new IllegalStateException("Unexpected value: " + mode);
         }
-        bootstrapServerCredential.setShortServerId(isBootstrap ? shortServerIdBs0 : shortServerId);
-        bootstrapServerCredential.setBootstrapServerIs(isBootstrap);
-        bootstrapServerCredential.setHost(isBootstrap ? LWM2M_BOOTSTRAP_HOST : LWM2M_HOST);
-        bootstrapServerCredential.setPort(isBootstrap ? LWM2MS_BOOTSTRAP_PORT : LWM2MS_PORT);
-        return bootstrapServerCredential;
+        bootstrapSectionServerCredential.setShortServerId(isBootstrap ? null : shortServerId);
+        bootstrapSectionServerCredential.setBootstrapServerIs(isBootstrap);
+        bootstrapSectionServerCredential.setHost(isBootstrap ? LWM2M_BOOTSTRAP_HOST : LWM2M_HOST);
+        bootstrapSectionServerCredential.setPort(isBootstrap ? LWM2MS_BOOTSTRAP_PORT : LWM2MS_PORT);
+        return bootstrapSectionServerCredential;
     }
 
 

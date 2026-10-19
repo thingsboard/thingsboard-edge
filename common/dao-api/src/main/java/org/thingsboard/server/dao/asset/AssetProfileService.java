@@ -49,4 +49,6 @@ public interface AssetProfileService extends EntityDaoService {
 
     List<EntityInfo> findAssetProfileNamesByTenantId(TenantId tenantId, boolean activeOnly);
 
+    List<AssetProfileInfo> findAssetProfilesByIds(TenantId tenantId, List<AssetProfileId> assetProfileIds);
+
 }

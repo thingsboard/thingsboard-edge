@@ -18,8 +18,14 @@ export interface SysParamsState {
   maxDebugModeDurationMinutes: number;
   maxDataPointsPerRollingArg: number;
   maxArgumentsPerCF: number;
+  minAllowedDeduplicationIntervalInSecForCF: number;
+  minAllowedAggregationIntervalInSecForCF: number;
+  minAllowedScheduledUpdateIntervalInSecForCF: number;
+  maxRelationLevelPerCfArgument: number;
+  maxRelatedEntitiesToReturnPerCfArgument: number;
   ruleChainDebugPerTenantLimitsConfiguration?: string;
   calculatedFieldDebugPerTenantLimitsConfiguration?: string;
+  intermediateAggregationIntervalInSecForCF: number;
   trendzSettings: TrendzSettings;
   nullsOrderStrategy: NullsOrderStrategy;
   edqsEnabled: boolean;

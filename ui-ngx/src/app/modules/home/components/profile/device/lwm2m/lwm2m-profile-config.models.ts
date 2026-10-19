@@ -209,6 +209,7 @@ export interface ObservableAttributes {
   keyName: {};
   attributeLwm2m: AttributesNameValueMap;
   observeStrategy: ObserveStrategy;
+  initAttrTelAsObsStrategy?: boolean;
 }
 
 export function getDefaultProfileObserveAttrConfig(): ObservableAttributes {

@@ -90,6 +90,16 @@ export class AuthGuard  {
               }
               this.authService.logout();
               return of(this.authService.defaultUrl(false));
+            } else if (path === 'login.force-mfa') {
+              if (authState.authUser?.authority === Authority.MFA_CONFIGURATION_TOKEN) {
+                return this.authService.getAvailableTwoFaProviders().pipe(
+                  map(() => {
+                    return true;
+                  })
+                );
+              }
+              this.authService.logout();
+              return of(this.authService.defaultUrl(false));
             } else {
               return of(true);
             }
@@ -107,7 +117,7 @@ export class AuthGuard  {
             }
           }
           if (this.mobileService.isMobileApp() && !path.startsWith('dashboard.')) {
-            this.mobileService.handleMobileNavigation(path, params);
+            this.mobileService.handleMobileNavigation(path, params, lastChild.queryParams);
             return of(false);
           }
           if (authState.authUser.authority === Authority.PRE_VERIFICATION_TOKEN) {

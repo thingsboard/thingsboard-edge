@@ -364,6 +364,12 @@ import { MapWidgetSettingsComponent } from '@home/components/widget/lib/settings
 import {
   HtmlContainerWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/html/html-container-widget-settings.component';
+import {
+  ApiUsageWidgetSettingsComponent
+} from "@home/components/widget/lib/settings/cards/api-usage-widget-settings.component";
+import {
+  ApiUsageDataKeyRowComponent
+} from "@home/components/widget/lib/settings/cards/api-usage-data-key-row.component";
 
 @NgModule({
   declarations: [
@@ -498,7 +504,9 @@ import {
     UnreadNotificationWidgetSettingsComponent,
     ScadaSymbolWidgetSettingsComponent,
     MapWidgetSettingsComponent,
-    HtmlContainerWidgetSettingsComponent
+    HtmlContainerWidgetSettingsComponent,
+    ApiUsageWidgetSettingsComponent,
+    ApiUsageDataKeyRowComponent
   ],
   imports: [
     CommonModule,
@@ -638,7 +646,8 @@ import {
     UnreadNotificationWidgetSettingsComponent,
     ScadaSymbolWidgetSettingsComponent,
     MapWidgetSettingsComponent,
-    HtmlContainerWidgetSettingsComponent
+    HtmlContainerWidgetSettingsComponent,
+    ApiUsageWidgetSettingsComponent
   ]
 })
 export class WidgetSettingsModule {

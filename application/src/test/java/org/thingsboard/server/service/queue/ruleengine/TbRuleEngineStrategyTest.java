@@ -30,6 +30,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.queue.TbQueueConsumer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.common.consumer.TbQueueConsumerTask.ConsumerKey;
 import org.thingsboard.server.queue.discovery.QueueKey;
 import org.thingsboard.server.service.queue.processing.TbRuleEngineProcessingStrategyFactory;
 import org.thingsboard.server.service.queue.processing.TbRuleEngineSubmitStrategyFactory;
@@ -178,6 +179,7 @@ public class TbRuleEngineStrategyTest {
         queue.setProcessingStrategy(processingStrategy);
 
         QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queue);
+        ConsumerKey consumerKey = new ConsumerKey(queueKey, null);
         var consumerManager = TbRuleEngineQueueConsumerManager.create()
                 .ctx(ruleEngineConsumerContext)
                 .queueKey(queueKey)
@@ -225,7 +227,7 @@ public class TbRuleEngineStrategyTest {
                 .map(this::toProto)
                 .toList();
 
-        consumerManager.processMsgs(protoMsgs, consumer, queueKey, queue);
+        consumerManager.processMsgs(protoMsgs, consumer, consumerKey, queue);
 
         processingData.forEach(data -> {
             verify(actorContext, times(data.attempts)).tell(argThat(msg ->

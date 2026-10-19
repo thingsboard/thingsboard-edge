@@ -13,6 +13,7 @@ import {
   datasourcesHasOnlyComparisonAggregation,
   DatasourceType,
   WidgetConfig,
+  widgetTitleAutocompleteValues,
 } from '@shared/models/widget.models';
 import { WidgetConfigComponent } from '@home/components/widget/widget-config.component';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
@@ -112,6 +113,8 @@ export class LiquidLevelCardBasicConfigComponent extends BasicWidgetConfigCompon
   totalVolumeValuePreviewFn = this._totalVolumeValuePreviewFn.bind(this);
 
   datePreviewFn = this._datePreviewFn.bind(this);
+
+  predefinedValues = widgetTitleAutocompleteValues;
 
   private keySearchText: string;
   private latestKeySearchTextResult: Array<string>;

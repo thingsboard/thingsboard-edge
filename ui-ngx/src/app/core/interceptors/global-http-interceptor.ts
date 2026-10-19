@@ -95,6 +95,10 @@ export class GlobalHttpInterceptor implements HttpInterceptor {
       } else if (errorCode !== Constants.serverErrorCode.credentialsExpired) {
         unhandled = true;
       }
+    } else if (errorCode && errorCode === Constants.serverErrorCode.entitiesLimitExceeded) {
+      if (!ignoreErrors) {
+        this.dialogService.entitiesLimitExceeded(errorResponse.error);
+      }
     } else if (errorResponse.status === 429) {
       if (resendRequest) {
         return this.retryRequest(req, next);
@@ -104,7 +108,9 @@ export class GlobalHttpInterceptor implements HttpInterceptor {
         this.dialogService.forbidden();
       }
     } else if (errorResponse.status === 0 || errorResponse.status === -1) {
+      if (!ignoreErrors) {
         this.showError('Unable to connect');
+      }
     } else if (!(req.url.startsWith('/api/rpc') || req.url.startsWith('/api/plugins/rpc'))) {
       if (errorResponse.status === 404) {
         if (!ignoreErrors) {

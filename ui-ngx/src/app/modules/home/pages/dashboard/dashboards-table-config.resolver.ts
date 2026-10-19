@@ -63,10 +63,16 @@ import {
   EntityAliasesDialogComponent,
   EntityAliasesDialogData
 } from '@home/components/alias/entity-aliases-dialog.component';
-@Injectable()
-export class DashboardsTableConfigResolver  {
+import {
+  DashboardInfoDialogData,
+  ImportDashboardFileDialogComponent
+} from "@home/pages/dashboard/import-dashboard-file-dialog.component";
+import { PageLink } from "@shared/models/page/page-link";
 
-  private readonly config: EntityTableConfig<DashboardInfo | Dashboard> = new EntityTableConfig<DashboardInfo | Dashboard>();
+@Injectable()
+export class DashboardsTableConfigResolver {
+
+  private readonly config: EntityTableConfig<Dashboard, PageLink, DashboardInfo> = new EntityTableConfig<Dashboard, PageLink, DashboardInfo>();
 
   constructor(private store: Store<AppState>,
               private dashboardService: DashboardService,
@@ -360,7 +366,7 @@ export class DashboardsTableConfigResolver  {
     return actions;
   }
 
-  openDashboard($event: Event, dashboard: DashboardInfo) {
+  openDashboard($event: Event, dashboard: Dashboard) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -407,11 +413,25 @@ export class DashboardsTableConfigResolver  {
       ));
   }
 
-  exportDashboard($event: Event, dashboard: DashboardInfo) {
+  exportDashboard($event: Event, dashboard: Dashboard) {
     if ($event) {
       $event.stopPropagation();
     }
     this.importExport.exportDashboard(dashboard.id.id);
+  }
+
+  importDashboardFile($event: Event, dashboard: Dashboard) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    return this.dialog.open<ImportDashboardFileDialogComponent, DashboardInfoDialogData,
+      boolean>(ImportDashboardFileDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        dashboard
+      }
+    }).afterClosed();
   }
 
   addDashboardsToCustomer($event: Event) {
@@ -434,7 +454,7 @@ export class DashboardsTableConfigResolver  {
       });
   }
 
-  makePublic($event: Event, dashboard: DashboardInfo) {
+  makePublic($event: Event, dashboard: Dashboard) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -455,7 +475,7 @@ export class DashboardsTableConfigResolver  {
     );
   }
 
-  makePrivate($event: Event, dashboard: DashboardInfo) {
+  makePrivate($event: Event, dashboard: Dashboard) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -477,7 +497,7 @@ export class DashboardsTableConfigResolver  {
     );
   }
 
-  manageAssignedCustomers($event: Event, dashboard: DashboardInfo) {
+  manageAssignedCustomers($event: Event, dashboard: Dashboard) {
     const assignedCustomersIds = dashboard.assignedCustomers ?
       dashboard.assignedCustomers.map(customerInfo => customerInfo.customerId.id) : [];
     this.showManageAssignedCustomersDialog($event, [dashboard.id.id], 'manage', assignedCustomersIds);
@@ -514,7 +534,7 @@ export class DashboardsTableConfigResolver  {
       });
   }
 
-  unassignFromCustomer($event: Event, dashboard: DashboardInfo, customerId: string) {
+  unassignFromCustomer($event: Event, dashboard: Dashboard, customerId: string) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -564,13 +584,16 @@ export class DashboardsTableConfigResolver  {
     );
   }
 
-  onDashboardAction(action: EntityAction<DashboardInfo>): boolean {
+  onDashboardAction(action: EntityAction<Dashboard>): boolean {
     switch (action.action) {
       case 'open':
         this.openDashboard(action.event, action.entity);
         return true;
       case 'export':
         this.exportDashboard(action.event, action.entity);
+        return true;
+      case 'import':
+        this.importDashboardFile(action.event, action.entity);
         return true;
       case 'makePublic':
         this.makePublic(action.event, action.entity);

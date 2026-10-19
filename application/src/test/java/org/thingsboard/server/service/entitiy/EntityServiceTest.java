@@ -10,6 +10,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -299,6 +300,7 @@ public class EntityServiceTest extends AbstractControllerTest {
 
 
     @Test
+    @Ignore("Edge management is only on cloud")
     public void testCountEdgeEntitiesByQuery() throws InterruptedException {
         List<Edge> edges = new ArrayList<>();
         for (int i = 0; i < 97; i++) {
@@ -332,6 +334,7 @@ public class EntityServiceTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("Edge management is only on cloud")
     public void testCountHierarchicalEntitiesByEdgeSearchQuery() throws InterruptedException {
         for (int i = 0; i < 5; i++) {
             Edge edge = createEdge(i, "type" + i);
@@ -991,7 +994,7 @@ public class EntityServiceTest extends AbstractControllerTest {
     public void testFindEntityDataByQuery_filter_entity_name_ends_with() {
         List<Device> devices = new ArrayList<>();
 
-        String suffixes = RandomStringUtils.randomAlphanumeric(5);
+        String suffixes = RandomStringUtils.secure().nextAlphanumeric(5);
         for (int i = 0; i < 10; i++) {
             Device device = new Device();
             device.setTenantId(tenantId);
@@ -1412,7 +1415,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         Device device = new Device();
         device.setTenantId(tenantId);
         device.setCustomerId(customerId);
-        device.setName("Device test " + RandomStringUtils.randomAlphabetic(5));
+        device.setName("Device test " + RandomStringUtils.secure().nextAlphabetic(5));
         device.setType("default");
         return device;
     }
@@ -1472,7 +1475,7 @@ public class EntityServiceTest extends AbstractControllerTest {
                     device.setTenantId(tenantId);
                     device.setName("Device " + i);
                     device.setType("default");
-                    device.setLabel("label-" + RandomUtils.nextInt(100, 10000));
+                    device.setLabel("label-" + RandomUtils.secure().randomInt(100, 10000));
                     return device;
                 })
                 .limit(count)
@@ -1866,7 +1869,7 @@ public class EntityServiceTest extends AbstractControllerTest {
         List<EntityKey> entityFields = List.of(
                 new EntityKey(ENTITY_FIELD, "name")
         );
-        List<EntityKey> latestValues =  List.of(
+        List<EntityKey> latestValues = List.of(
                 new EntityKey(EntityKeyType.TIME_SERIES, "temperature"),
                 new EntityKey(EntityKeyType.SERVER_ATTRIBUTE, "attr")
         );

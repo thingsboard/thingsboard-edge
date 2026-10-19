@@ -49,7 +49,6 @@ export class MobileBundleTableConfigResolver {
   ) {
     this.config.selectionEnabled = false;
     this.config.entityType = EntityType.MOBILE_APP_BUNDLE;
-    this.config.addAsTextButton = true;
     this.config.rowPointer = true;
     this.config.detailsPanelEnabled = false;
     this.config.entityTranslations = entityTypeTranslations.get(EntityType.MOBILE_APP_BUNDLE);

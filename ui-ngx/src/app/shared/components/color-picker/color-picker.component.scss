@@ -70,7 +70,7 @@
     height: 56px;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 8px;
 
     .presentation-select {
       font-size: 14px;
@@ -91,7 +91,7 @@
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
-      justify-content: space-between;
+      justify-content: center;
       gap: 8px;
       @media #{$mat-xs} {
         flex-direction: column;

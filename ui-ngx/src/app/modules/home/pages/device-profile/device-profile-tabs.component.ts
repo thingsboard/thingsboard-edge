@@ -28,6 +28,9 @@ export class DeviceProfileTabsComponent extends EntityTabsComponent<DeviceProfil
 
   isTransportTypeChanged = false;
 
+  hasOldRules = false;
+  alarmRulesOldVersion = false;
+
   constructor(protected store: Store<AppState>,
               private destroyRef: DestroyRef) {
     super(store);
@@ -52,6 +55,8 @@ export class DeviceProfileTabsComponent extends EntityTabsComponent<DeviceProfil
 
   protected setEntity(entity: DeviceProfile) {
     this.isTransportTypeChanged = false;
+    this.hasOldRules = !!entity?.profileData?.alarms?.length;
+    this.alarmRulesOldVersion = false;
     super.setEntity(entity);
   }
 

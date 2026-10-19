@@ -20,7 +20,7 @@ public interface CalculatedFieldStateService {
 
     void persistState(CalculatedFieldEntityCtxId stateId, CalculatedFieldState state, TbCallback callback) throws CalculatedFieldStateException;
 
-    void removeState(CalculatedFieldEntityCtxId stateId, TbCallback callback);
+    void deleteState(CalculatedFieldEntityCtxId stateId, TbCallback callback);
 
     void restore(QueueKey queueKey, Set<TopicPartitionInfo> partitions);
 

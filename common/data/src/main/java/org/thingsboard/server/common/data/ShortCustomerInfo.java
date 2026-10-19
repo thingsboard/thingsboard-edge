@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.common.data;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,9 +27,15 @@ public class ShortCustomerInfo {
     @NoXss
     private String title;
 
+    @JsonProperty("public")
     @Schema(description = "Indicates special 'Public' customer used to embed dashboards on public websites.")
-    @Getter @Setter
-    private boolean isPublic;
+    private boolean publicCustomer;
+
+    @JsonProperty("public")
+    public boolean isPublic() { return publicCustomer; }
+
+    @JsonProperty("public")
+    public void setPublic(boolean publicCustomer) { this.publicCustomer = publicCustomer; }
 
     @Override
     public boolean equals(Object o) {

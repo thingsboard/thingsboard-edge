@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 @Schema
 @Data
+@Deprecated
 public class AlarmConditionFilterKey implements Serializable {
 
     @Schema(description = "The key type", example = "TIME_SERIES")

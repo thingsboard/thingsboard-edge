@@ -17,9 +17,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author Andrew Shvayka
- */
 public interface TimeseriesService {
 
     ListenableFuture<List<ReadTsKvQueryResult>> findAllByQueries(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries);
@@ -50,5 +47,12 @@ public interface TimeseriesService {
 
     List<String> findAllKeysByEntityIds(TenantId tenantId, List<EntityId> entityIds);
 
+    ListenableFuture<List<String>> findAllKeysByEntityIdsAsync(TenantId tenantId, List<EntityId> entityIds);
+
+    List<TsKvEntry> findLatestByEntityIds(TenantId tenantId, List<EntityId> entityIds);
+
+    ListenableFuture<List<TsKvEntry>> findLatestByEntityIdsAsync(TenantId tenantId, List<EntityId> entityIds);
+
     void cleanup(long systemTtl);
+
 }

@@ -256,6 +256,7 @@ import {
 import {
   HtmlContainerSettingsComponent
 } from '@home/components/widget/lib/settings/common/html/html-container-settings.component';
+import { AxisScaleRowComponent } from './axis-scale-row.component';
 
 @NgModule({
   declarations: [
@@ -362,7 +363,8 @@ import {
     DataKeyConfigDialogComponent,
     DataKeyConfigComponent,
     WidgetSettingsComponent,
-    HtmlContainerSettingsComponent
+    HtmlContainerSettingsComponent,
+    AxisScaleRowComponent
   ],
   imports: [
     CommonModule,
@@ -444,7 +446,8 @@ import {
     DataKeyConfigDialogComponent,
     DataKeyConfigComponent,
     WidgetSettingsComponent,
-    HtmlContainerSettingsComponent
+    HtmlContainerSettingsComponent,
+    AxisScaleRowComponent
   ],
   providers: [
     ColorSettingsComponentService,

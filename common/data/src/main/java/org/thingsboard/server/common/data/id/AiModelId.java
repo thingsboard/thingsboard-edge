@@ -10,6 +10,7 @@ import org.thingsboard.server.common.data.EntityType;
 import java.io.Serial;
 import java.util.UUID;
 
+@Schema(allOf = EntityId.class)
 public final class AiModelId extends UUIDBased implements EntityId {
 
     @Serial
@@ -23,6 +24,7 @@ public final class AiModelId extends UUIDBased implements EntityId {
     @Override
     @Schema(
             requiredMode = Schema.RequiredMode.REQUIRED,
+            accessMode = Schema.AccessMode.READ_ONLY,
             description = "Entity type of the AI model",
             example = "AI_MODEL",
             allowableValues = "AI_MODEL"

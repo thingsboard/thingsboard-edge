@@ -9,7 +9,7 @@ import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
 
-@Schema
+@Schema(allOf = EntityId.class)
 public class DashboardId extends UUIDBased implements EntityId {
 
     @JsonCreator
@@ -21,7 +21,7 @@ public class DashboardId extends UUIDBased implements EntityId {
         return new DashboardId(UUID.fromString(dashboardId));
     }
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "DASHBOARD", allowableValues = "DASHBOARD")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, accessMode = Schema.AccessMode.READ_ONLY, description = "string", example = "DASHBOARD", allowableValues = "DASHBOARD")
     @Override
     public EntityType getEntityType() {
         return EntityType.DASHBOARD;

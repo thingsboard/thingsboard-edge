@@ -104,4 +104,6 @@ public interface RuleChainService extends EntityDaoService {
 
     void deleteRuleNodes(TenantId tenantId, RuleChainId ruleChainId);
 
+    List<RuleChain> findRuleChainsByIds(TenantId tenantId, List<RuleChainId> ruleChainIds);
+
 }

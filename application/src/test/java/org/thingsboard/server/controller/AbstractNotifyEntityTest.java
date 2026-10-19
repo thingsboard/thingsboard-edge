@@ -5,6 +5,8 @@ package org.thingsboard.server.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
+import org.springframework.boot.info.BuildProperties;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -45,6 +47,9 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
 
     @MockitoSpyBean
     protected AuditLogService auditLogService;
+
+    @MockitoBean
+    BuildProperties buildProperties;
 
     protected final String msgErrorPermission = "You don't have permission to perform this operation!";
     protected final String msgErrorShouldBeSpecified = "should be specified";
@@ -199,8 +204,7 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
         testNotificationMsgToEdgeServiceNeverWithActionType(entityId, actionType);
         ArgumentMatcher<HasName> matcherEntityClassEquals = argument -> argument.getClass().equals(entity.getClass());
         ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.getClass().equals(originatorId.getClass());
-        ArgumentMatcher<CustomerId> matcherCustomerId = customerId == null ?
-                argument -> argument.getClass().equals(CustomerId.class) : argument -> argument.equals(customerId);
+        ArgumentMatcher<CustomerId> matcherCustomerId = customerId == null ? argument -> true : actualCustomerId -> actualCustomerId.equals(customerId);
         ArgumentMatcher<UserId> matcherUserId = userId == null ?
                 argument -> argument.getClass().equals(UserId.class) : argument -> argument.equals(userId);
         testLogEntityActionAdditionalInfoAny(matcherEntityClassEquals, matcherOriginatorId, tenantId, matcherCustomerId, matcherUserId, userName, actionType, cntTime,
@@ -630,7 +634,7 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
         return fieldName + " length must be equal or less than 255";
     }
 
-    protected String msgErrorNoFound(String entityClassName, String entityIdStr) {
+    protected static String msgErrorNoFound(String entityClassName, String entityIdStr) {
         return entityClassName + " with id [" + entityIdStr + "] is not found";
     }
 

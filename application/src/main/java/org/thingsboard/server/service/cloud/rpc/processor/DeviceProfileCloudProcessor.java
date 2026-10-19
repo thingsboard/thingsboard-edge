@@ -26,6 +26,7 @@ import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -133,7 +134,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                 DeviceProfile deviceProfile = edgeCtx.getDeviceProfileService().findDeviceProfileById(cloudEvent.getTenantId(), deviceProfileId);
                 if (deviceProfile != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    DeviceProfileUpdateMsg deviceProfileUpdateMsg = EdgeMsgConstructorUtils.constructDeviceProfileUpdatedMsg(msgType, deviceProfile);
+                    DeviceProfileUpdateMsg deviceProfileUpdateMsg = EdgeMsgConstructorUtils.constructDeviceProfileUpdatedMsg(msgType, deviceProfile, EdgeVersion.V_LATEST);
                     return UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceProfileUpdateMsg(deviceProfileUpdateMsg).build();
