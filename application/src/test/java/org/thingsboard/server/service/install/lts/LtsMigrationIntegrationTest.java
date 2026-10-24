@@ -49,9 +49,9 @@ public class LtsMigrationIntegrationTest extends AbstractControllerTest {
     private static final String OBSOLETE_ALIAS = "air_quality";
 
     // Versions with a registered bean but no schema_update.sql, because their whole change is programmatic:
-    // 4.2.2.8 purges the admin settings through the DAO. Entries here opt out of the dir/bean check below,
+    // 4.2.2.8 and 4.3.1.8 purge the admin settings through the DAO. Entries here opt out of the dir/bean check below,
     // so add one only when the version genuinely ships no SQL.
-    private static final Set<String> SQL_LESS_ALLOWED = Set.of("4.2.2.8");
+    private static final Set<String> SQL_LESS_ALLOWED = Set.of("4.2.2.8", "4.3.1.8");
 
     @Autowired
     private LtsMigrationService ltsMigrationService;
