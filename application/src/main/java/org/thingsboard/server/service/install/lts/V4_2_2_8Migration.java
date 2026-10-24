@@ -45,7 +45,7 @@ import java.util.Set;
 @Component
 @TbCoreComponent
 @RequiredArgsConstructor
-public class V4_2_2_6Migration implements LtsMigration {
+public class V4_2_2_8Migration implements LtsMigration {
 
     private static final int DEFAULT_PAGE_SIZE = 1024;
     private static final Set<String> EDGE_OWNED_SETTINGS_KEYS = Set.of("general", "connectivity");
@@ -57,7 +57,7 @@ public class V4_2_2_6Migration implements LtsMigration {
 
     @Override
     public String getVersion() {
-        return "4.2.2.6";
+        return "4.2.2.8";
     }
 
     @Override
