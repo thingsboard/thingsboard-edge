@@ -48,9 +48,10 @@ public class LtsMigrationIntegrationTest extends AbstractControllerTest {
     private static final long V_4_2_2_3 = 4_002_002_003L;
     private static final String OBSOLETE_ALIAS = "air_quality";
 
-    // Versions whose family is older than the current package family ship SQL-less beans intentionally
-    // (their schema/data changes are reproduced by the current-family migrations), so a missing dir is OK.
-    private static final Set<String> SQL_LESS_ALLOWED = Set.of();
+    // Versions with a registered bean but no schema_update.sql, because their whole change is programmatic:
+    // 4.2.2.8 purges the admin settings through the DAO. Entries here opt out of the dir/bean check below,
+    // so add one only when the version genuinely ships no SQL.
+    private static final Set<String> SQL_LESS_ALLOWED = Set.of("4.2.2.8");
 
     @Autowired
     private LtsMigrationService ltsMigrationService;
