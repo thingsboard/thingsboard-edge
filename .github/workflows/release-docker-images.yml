@@ -21,6 +21,11 @@ on:
         required: false
         type: boolean
         default: false
+      dedupe_yarn_lock:
+        description: 'Deduplicate @angular/* and @angular-devkit/* packages in ui-ngx/yarn.lock before building'
+        required: false
+        type: boolean
+        default: true
 
 concurrency:
   group: release-docker-images-${{ github.ref_name }}
@@ -65,6 +70,35 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
+      # Merges between CE/PE/Edge branches tend to leave a second, older copy of Angular build tooling in ui-ngx/yarn.lock
+      # (e.g. "@angular/build@^20.0.0" from @angular-builders/custom-esbuild next to the pinned "@angular/build"). The
+      # production UI is then built with mixed Angular versions and dashboards render as empty cards. Collapse duplicates
+      # within the Angular scopes only; the non-frozen 'yarn install' run by Maven prunes the entries left unused.
+      - name: Deduplicate Angular packages in yarn.lock
+        if: ${{ inputs.dedupe_yarn_lock }}
+        working-directory: ui-ngx
+        run: |
+          if [[ ! -f yarn.lock ]]; then
+            echo "No ui-ngx/yarn.lock on this branch - skipping"
+            exit 0
+          fi
+          DEDUPE="npx -y yarn-deduplicate@6.0.2 --scopes @angular @angular-devkit"
+          DUPLICATES=$($DEDUPE --list yarn.lock)
+          if [[ -z "$DUPLICATES" ]]; then
+            echo "No duplicate Angular packages in yarn.lock"
+            exit 0
+          fi
+          echo "$DUPLICATES"
+          $DEDUPE yarn.lock
+          echo "::warning::ui-ngx/yarn.lock had duplicate Angular packages and was deduplicated for this build only. Commit the fix to '$GITHUB_REF_NAME'."
+          {
+            echo "### Deduplicated ui-ngx/yarn.lock"
+            echo '```'
+            echo "$DUPLICATES"
+            echo '```'
+            echo "The fix is not committed: run \`npx yarn-deduplicate --scopes @angular @angular-devkit yarn.lock && yarn install\` in \`ui-ngx\` on \`$GITHUB_REF_NAME\`."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Resolve version and profile
         id: meta
