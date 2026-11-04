@@ -1,6 +1,7 @@
 #
-# SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+# SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+# SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 #
 
 FROM ${docker.base.image}
@@ -16,6 +17,7 @@ ENV SPRING_DATASOURCE_PASSWORD=postgres
 
 COPY logback.xml ${pkg.name}.conf start-tb-edge.sh upgrade-tb-edge.sh install-tb-edge.sh ${pkg.name}.deb /tmp/
 
+# For tb-report PDF renderer Debian Trixie slim fonts should be installed explicitly
 RUN echo "Previously installed font libraries:" \
  && (dpkg -l | grep -E 'font|dejavu|harfbuzz' || echo "  (none)") \
  && apt-get update \
@@ -35,7 +37,8 @@ RUN echo 'networkaddress.cache.ttl=60' >> "$JAVA_HOME/conf/security/java.securit
     && mv /tmp/start-tb-edge.sh /usr/bin \
     && mv /tmp/upgrade-tb-edge.sh /usr/bin \
     && mv /tmp/install-tb-edge.sh /usr/bin \
-    && dpkg -i /tmp/${pkg.name}.deb \
+    && echo "thingsboard thingsboard-pe/license boolean true" | debconf-set-selections \
+    && (yes | DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/${pkg.name}.deb) \
     && rm /tmp/${pkg.name}.deb \
     && (systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :) \
     && mv /tmp/logback.xml ${pkg.installFolder}/conf \

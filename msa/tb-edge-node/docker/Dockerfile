@@ -1,6 +1,7 @@
 #
-# SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+# SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+# SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 #
 
 FROM ${docker.base.image}
@@ -23,7 +24,8 @@ COPY start-tb-edge-node.sh ${pkg.name}.deb /tmp/
 
 RUN chmod a+x /tmp/*.sh \
     && mv /tmp/start-tb-edge-node.sh /usr/bin && \
-    (yes | dpkg -i /tmp/${pkg.name}.deb) && \
+    echo "thingsboard thingsboard-pe/license boolean true" | debconf-set-selections && \
+    (yes | DEBIAN_FRONTEND=noninteractive dpkg -i /tmp/${pkg.name}.deb) && \
     rm /tmp/${pkg.name}.deb && \
     (systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :) && \
     chown -R ${pkg.user}:${pkg.user} /tmp && \

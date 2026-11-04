@@ -1,15 +1,20 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
-import { BaseData } from '@shared/models/base-data';
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
+import { BaseData, GroupEntityInfo } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
+import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { EdgeId } from '@shared/models/id/edge-id';
 import { EntitySearchQuery } from '@shared/models/relation.models';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { EventId } from '@shared/models/id/event-id';
 import { EntityId } from '@shared/models/id/entity-id';
+import { EntityType } from '@shared/models/entity-type.models';
 import { HasUUID } from '@shared/models/id/has-uuid';
 import {HasTenantId, HasVersion} from '@shared/models/entity.models';
+import { AuthUser } from '@shared/models/user.model';
+import { Authority } from '@shared/models/authority.enum';
 
 export interface EdgeSettings {
   edgeId: string;
@@ -17,12 +22,15 @@ export interface EdgeSettings {
   name: string;
   type: string;
   routingKey: string;
+  maxDevices: number;
+  maxAssets: number;
 }
 
 export interface CloudEvent extends BaseData<CloudEventId> {
   action: string;
   type: CloudEventType;
   entityBody: any;
+  entityGroupId: EntityGroupId;
   entityId: EntityId;
   tenantId: TenantId;
 }
@@ -51,7 +59,8 @@ export enum CloudEventType {
   RELATION = 'RELATION',
   EDGE = 'EDGE',
   WIDGETS_BUNDLE = 'WIDGETS_BUNDLE',
-  WIDGET_TYPE = 'WIDGET_TYPE'
+  WIDGET_TYPE = 'WIDGET_TYPE',
+  ENTITY_GROUP = 'ENTITY_GROUP'
 }
 
 export interface Edge extends BaseData<EdgeId>, HasTenantId, HasVersion {
@@ -61,20 +70,23 @@ export interface Edge extends BaseData<EdgeId>, HasTenantId, HasVersion {
   type: string;
   secret: string;
   routingKey: string;
+  cloudEndpoint: string;
+  edgeLicenseKey: string;
   label?: string;
   additionalInfo?: any;
   rootRuleChainId?: RuleChainId;
 }
 
-export interface EdgeInfo extends Edge {
-  customerTitle: string;
-  customerIsPublic: boolean;
-}
+export type EdgeInfo = Edge & GroupEntityInfo<EdgeId>;
+
+// Edges are tenant-admin-only to create (EdgeController#saveEdge); hide add/import for customer users
+export const edgeCreationAllowed = (authUser: AuthUser): boolean => authUser.authority !== Authority.CUSTOMER_USER;
 
 export interface EdgeSearchQuery extends EntitySearchQuery {
   edgeTypes: Array<string>;
 }
 
+// PE MERGE
 export enum EdgeEventType {
   DASHBOARD = 'DASHBOARD',
   ASSET = 'ASSET',
@@ -89,13 +101,23 @@ export enum EdgeEventType {
   USER = 'USER',
   CUSTOMER = 'CUSTOMER',
   RELATION = 'RELATION',
+  GROUP_PERMISSIONS_REQUEST = 'GROUP_PERMISSIONS_REQUEST',
   TENANT = 'TENANT',
   TENANT_PROFILE = 'TENANT_PROFILE',
   WIDGETS_BUNDLE = 'WIDGETS_BUNDLE',
   WIDGET_TYPE = 'WIDGET_TYPE',
   ADMIN_SETTINGS = 'ADMIN_SETTINGS',
   OTA_PACKAGE = 'OTA_PACKAGE',
-  QUEUE = 'QUEUE'
+  QUEUE = 'QUEUE',
+  ENTITY_GROUP = 'ENTITY_GROUP',
+  SCHEDULER_EVENT = 'SCHEDULER_EVENT',
+  WHITE_LABELING = 'WHITE_LABELING',
+  LOGIN_WHITE_LABELING = 'LOGIN_WHITE_LABELING',
+  CUSTOM_TRANSLATION = 'CUSTOM_TRANSLATION',
+  ROLE = 'ROLE',
+  GROUP_PERMISSION = 'GROUP_PERMISSION',
+  INTEGRATION = 'INTEGRATION',
+  CONVERTER = 'CONVERTER'
 }
 
 export enum CloudEventActionType {
@@ -118,9 +140,14 @@ export enum CloudEventActionType {
   RELATION_REQUEST = 'RELATION_REQUEST',
   CREDENTIALS_REQUEST = 'CREDENTIALS_REQUEST',
   WIDGET_BUNDLE_TYPES_REQUEST = 'WIDGET_BUNDLE_TYPES_REQUEST', // deprecated
-  ENTITY_VIEW_REQUEST = 'ENTITY_VIEW_REQUEST'
+  ENTITY_VIEW_REQUEST = 'ENTITY_VIEW_REQUEST',
+  GROUP_ENTITIES_REQUEST = 'GROUP_ENTITIES_REQUEST',
+  GROUP_PERMISSIONS_REQUEST = 'GROUP_PERMISSIONS_REQUEST',
+  ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
+  REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP'
 }
 
+// PE MERGE
 export enum EdgeEventActionType {
   ADDED = 'ADDED',
   DELETED = 'DELETED',
@@ -130,8 +157,6 @@ export enum EdgeEventActionType {
   ATTRIBUTES_DELETED = 'ATTRIBUTES_DELETED',
   TIMESERIES_UPDATED = 'TIMESERIES_UPDATED',
   CREDENTIALS_UPDATED = 'CREDENTIALS_UPDATED',
-  ASSIGNED_TO_CUSTOMER = 'ASSIGNED_TO_CUSTOMER',
-  UNASSIGNED_FROM_CUSTOMER = 'UNASSIGNED_FROM_CUSTOMER',
   RELATION_ADD_OR_UPDATE = 'RELATION_ADD_OR_UPDATE',
   RELATION_DELETED = 'RELATION_DELETED',
   RPC_CALL = 'RPC_CALL',
@@ -142,7 +167,10 @@ export enum EdgeEventActionType {
   ASSIGNED_TO_EDGE = 'ASSIGNED_TO_EDGE',
   UNASSIGNED_FROM_EDGE = 'UNASSIGNED_FROM_EDGE',
   CREDENTIALS_REQUEST = 'CREDENTIALS_REQUEST',
-  ENTITY_MERGE_REQUEST = 'ENTITY_MERGE_REQUEST'
+  ENTITY_MERGE_REQUEST = 'ENTITY_MERGE_REQUEST',
+  ADDED_TO_ENTITY_GROUP = 'ADDED_TO_ENTITY_GROUP',
+  REMOVED_FROM_ENTITY_GROUP = 'REMOVED_FROM_ENTITY_GROUP',
+  CHANGE_OWNER = 'CHANGE_OWNER'
 }
 
 export enum EdgeEventStatus {
@@ -159,6 +187,7 @@ export const cloudEventTypeTranslations = new Map<CloudEventType, string>(
     [CloudEventType.DEVICE_PROFILE, 'cloud-event.cloud-event-type-device-profile'],
     [CloudEventType.ASSET_PROFILE, 'cloud-event.cloud-event-type-asset-profile'],
     [CloudEventType.ENTITY_VIEW, 'cloud-event.cloud-event-type-entity-view'],
+    [CloudEventType.ENTITY_GROUP, 'cloud-event.cloud-event-type-entity-group'],
     [CloudEventType.ALARM, 'cloud-event.cloud-event-type-alarm'],
     [CloudEventType.RULE_CHAIN, 'cloud-event.cloud-event-type-rule-chain'],
     [CloudEventType.RULE_CHAIN_METADATA, 'cloud-event.cloud-event-type-rule-chain-metadata'],
@@ -191,10 +220,15 @@ export const cloudEventActionTypeTranslations = new Map<string, string>(
     [CloudEventActionType.RELATION_REQUEST, 'cloud-event.cloud-event-action-relation-request'],
     [CloudEventActionType.CREDENTIALS_REQUEST, 'cloud-event.cloud-event-action-credentials-request'],
     [CloudEventActionType.WIDGET_BUNDLE_TYPES_REQUEST, 'cloud-event.cloud-event-action-widget-bundle-types-request'],
-    [CloudEventActionType.ENTITY_VIEW_REQUEST, 'cloud-event.cloud-event-action-entity-view-request']
+    [CloudEventActionType.ENTITY_VIEW_REQUEST, 'cloud-event.cloud-event-action-entity-view-request'],
+    [CloudEventActionType.GROUP_PERMISSIONS_REQUEST, 'cloud-event.cloud-event-action-group-permissions-request'],
+    [CloudEventActionType.GROUP_ENTITIES_REQUEST, 'cloud-event.cloud-event-action-group-entities-request'],
+    [CloudEventActionType.ADDED_TO_ENTITY_GROUP, 'cloud-event.cloud-event-action-added-to-entity-group'],
+    [CloudEventActionType.REMOVED_FROM_ENTITY_GROUP, 'cloud-event.cloud-event-action-removed-from-entity-group']
   ]
 );
 
+// PE MERGE
 export const edgeEventTypeTranslations = new Map<EdgeEventType, string>(
   [
     [EdgeEventType.DASHBOARD, 'edge-event.type-dashboard'],
@@ -216,7 +250,16 @@ export const edgeEventTypeTranslations = new Map<EdgeEventType, string>(
     [EdgeEventType.WIDGET_TYPE, 'edge-event.type-widgets-type'],
     [EdgeEventType.ADMIN_SETTINGS, 'edge-event.type-admin-settings'],
     [EdgeEventType.OTA_PACKAGE, 'edge-event.type-ota-package'],
-    [EdgeEventType.QUEUE, 'edge-event.type-queue']
+    [EdgeEventType.QUEUE, 'edge-event.type-queue'],
+    [EdgeEventType.ENTITY_GROUP, 'edge-event.type-entity-group'],
+    [EdgeEventType.SCHEDULER_EVENT, 'edge-event.type-scheduler-event'],
+    [EdgeEventType.WHITE_LABELING, 'edge-event.type-white-labeling'],
+    [EdgeEventType.LOGIN_WHITE_LABELING, 'edge-event.type-login-white-labeling'],
+    [EdgeEventType.CUSTOM_TRANSLATION, 'edge-event.type-custom-translation'],
+    [EdgeEventType.ROLE, 'edge-event.type-role'],
+    [EdgeEventType.GROUP_PERMISSION, 'edge-event.type-group-permission'],
+    [EdgeEventType.INTEGRATION, 'edge-event.type-integration'],
+    [EdgeEventType.CONVERTER, 'edge-event.type-converter']
   ]
 );
 
@@ -230,8 +273,6 @@ export const edgeEventActionTypeTranslations = new Map<EdgeEventActionType, stri
     [EdgeEventActionType.ATTRIBUTES_DELETED, 'edge-event.action-type-attributes-deleted'],
     [EdgeEventActionType.TIMESERIES_UPDATED, 'edge-event.action-type-timeseries-updated'],
     [EdgeEventActionType.CREDENTIALS_UPDATED, 'edge-event.action-type-credentials-updated'],
-    [EdgeEventActionType.ASSIGNED_TO_CUSTOMER, 'edge-event.action-type-assigned-to-customer'],
-    [EdgeEventActionType.UNASSIGNED_FROM_CUSTOMER, 'edge-event.action-type-unassigned-from-customer'],
     [EdgeEventActionType.RELATION_ADD_OR_UPDATE, 'edge-event.action-type-relation-add-or-update'],
     [EdgeEventActionType.RELATION_DELETED, 'edge-event.action-type-relation-deleted'],
     [EdgeEventActionType.RPC_CALL, 'edge-event.action-type-rpc-call'],
@@ -242,7 +283,10 @@ export const edgeEventActionTypeTranslations = new Map<EdgeEventActionType, stri
     [EdgeEventActionType.ASSIGNED_TO_EDGE, 'edge-event.action-type-assigned-to-edge'],
     [EdgeEventActionType.UNASSIGNED_FROM_EDGE, 'edge-event.action-type-unassigned-from-edge'],
     [EdgeEventActionType.CREDENTIALS_REQUEST, 'edge-event.action-type-credentials-request'],
-    [EdgeEventActionType.ENTITY_MERGE_REQUEST, 'edge-event.action-type-entity-merge-request']
+    [EdgeEventActionType.ENTITY_MERGE_REQUEST, 'edge-event.action-type-entity-merge-request'],
+    [EdgeEventActionType.ADDED_TO_ENTITY_GROUP, 'edge-event.action-type-added-to-entity-group'],
+    [EdgeEventActionType.REMOVED_FROM_ENTITY_GROUP, 'edge-event.action-type-removed-from-entity-group'],
+    [EdgeEventActionType.CHANGE_OWNER, 'edge-event.action-type-change-owner']
   ]
 );
 
@@ -280,6 +324,14 @@ export enum EdgeInstructionsMethod {
   ubuntu,
   centos
 }
+
+export const edgeEntityGroupTypes: EntityType[] = [
+  EntityType.USER,
+  EntityType.ASSET,
+  EntityType.DEVICE,
+  EntityType.ENTITY_VIEW,
+  EntityType.DASHBOARD
+];
 
 export const edgeVersionAttributeKey = 'edgeVersion';
 

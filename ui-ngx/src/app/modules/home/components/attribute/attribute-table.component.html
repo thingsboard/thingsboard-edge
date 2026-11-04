@@ -1,7 +1,8 @@
 <!--
 
-    SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-    SPDX-License-Identifier: Apache-2.0
+    SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+    SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+    SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 
 -->
 <div class="mat-padding tb-entity-table tb-absolute-fill">
@@ -27,7 +28,7 @@
         </div>
         <span class="flex-1"></span>
         <!-- Edge-ony: !readonly -->
-        @if (attributeScope !== attributeScopeTypes.CLIENT_SCOPE && !readonly) {
+        @if (attributeScope !== attributeScopeTypes.CLIENT_SCOPE && !disableAddTelemetry && !readonly) {
           <button mat-icon-button
                   [disabled]="isLoading$ | async"
                   (click)="addAttribute($event)"
@@ -75,7 +76,7 @@
       </div>
     </mat-toolbar>
     <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [class.!hidden]="mode !== 'default' || dataSource.selection.isEmpty()">
-      <div class="mat-toolbar-tools xs:flex xs:flex-row xs:flex-wrap">
+      <div class="mat-toolbar-tools gap-2 xs:flex xs:flex-row xs:flex-wrap">
         <span class="tb-entity-table-info">
           {{ (attributeScope === latestTelemetryTypes.LATEST_TELEMETRY ?
           'attribute.selected-telemetry' : 'attribute.selected-attributes') | translate:{count: dataSource.selection.selected.length} }}
@@ -90,9 +91,8 @@
                 (click)="deleteTelemetry($event)">
           <mat-icon>delete</mat-icon>
         </button>
-        <!-- Edge-only:  merge comment -->
-        <button mat-raised-button color="accent"
-                [class.!hidden]="false"
+        <button [class.!hidden]="isSysAdmin || !(resource.WIDGETS_BUNDLE | hasGenericPermission: operation.READ)"
+                mat-stroked-button
                 class="button-widget-action"
                 [disabled]="isLoading$ | async"
                 matTooltip="{{ 'attribute.show-on-widget' | translate }}"
@@ -100,6 +100,16 @@
                 (click)="enterWidgetMode()">
           <mat-icon>now_widgets</mat-icon>
           <span translate>attribute.show-on-widget</span>
+        </button>
+        <button mat-raised-button color="accent"
+                [class.!hidden]="entityIdValue?.entityType !== 'DEVICE' || attributeScope !== latestTelemetryTypes.LATEST_TELEMETRY || !isAllowedDashboardGenerate()"
+                class="button-widget-action"
+                [disabled]="isLoading$ | async"
+                matTooltip="{{ 'solution-creator.generate-dashboard-with-ai' | translate }}"
+                matTooltipPosition="above"
+                (click)="generateDashboard($event)">
+          <tb-icon matButtonIcon>mdi:creation</tb-icon>
+          <span>{{ 'solution-creator.generate-dashboard-with-ai' | translate }}</span>
         </button>
       </div>
     </mat-toolbar>
@@ -116,8 +126,8 @@
                                     (ngModelChange)="onWidgetsBundleChanged($event)">
           </tb-widgets-bundle-select>
         </div>
-        <!-- Edge-only:  merge comment -->
-        <button mat-raised-button [class.!hidden]="!widgetsList.length"
+        <button mat-raised-button [class.!hidden]="!widgetsList.length ||
+                                                       !(resource.DASHBOARD | hasGenericPermission: [operation.READ, operation.WRITE, operation.CREATE])"
                 color="accent"
                 class="button-widget-action"
                 [disabled]="isLoading$ | async"
@@ -202,7 +212,7 @@
               <span [class.!hidden]="isClientSideTelemetryTypeMap.get(attributeScope) && !readonly">
                 <mat-icon>edit</mat-icon>
               </span>
-              @if (attributeScope === latestTelemetryTypes.LATEST_TELEMETRY) {
+              @if (attributeScope === latestTelemetryTypes.LATEST_TELEMETRY && !readonly) {
                 <button mat-icon-button
                         (click)="deleteTimeseries($event, attribute)">
                   <mat-icon>delete</mat-icon>
@@ -248,6 +258,7 @@
                             [widgets]="widgets"
                             [columns]="20"
                             [isEdit]="false"
+                            [embedded]="true"
                             [isPreview]="true"
                             [isMobileDisabled]="true"
                             [isEditActionEnabled]="false"

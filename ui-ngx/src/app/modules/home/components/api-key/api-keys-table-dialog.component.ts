@@ -1,6 +1,5 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
 // SPDX-License-Identifier: Apache-2.0
-
 import { Component, Inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';

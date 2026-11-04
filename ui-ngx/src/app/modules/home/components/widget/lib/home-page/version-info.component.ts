@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';

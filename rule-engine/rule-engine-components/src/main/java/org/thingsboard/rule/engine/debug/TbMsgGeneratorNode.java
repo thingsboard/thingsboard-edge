@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.rule.engine.debug;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,6 +21,8 @@ import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.AssetId;
+import org.thingsboard.server.common.data.id.BlobEntityId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -27,7 +30,10 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
@@ -40,6 +46,7 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +72,8 @@ import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
 public class TbMsgGeneratorNode implements TbNode {
 
     private static final Set<EntityType> supportedEntityTypes = EnumSet.of(EntityType.DEVICE, EntityType.ASSET, EntityType.ENTITY_VIEW,
-            EntityType.TENANT, EntityType.CUSTOMER, EntityType.USER, EntityType.DASHBOARD, EntityType.EDGE, EntityType.RULE_NODE);
+            EntityType.TENANT, EntityType.CUSTOMER, EntityType.USER, EntityType.DASHBOARD, EntityType.EDGE, EntityType.RULE_NODE,
+            EntityType.CONVERTER, EntityType.INTEGRATION, EntityType.SCHEDULER_EVENT, EntityType.BLOB_ENTITY, EntityType.ROLE, EntityType.ENTITY_GROUP);
 
     private TbMsgGeneratorNodeConfiguration config;
     private ScriptEngine scriptEngine;
@@ -168,6 +176,21 @@ public class TbMsgGeneratorNode implements TbNode {
                 case USER:
                     entity = ctx.getUserService().findUserById(tenantId, (UserId) originatorId);
                     break;
+                case CONVERTER:
+                    entity = ctx.getPeContext().getConverterService().findConverterById(tenantId, (ConverterId) originatorId);
+                    break;
+                case INTEGRATION:
+                    entity = ctx.getPeContext().getIntegrationService().findIntegrationById(tenantId, (IntegrationId) originatorId);
+                    break;
+                case SCHEDULER_EVENT:
+                    entity = ctx.getPeContext().getSchedulerEventService().findSchedulerEventById(tenantId, (SchedulerEventId) originatorId);
+                    break;
+                case BLOB_ENTITY:
+                    entity = ctx.getPeContext().getBlobEntityService().findBlobEntityById(tenantId, (BlobEntityId) originatorId);
+                    break;
+                case ROLE:
+                    entity = ctx.getPeContext().getRoleService().findRoleById(tenantId, (RoleId) originatorId);
+                    break;
                 case EDGE:
                     entity = ctx.getEdgeService().findEdgeById(tenantId, (EdgeId) originatorId);
                     break;
@@ -263,6 +286,12 @@ public class TbMsgGeneratorNode implements TbNode {
                 if (!hasOriginatorFields) {
                     hasChanges = true;
                     ((ObjectNode) oldConfiguration).put(originatorType, EntityType.RULE_NODE.name());
+                }
+                String groupOwnerId = "groupOwnerId";
+                String groupType = "groupType";
+                if (oldConfiguration.has(groupType) || oldConfiguration.has(groupOwnerId)) {
+                    hasChanges = true;
+                    ((ObjectNode) oldConfiguration).remove(List.of(groupOwnerId, groupType));
                 }
                 break;
             default:

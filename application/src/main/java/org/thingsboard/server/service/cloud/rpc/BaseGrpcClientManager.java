@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.rpc;
 
 import com.google.common.util.concurrent.Futures;
@@ -8,20 +9,25 @@ import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
 import org.thingsboard.server.dao.eventsourcing.GrpcConnectionEstablishedEvent;
 import org.thingsboard.server.dao.eventsourcing.InterruptSendUplinkEvent;
 import org.thingsboard.server.dao.eventsourcing.StopCloudEventProcessingEvent;
+import org.thingsboard.server.dao.subscription.SubscriptionService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -35,11 +41,18 @@ import org.thingsboard.server.service.cloud.config.EdgeConfigurationHandler;
 import org.thingsboard.server.service.cloud.info.EdgeInfoHolder;
 import org.thingsboard.server.service.cloud.info.PendingUplinkMsgPackHolder;
 
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import static org.thingsboard.server.dao.subscription.BasicSubscriptionService.OFFLINE_CLOUD_ENDPOINT;
+import static org.thingsboard.server.dao.subscription.BasicSubscriptionService.OFFLINE_KEY;
 import static org.thingsboard.server.service.edge.rpc.session.EdgeGrpcSession.RATE_LIMIT_REACHED;
 
 @Service
@@ -57,12 +70,22 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     private final ConfigurableApplicationContext context;
     private final EdgeConfigurationHandler edgeConfigurationHandler;
     private final DownlinkMessageService downlinkMessageService;
+    private final EdgeSettingsService edgeSettingsService;
+
+    @Autowired
+    @Lazy
+    private SubscriptionService subscriptionService;
 
     private ScheduledExecutorService shutdownExecutor;
-    private ScheduledExecutorService connectExecutor;
     private ScheduledExecutorService reconnectExecutor;
-    private ScheduledFuture<?> connectFuture;
     private ScheduledFuture<?> reconnectFuture;
+    // Connect state is publish-only: written on the partition-event thread, read on the connect and the
+    // shutdown threads. Volatile is enough because no read-modify-write has to span both fields.
+    private volatile ScheduledExecutorService connectExecutor;
+    private volatile ScheduledFuture<?> connectFuture;
+    private final Lock reconnectLock = new ReentrantLock();
+    private boolean reconnecting;
+    private long currentReconnectTimeoutMs;
 
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
@@ -74,9 +97,15 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     @PreDestroy
     private void destroy() {
         edgeInfo.resetProcessingFlags();
+        // Must happen before edgeRpcClient.disconnect(false) below: shutting down the channel fires the
+        // gRPC onError callback, which calls scheduleReconnect. Clearing the executor under reconnectLock
+        // first makes that callback a no-op instead of a reject on an already shut down executor.
+        shutdownReconnect();
+        shutdownConnect();
 
         if (shutdownExecutor != null) {
             shutdownExecutor.shutdownNow();
+            shutdownExecutor = null;
         }
 
         connectionStatusManager.updateConnectivityStatus(false);
@@ -88,11 +117,6 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             edgeRpcClient.disconnect(false);
         } catch (Exception e) {
             log.error("Exception during disconnect", e);
-        }
-
-        if (reconnectExecutor != null) {
-            reconnectExecutor.shutdownNow();
-            reconnectExecutor = null;
         }
         log.info("[{}] Destroy was successful", edgeId);
     }
@@ -113,13 +137,21 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     }
 
     @Override
+    public boolean isConnected() {
+        return edgeRpcClient.isConnected();
+    }
+
+    @Override
     public void establishRpcConnection() {
         if (connectFuture != null) {
             connectFuture.cancel(true);
             connectFuture = null;
         }
         if (connectExecutor == null) {
-            connectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-connect"));
+            ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1, ThingsBoardThreadFactory.forName("cloud-manager-connect"));
+            // Otherwise a retry queued here would still run after destroy and resurrect the manager.
+            executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
+            connectExecutor = executor;
         }
         connectFuture = connectExecutor.schedule(() -> {
             try {
@@ -143,6 +175,13 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         edgeInfo.setInitInProgress(true);
         try {
             log.info("Starting Cloud Edge service");
+            // A previous attempt may have left its reconnect executor running: scheduleReconnect resets the
+            // processing flags, so a PartitionChangeEvent can re-enter here without destroy() having run.
+            // Replace it instead of orphaning its threads, and do it before connect() so that callbacks
+            // fired during connect always see the current executor.
+            shutdownReconnect();
+            underReconnectLock(() -> reconnectExecutor =
+                    Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect")));
             edgeRpcClient.connect(edgeInfo.getRoutingKey(), edgeInfo.getRoutingSecret(),
                     this::onUplinkResponse,
                     this::onEdgeUpdate,
@@ -151,37 +190,149 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             launchCloudEventsProcessing();
         } catch (Exception e) {
             log.error("Failed to establish connection to cloud", e);
+            shutdownReconnect();
             connectExecutor.schedule(this::establishRpcConnection, edgeInfo.getReconnectTimeoutMs(), TimeUnit.MILLISECONDS);
         }
     }
 
     private void scheduleReconnect(Exception e) {
+        startReconnectLoop(e, true);
+    }
+
+    private void rearmReconnectPreservingBackoff(Exception e) {
+        startReconnectLoop(e, false);
+    }
+
+    private void startReconnectLoop(Exception e, boolean resetBackoff) {
         edgeInfo.resetProcessingFlags();
         connectionStatusManager.updateConnectivityStatus(false);
 
-        if (reconnectFuture == null) {
-            reconnectFuture = reconnectExecutor.scheduleAtFixedRate(() -> {
-                log.info("Trying to reconnect due to the error: {}!", e.getMessage());
-                try {
-                    edgeRpcClient.disconnect(true);
-                } catch (Exception ex) {
-                    log.error("Exception during disconnect: {}", ex.getMessage());
+        // Only start a reconnect loop if one is not already running. Reconnect attempts that fail
+        // asynchronously call this method again via the onError callback - those are no-ops here.
+        underReconnectLock(() -> {
+            if (reconnectFuture == null && reconnectExecutor != null) {
+                reconnecting = true;
+                if (resetBackoff || currentReconnectTimeoutMs <= 0) {
+                    currentReconnectTimeoutMs = edgeInfo.getReconnectTimeoutMs();
                 }
-                try {
-                    edgeRpcClient.connect(edgeInfo.getRoutingKey(), edgeInfo.getRoutingSecret(),
-                            this::onUplinkResponse,
-                            this::onEdgeUpdate,
-                            this::onDownlink,
-                            this::scheduleReconnect);
-                } catch (Exception ex) {
-                    log.error("Exception during connect: {}", ex.getMessage());
+                scheduleReconnectAttempt(e);
+            }
+        });
+    }
+
+    // Must be called while holding reconnectLock.
+    private void scheduleReconnectAttempt(Exception e) {
+        ScheduledExecutorService executor = reconnectExecutor;
+        if (!reconnecting || executor == null) {
+            return;
+        }
+        reconnectFuture = executor.schedule(() -> {
+            log.info("Trying to reconnect due to the error: ", e);
+            try {
+                edgeRpcClient.disconnect(true);
+                tryInitOfflineMode();
+            } catch (Exception ex) {
+                log.error("Exception during disconnect: ", ex);
+            }
+            try {
+                edgeRpcClient.connect(edgeInfo.getRoutingKey(), edgeInfo.getRoutingSecret(),
+                        this::onUplinkResponse,
+                        this::onEdgeUpdate,
+                        this::onDownlink,
+                        this::scheduleReconnect);
+            } catch (Exception ex) {
+                log.error("Exception during connect: ", ex);
+            }
+            // Exponential backoff: a failed attempt (native/heap pressure, unreachable cloud) grows
+            // the delay up to a cap, so a stuck Edge is not hammering reconnect once per interval.
+            // A successful connect stops the loop via onEdgeUpdate -> reconnecting=false.
+            underReconnectLock(() -> {
+                if (reconnecting) {
+                    currentReconnectTimeoutMs = Math.min(currentReconnectTimeoutMs * 2, edgeInfo.getReconnectMaxTimeoutMs());
+                    scheduleReconnectAttempt(e);
                 }
-            }, edgeInfo.getReconnectTimeoutMs(), edgeInfo.getReconnectTimeoutMs(), TimeUnit.MILLISECONDS);
+            });
+        }, applyJitter(currentReconnectTimeoutMs), TimeUnit.MILLISECONDS);
+    }
+
+    // Randomizes the delay by ±reconnect_jitter_factor so that a fleet of edges that lost the cloud at the
+    // same moment does not retry in synchronized waves. Jitter is applied to the scheduled value only -
+    // currentReconnectTimeoutMs stays the clean base, so the randomness never compounds across attempts.
+    private long applyJitter(long delayMs) {
+        long offset = (long) (delayMs * edgeInfo.getReconnectJitterFactor());
+        if (offset <= 0) {
+            return delayMs;
+        }
+        return ThreadLocalRandom.current().nextLong(Math.max(0, delayMs - offset), delayMs + offset + 1);
+    }
+
+    // Stops any in-progress reconnect loop and clears its state. Safe to call when no loop is running.
+    private void cancelReconnect() {
+        underReconnectLock(() -> {
+            reconnecting = false;
+            if (reconnectFuture != null) {
+                reconnectFuture.cancel(true);
+                reconnectFuture = null;
+            }
+        });
+    }
+
+    // shutdown(), not shutdownNow(): destroy() may itself be running on this executor's thread.
+    private void shutdownConnect() {
+        if (connectFuture != null) {
+            connectFuture.cancel(false);
+            connectFuture = null;
+        }
+        if (connectExecutor != null) {
+            connectExecutor.shutdown();
+            connectExecutor = null;
+        }
+    }
+
+    // Stops the reconnect loop and disposes of its executor, so that a gRPC callback arriving afterwards
+    // cannot resurrect the loop or reject on a shut down executor.
+    private void shutdownReconnect() {
+        underReconnectLock(() -> {
+            reconnecting = false;
+            if (reconnectFuture != null) {
+                reconnectFuture.cancel(true);
+                reconnectFuture = null;
+            }
+            if (reconnectExecutor != null) {
+                reconnectExecutor.shutdownNow();
+                reconnectExecutor = null;
+            }
+        });
+    }
+
+    // All reconnect state (reconnecting/reconnectFuture/currentReconnectTimeoutMs/reconnectExecutor) is
+    // guarded by reconnectLock, since it is touched from gRPC callback threads, the connect thread and
+    // the reconnect thread.
+    private void underReconnectLock(Runnable action) {
+        reconnectLock.lock();
+        try {
+            action.run();
+        } finally {
+            reconnectLock.unlock();
+        }
+    }
+
+    private void tryInitOfflineMode() {
+        if (!edgeInfo.isOfflineInitialized()) {
+            EdgeSettings edgeSettings = edgeSettingsService.findEdgeSettings();
+            if (edgeSettings != null) {
+                subscriptionService.init(TenantId.fromUUID(UUID.fromString(edgeSettings.getTenantId())), new EdgeId(UUID.fromString(edgeSettings.getEdgeId())),
+                        OFFLINE_KEY, OFFLINE_CLOUD_ENDPOINT);
+                edgeInfo.setOfflineInitialized(true);
+            }
         }
     }
 
     private void onDownlink(DownlinkMsg downlinkMsg) {
-        boolean edgeCustomerIdUpdated = updateCustomerIdIfRequired(downlinkMsg);
+        // Keeps the in-memory customer id in step with the cloud. The ownership change itself is
+        // delivered by the regular edge assignment / change-owner event flow, so it must not trigger a
+        // sync request: a sync interrupts general downlink delivery and blocks uplink processing on both sides.
+        updateCustomerIdIfRequired(downlinkMsg);
         if (edgeInfo.isSyncInProgress() && downlinkMsg.hasSyncCompletedMsg()) {
             log.trace("[{}] downlinkMsg hasSyncCompletedMsg = true", downlinkMsg);
             edgeInfo.setSyncInProgress(false);
@@ -189,31 +340,40 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         }
         Futures.addCallback(
                 downlinkMessageService.processDownlinkMsg(edgeInfo.getTenantId(), edgeInfo.getCustomerId(), downlinkMsg, edgeInfo.getSettings()),
-                new DownlinkMsgProcessedCallback(edgeRpcClient, edgeInfo, downlinkMsg, edgeCustomerIdUpdated),
+                new DownlinkMsgProcessedCallback(edgeRpcClient, edgeInfo, downlinkMsg),
                 MoreExecutors.directExecutor());
     }
 
-    private boolean updateCustomerIdIfRequired(DownlinkMsg downlinkMsg) {
+    private void updateCustomerIdIfRequired(DownlinkMsg downlinkMsg) {
         if (downlinkMsg.hasEdgeConfiguration()) {
-            return edgeConfigurationHandler.setOrUpdateCustomerId(downlinkMsg.getEdgeConfiguration());
-        } else {
-            return false;
+            edgeConfigurationHandler.setOrUpdateCustomerId(downlinkMsg.getEdgeConfiguration());
         }
     }
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
         try {
+            cancelReconnect();
             eventPublisher.publishEvent(InterruptSendUplinkEvent.INSTANCE);
-            if (reconnectFuture != null) {
-                reconnectFuture.cancel(true);
-                reconnectFuture = null;
-            }
 
-            if ("CE".equals(edgeConfiguration.getCloudType())) {
-                initAndUpdateEdgeSettings(edgeConfiguration);
+            if ("PE".equals(edgeConfiguration.getCloudType())) {
+                subscriptionService.setLicenseVersion(edgeConfiguration.getLicenseVersion());
+                EdgeId edgeId = new EdgeId(new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB()));
+                TenantId tenantId = new TenantId(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
+                String cloudEndpoint = null;
+                if (edgeConfiguration.getLicenseVersion() < 2) {
+                    cloudEndpoint = "host.docker.internal".equals(edgeInfo.getRpcHost())
+                            ? edgeConfiguration.getCloudEndpoint().replace("localhost", "host.docker.internal")
+                            : edgeConfiguration.getCloudEndpoint();
+                }
+                if (subscriptionService.init(tenantId, edgeId, edgeConfiguration.getEdgeLicenseKey(), cloudEndpoint)) {
+                    log.debug("Subscription service was initialized successfully!");
+                    initAndUpdateEdgeSettings(edgeConfiguration);
+                } else {
+                    log.debug("Failed to initialize subscription service!");
+                }
             } else {
                 new Thread(() -> {
-                    log.error("Terminating application. CE edge can be connected only to CE server version...");
+                    log.error("Terminating application. PE edge can be connected only to PE server version...");
                     int exitCode = -1;
                     int appExitCode = exitCode;
                     try {
@@ -225,8 +385,10 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             }
         } catch (Exception e) {
             log.error("Can't process edge configuration message [{}]", edgeConfiguration, e);
+            rearmReconnectPreservingBackoff(e);
+        } finally {
+            edgeInfo.setInitInProgress(false);
         }
-        edgeInfo.setInitInProgress(false);
     }
 
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
@@ -239,6 +401,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             requestSyncToCloud(edgeSettings.isFullSyncRequired());
         }
         edgeInfo.setInitialized(true);
+        edgeInfo.setOfflineInitialized(true);
     }
 
     private void onUplinkResponse(UplinkResponseMsg msg) {
@@ -266,7 +429,6 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
     private void launchCloudEventsProcessing() {
         eventPublisher.publishEvent(GrpcConnectionEstablishedEvent.INSTANCE);
-        reconnectExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-reconnect"));
     }
 
     private void onDestroy() {
@@ -276,6 +438,11 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
 
     private boolean validateRoutingKeyAndSecret() {
         if (StringUtils.isBlank(edgeInfo.getRoutingKey()) || StringUtils.isBlank(edgeInfo.getRoutingSecret())) {
+            if (shutdownExecutor != null) {
+                // Already complaining from a previous call - a PartitionChangeEvent re-enters this path on
+                // every event, and a second executor would only duplicate the message every 10 seconds.
+                return false;
+            }
             shutdownExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("cloud-manager-shutdown"));
             shutdownExecutor.scheduleAtFixedRate(() -> log.error(
                     "Routing Key and Routing Secret must be provided! " +

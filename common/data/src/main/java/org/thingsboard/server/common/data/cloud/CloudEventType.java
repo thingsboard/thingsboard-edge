@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.common.data.cloud;
 
 import lombok.Getter;
@@ -27,7 +28,12 @@ public enum CloudEventType {
     WIDGET_TYPE(EntityType.WIDGET_TYPE),
     EDGE(EntityType.EDGE),
     TB_RESOURCE(EntityType.TB_RESOURCE),
+    ENTITY_GROUP(EntityType.ENTITY_GROUP),
+    SCHEDULER_EVENT(EntityType.SCHEDULER_EVENT),
+    ROLE(EntityType.ROLE),
+    GROUP_PERMISSION(EntityType.GROUP_PERMISSION),
     CALCULATED_FIELD(EntityType.CALCULATED_FIELD),
+    REPORT_TEMPLATE(EntityType.REPORT_TEMPLATE),
     AI_MODEL(EntityType.AI_MODEL),
     API_KEY(EntityType.API_KEY);
 

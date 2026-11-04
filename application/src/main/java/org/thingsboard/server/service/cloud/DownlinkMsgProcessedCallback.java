@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.cloud;
 
@@ -18,13 +18,11 @@ public class DownlinkMsgProcessedCallback implements FutureCallback<List<Void>> 
     private final EdgeRpcClient client;
     private final EdgeInfoHolder edgeInfo;
     private final DownlinkMsg downlinkMsg;
-    private final boolean edgeCustomerIdUpdated;
 
-    public DownlinkMsgProcessedCallback(EdgeRpcClient client, EdgeInfoHolder edgeInfo, DownlinkMsg downlinkMsg, boolean edgeCustomerIdUpdated) {
+    public DownlinkMsgProcessedCallback(EdgeRpcClient client, EdgeInfoHolder edgeInfo, DownlinkMsg downlinkMsg) {
         this.client = client;
         this.edgeInfo = edgeInfo;
         this.downlinkMsg = downlinkMsg;
-        this.edgeCustomerIdUpdated = edgeCustomerIdUpdated;
     }
 
     @Override
@@ -35,12 +33,6 @@ public class DownlinkMsgProcessedCallback implements FutureCallback<List<Void>> 
                 .setSuccess(true).build();
 
         client.sendDownlinkResponseMsg(downlinkResponseMsg);
-        if (downlinkMsg.hasEdgeConfiguration()) {
-            if (edgeCustomerIdUpdated && !edgeInfo.isSyncInProgress()) {
-                log.info("Edge customer id has been updated. Sending sync request...");
-                requestSyncToCloud();
-            }
-        }
     }
 
     @Override
@@ -52,10 +44,5 @@ public class DownlinkMsgProcessedCallback implements FutureCallback<List<Void>> 
                 .setSuccess(false).setErrorMsg(errorMsg).build();
 
         client.sendDownlinkResponseMsg(downlinkResponseMsg);
-    }
-
-    private void requestSyncToCloud() {
-        client.sendSyncRequestMsg(false);
-        edgeInfo.setSyncInProgress(true);
     }
 }

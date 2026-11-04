@@ -1,13 +1,23 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.edge.rpc;
 
 import io.grpc.HttpConnectProxiedSocketAddress;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.netty.channel.Channel;
+import io.grpc.netty.shaded.io.netty.channel.EventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.epoll.Epoll;
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollEventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollSocketChannel;
+import io.grpc.netty.shaded.io.netty.channel.nio.NioEventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.socket.nio.NioSocketChannel;
 import io.grpc.netty.shaded.io.netty.handler.ssl.SslContextBuilder;
+import io.grpc.netty.shaded.io.netty.util.concurrent.DefaultThreadFactory;
 import io.grpc.stub.StreamObserver;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -73,7 +83,13 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     private ManagedChannel channel;
 
+    private final EventLoopGroup workerGroup = createWorkerGroup();
+
     private StreamObserver<RequestMsg> inputStream;
+
+    private volatile boolean connected;
+
+    private volatile boolean streamActive;
 
     private static final ReentrantLock uplinkMsgLock = new ReentrantLock();
 
@@ -84,7 +100,11 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                         Consumer<EdgeConfiguration> onEdgeUpdate,
                         Consumer<DownlinkMsg> onDownlink,
                         Consumer<Exception> onError) {
+        connected = false;
+        streamActive = false;
         NettyChannelBuilder builder = NettyChannelBuilder.forAddress(rpcHost, rpcPort)
+                .eventLoopGroup(workerGroup)
+                .channelType(channelType())
                 .maxInboundMessageSize(maxInboundMessageSize)
                 .keepAliveTime(keepAliveTimeSec, TimeUnit.SECONDS)
                 .keepAliveTimeout(keepAliveTimeoutSec, TimeUnit.SECONDS)
@@ -120,6 +140,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
         EdgeRpcServiceGrpc.EdgeRpcServiceStub stub = EdgeRpcServiceGrpc.newStub(channel);
         log.info("[{}] Sending a connect request to the TB!", edgeKey);
         this.inputStream = stub.withCompression("gzip").handleMsgs(initOutputStream(edgeKey, onUplinkResponse, onEdgeUpdate, onDownlink, onError));
+        streamActive = true;
         this.inputStream.onNext(RequestMsg.newBuilder()
                 .setMsgType(RequestMsgType.CONNECT_RPC_MESSAGE)
                 .setConnectRequestMsg(ConnectRequestMsg.newBuilder()
@@ -133,6 +154,20 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     public static EdgeVersion getNewestEdgeVersion() {
         return EdgeVersionComparator.getNewestEdgeVersion();
+    }
+
+    private static EventLoopGroup createWorkerGroup() {
+        DefaultThreadFactory threadFactory = new DefaultThreadFactory("edge-grpc-worker", true);
+        return Epoll.isAvailable() ? new EpollEventLoopGroup(1, threadFactory) : new NioEventLoopGroup(1, threadFactory);
+    }
+
+    private static Class<? extends Channel> channelType() {
+        return Epoll.isAvailable() ? EpollSocketChannel.class : NioSocketChannel.class;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        workerGroup.shutdownGracefully();
     }
 
     private StreamObserver<ResponseMsg> initOutputStream(String edgeKey,
@@ -151,8 +186,10 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                             serverMaxInboundMessageSize = connectResponseMsg.getMaxInboundMessageSize();
                         }
                         log.info("[{}] Configuration received: {}", edgeKey, connectResponseMsg.getConfiguration());
+                        connected = true;
                         onEdgeUpdate.accept(connectResponseMsg.getConfiguration());
                     } else {
+                        connected = false;
                         log.error("[{}] Failed to establish the connection! Code: {}. Error message: {}.", edgeKey, connectResponseMsg.getResponseCode(), connectResponseMsg.getErrorMsg());
                         try {
                             EdgeGrpcClient.this.disconnect(true);
@@ -175,17 +212,21 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
             @Override
             public void onError(Throwable t) {
+                connected = false;
+                streamActive = false;
                 log.warn("[{}] Stream was terminated due to error:", edgeKey, t);
                 try {
                     EdgeGrpcClient.this.disconnect(true);
                 } catch (InterruptedException e) {
                     log.error("[{}] Got interruption during disconnect!", edgeKey, e);
                 }
-                onError.accept(new RuntimeException(t));
+                onError.accept(new EdgeConnectionException("Stream was terminated due to error", t));
             }
 
             @Override
             public void onCompleted() {
+                connected = false;
+                streamActive = false;
                 log.info("[{}] Stream was closed and completed successfully!", edgeKey);
             }
         };
@@ -193,6 +234,8 @@ public class EdgeGrpcClient implements EdgeRpcClient {
 
     @Override
     public void disconnect(boolean onError) throws InterruptedException {
+        connected = false;
+        streamActive = false;
         if (!onError) {
             try {
                 if (inputStream != null) {
@@ -226,9 +269,18 @@ public class EdgeGrpcClient implements EdgeRpcClient {
     }
 
     @Override
+    public boolean isConnected() {
+        return connected;
+    }
+
+    @Override
     public void sendUplinkMsg(UplinkMsg msg) {
         uplinkMsgLock.lock();
         try {
+            if (!streamActive) {
+                log.debug("Uplink msg is skipped, the cloud session is not established: {}", msg);
+                return;
+            }
             this.inputStream.onNext(RequestMsg.newBuilder()
                     .setMsgType(RequestMsgType.UPLINK_RPC_MESSAGE)
                     .setUplinkMsg(msg)
@@ -242,6 +294,10 @@ public class EdgeGrpcClient implements EdgeRpcClient {
     public void sendSyncRequestMsg(boolean fullSyncRequired) {
         uplinkMsgLock.lock();
         try {
+            if (!streamActive) {
+                log.debug("Sync request msg is skipped, the cloud session is not established");
+                return;
+            }
             SyncRequestMsg syncRequestMsg = SyncRequestMsg.newBuilder()
                     .setFullSync(fullSyncRequired)
                     .build();
@@ -258,6 +314,10 @@ public class EdgeGrpcClient implements EdgeRpcClient {
     public void sendDownlinkResponseMsg(DownlinkResponseMsg downlinkResponseMsg) {
         uplinkMsgLock.lock();
         try {
+            if (!streamActive) {
+                log.debug("Downlink response msg is skipped, the cloud session is not established: {}", downlinkResponseMsg);
+                return;
+            }
             this.inputStream.onNext(RequestMsg.newBuilder()
                     .setMsgType(RequestMsgType.UPLINK_RPC_MESSAGE)
                     .setDownlinkResponseMsg(downlinkResponseMsg)

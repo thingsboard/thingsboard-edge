@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.cloud.event.runner;
 
@@ -111,7 +111,7 @@ public class KafkaCloudEventUplinkProcessingRunner implements CloudEventUplinkPr
             if (!isProcessed) {
                 sleep();
             }
-        } while (!isProcessed);
+        } while (!isProcessed && !consumer.isStopped());
     }
 
     private void processTsUplinkMessages(List<TbProtoQueueMsg<TransportProtos.ToCloudEventMsg>> msgs,
@@ -131,7 +131,7 @@ public class KafkaCloudEventUplinkProcessingRunner implements CloudEventUplinkPr
             if (!isProcessed) {
                 sleep();
             }
-        } while (!isProcessed);
+        } while (!isProcessed && !consumer.isStopped());
     }
 
     // Readiness gates so the cloud-event consumers pause polling (instead of polling and risking event loss/interruption)

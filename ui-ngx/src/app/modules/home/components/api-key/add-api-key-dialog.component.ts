@@ -1,6 +1,5 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
 // SPDX-License-Identifier: Apache-2.0
-
 import { Component, Inject } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Store } from '@ngrx/store';

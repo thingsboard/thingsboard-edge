@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.dao.tenant;
 
 import com.google.common.util.concurrent.FluentFuture;
@@ -21,20 +22,26 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.agent.AgentAppEventService;
+import org.thingsboard.server.dao.agent.AgentProfileService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
+import org.thingsboard.server.dao.encryptionkey.EncryptionService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.iot_hub.IotHubInstalledItemService;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.mobile.QrCodeSettingService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.service.validator.TenantDataValidator;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.trendz.TrendzSettingsService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +50,7 @@ import java.util.function.Consumer;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service("TenantDaoService")
 @Slf4j
@@ -62,20 +70,32 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     private AssetProfileService assetProfileService;
     @Autowired
     private DeviceProfileService deviceProfileService;
+    @Autowired
+    private AgentProfileService agentProfileService;
     @Lazy
     @Autowired
     private ApiUsageStateService apiUsageStateService;
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
     @Autowired
     @Lazy
     private NotificationSettingsService notificationSettingsService;
     @Autowired
     private QrCodeSettingService qrCodeSettingService;
     @Autowired
+    private CustomMenuService customMenuService;
+    @Autowired
     private TrendzSettingsService trendzSettingsService;
     @Autowired
     private IotHubInstalledItemService iotHubInstalledItemService;
     @Autowired
+    private AgentAppEventService agentAppEventService;
+    @Autowired
     private TenantDataValidator tenantValidator;
+    @Autowired
+    private CustomTranslationService customTranslationService;
+    @Autowired
+    private EncryptionService encryptionService;
     @Autowired
     protected TbTransactionalCache<TenantId, Boolean> existsTenantCache;
 
@@ -92,7 +112,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     public Tenant findTenantById(TenantId tenantId) {
         log.trace("Executing findTenantById [{}]", tenantId);
-        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
 
         return cache.getAndPutInTransaction(tenantId, () -> tenantDao.findById(tenantId, tenantId.getId()), true);
     }
@@ -109,6 +129,19 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         log.trace("Executing findTenantByIdAsync [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return tenantDao.findByIdAsync(callerId, tenantId.getId());
+    }
+
+    @Override
+    public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(TenantId callerId, List<TenantId> tenantIds) {
+        log.trace("Executing findTenantsByIdsAsync, callerId [{}], tenantIds [{}]", callerId, tenantIds);
+        validateIds(tenantIds, ids -> "Incorrect tenantIds " + ids);
+        return tenantDao.findTenantsByIdsAsync(callerId.getId(), toUUIDs(tenantIds));
+    }
+
+    @Override
+    public List<Tenant> findTenantsByIds(TenantId callerId, List<TenantId> tenantIds) {
+        log.trace("Executing findTenantsByIds, callerId [{}], tenantIds [{}]", callerId, tenantIds);
+        return tenantDao.findTenantsByIds(callerId.getId(), toUUIDs(tenantIds));
     }
 
     @Override
@@ -139,8 +172,12 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         TenantId tenantId = savedTenant.getId();
         publishEvictEvent(new TenantEvictEvent(tenantId, create));
 
-        if (create && defaultEntitiesCreator != null) {
-            defaultEntitiesCreator.accept(tenantId);
+        if (create) {
+            if (defaultEntitiesCreator != null) {
+                defaultEntitiesCreator.accept(tenantId);
+            } else {
+                entityGroupService.createDefaultTenantEntityGroups(tenantId);
+            }
         }
 
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)
@@ -149,8 +186,10 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         if (create) {
             deviceProfileService.createDefaultDeviceProfile(tenantId);
             assetProfileService.createDefaultAssetProfile(tenantId);
+            agentProfileService.createDefaultAgentProfile(tenantId);
             apiUsageStateService.createDefaultApiUsageState(tenantId, null);
             notificationSettingsService.createDefaultNotificationConfigs(tenantId);
+            encryptionService.createEncryptionKey(tenantId);
         }
 
         return savedTenant;
@@ -163,10 +202,14 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
 
         userService.deleteAllByTenantId(tenantId);
+        whiteLabelingService.deleteAllTenantWhiteLabeling(tenantId);
+        customTranslationService.deleteCustomTranslationByTenantId(tenantId);
         notificationSettingsService.deleteNotificationSettings(tenantId);
-        trendzSettingsService.deleteTrendzSettings(tenantId);
         qrCodeSettingService.deleteByTenantId(tenantId);
+        customMenuService.deleteByTenantId(tenantId);
+        encryptionService.deleteEncryptionKeyByTenantId(tenantId);
         iotHubInstalledItemService.deleteByTenantId(tenantId);
+        agentAppEventService.deleteByTenantId(tenantId);
 
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
@@ -175,12 +218,15 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         cleanUpService.removeTenantEntities(tenantId, // remember to implement deleteEntity from EntityDaoService when adding an entity type to this list
                 EntityType.ADMIN_SETTINGS, EntityType.JOB, EntityType.ENTITY_VIEW, EntityType.WIDGETS_BUNDLE, EntityType.WIDGET_TYPE,
                 EntityType.ASSET, EntityType.ASSET_PROFILE, EntityType.DEVICE, EntityType.DEVICE_PROFILE,
-                EntityType.DASHBOARD, EntityType.EDGE, EntityType.RULE_CHAIN, EntityType.API_USAGE_STATE,
-                EntityType.TB_RESOURCE, EntityType.OTA_PACKAGE, EntityType.RPC, EntityType.QUEUE,
-                EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE, EntityType.NOTIFICATION_TEMPLATE,
-                EntityType.NOTIFICATION_TARGET, EntityType.QUEUE_STATS, EntityType.CUSTOMER,
-                EntityType.DOMAIN, EntityType.MOBILE_APP_BUNDLE, EntityType.MOBILE_APP, EntityType.OAUTH2_CLIENT,
-                EntityType.AI_MODEL
+                EntityType.AGENT, EntityType.DASHBOARD, EntityType.EDGE, EntityType.RULE_CHAIN, EntityType.INTEGRATION,
+                EntityType.CONVERTER, EntityType.SCHEDULER_EVENT, EntityType.BLOB_ENTITY, EntityType.REPORT,
+                EntityType.REPORT_TEMPLATE, EntityType.ENTITY_GROUP,
+                EntityType.GROUP_PERMISSION, EntityType.ROLE, EntityType.API_USAGE_STATE, EntityType.TB_RESOURCE,
+                EntityType.OTA_PACKAGE, EntityType.RPC, EntityType.QUEUE, EntityType.NOTIFICATION_REQUEST,
+                EntityType.NOTIFICATION_RULE, EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET,
+                EntityType.QUEUE_STATS, EntityType.CUSTOMER, EntityType.DOMAIN, EntityType.MOBILE_APP_BUNDLE,
+                EntityType.MOBILE_APP, EntityType.OAUTH2_CLIENT, EntityType.SECRET, EntityType.AI_MODEL,
+                EntityType.AGENT_PROFILE, EntityType.AGENT_APP_PROFILE
         );
     }
 
@@ -221,12 +267,6 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         log.trace("Executing findTenantsIds");
         Validator.validatePageLink(pageLink);
         return tenantDao.findTenantsIds(pageLink);
-    }
-
-    @Override
-    public List<Tenant> findTenantsByIds(TenantId callerId, List<TenantId> tenantIds) {
-        log.trace("Executing findTenantsByIds, callerId [{}], tenantIds [{}]", callerId, tenantIds);
-        return tenantDao.findTenantsByIds(callerId.getId(), toUUIDs(tenantIds));
     }
 
     @Override

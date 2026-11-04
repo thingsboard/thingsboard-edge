@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -17,16 +18,22 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
+import org.thingsboard.server.common.data.subscription.SubscriptionException;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceGroupOtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
@@ -50,15 +57,23 @@ import java.util.UUID;
 public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     @Autowired
+    protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+
+    @Autowired
     private TbCoreDeviceRpcService tbCoreDeviceRpcService;
 
-    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) {
+    public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId, DeviceUpdateMsg deviceUpdateMsg) throws ThingsboardException {
         DeviceId deviceId = new DeviceId(new UUID(deviceUpdateMsg.getIdMSB(), deviceUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
             return switch (deviceUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
-                    boolean created = saveOrUpdateDeviceFromCloud(tenantId, deviceId, deviceUpdateMsg);
+                    Pair<Boolean, Boolean> limitReachedCreated = saveOrUpdateDeviceFromCloud(tenantId, deviceId, deviceUpdateMsg);
+                    boolean limitReached = limitReachedCreated.getFirst();
+                    if (limitReached) {
+                        yield Futures.immediateFuture(null);
+                    }
+                    boolean created = limitReachedCreated.getSecond();
                     if (created) {
                         List<ListenableFuture<Void>> futures = new ArrayList<>();
 
@@ -70,8 +85,21 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                     yield Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
-                    deleteDevice(tenantId, deviceId);
-                    yield Futures.immediateFuture(null);
+                    deviceCreationLock.lock();
+                    try {
+                        if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
+                            UUID entityGroupUUID = safeGetUUID(deviceUpdateMsg.getEntityGroupIdMSB(),
+                                    deviceUpdateMsg.getEntityGroupIdLSB());
+                            EntityGroupId entityGroupId = new EntityGroupId(entityGroupUUID);
+                            edgeCtx.getEntityGroupService().removeEntityFromEntityGroup(tenantId, entityGroupId, deviceId);
+                            yield removeEntityIfInSingleAllGroup(tenantId, deviceId, () -> edgeCtx.getDeviceService().deleteDevice(tenantId, deviceId));
+                        } else {
+                            deleteDevice(tenantId, deviceId);
+                            yield Futures.immediateFuture(null);
+                        }
+                    } finally {
+                        deviceCreationLock.unlock();
+                    }
                 }
                 default -> handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
             };
@@ -80,17 +108,27 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         }
     }
 
-    private boolean saveOrUpdateDeviceFromCloud(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) {
-        Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
-        Boolean created = resultPair.getFirst();
-        if (created) {
-            pushDeviceCreatedEventToRuleEngine(tenantId, deviceId);
+    private Pair<Boolean, Boolean> saveOrUpdateDeviceFromCloud(TenantId tenantId, DeviceId deviceId, DeviceUpdateMsg deviceUpdateMsg) throws ThingsboardException {
+        boolean created;
+        try {
+            Pair<Boolean, Boolean> resultPair = super.saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg);
+            created = resultPair.getFirst();
+            if (created) {
+                pushDeviceCreatedEventToRuleEngine(tenantId, deviceId);
+            }
+            Boolean deviceNameUpdated = resultPair.getSecond();
+            if (deviceNameUpdated) {
+                cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null, null);
+            }
+        } catch (SubscriptionException e) {
+            log.error("[{}][{}] Subscription error occurred for msg {}", tenantId, deviceId, deviceUpdateMsg, e);
+            if (e.getMessage().contains("limit reached")) {
+                return Pair.of(true, false);
+            } else {
+                throw e;
+            }
         }
-        Boolean deviceNameUpdated = resultPair.getSecond();
-        if (deviceNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.DEVICE, EdgeEventActionType.UPDATED, deviceId, null);
-        }
-        return created;
+        return Pair.of(false, created);
     }
 
     private void pushDeviceCreatedEventToRuleEngine(TenantId tenantId, DeviceId deviceId) {
@@ -184,7 +222,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 body.put("response", response.getResponse().orElse("{}"));
             }
             cloudEventService.saveCloudEvent(rpcRequest.getTenantId(), CloudEventType.DEVICE, EdgeEventActionType.RPC_CALL,
-                    rpcRequest.getDeviceId(), body);
+                    rpcRequest.getDeviceId(), body, null);
         } catch (Exception e) {
             log.debug("Can't process RPC response [{}] [{}]", rpcRequest, response, e);
         }
@@ -201,12 +239,13 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     @Override
     public UplinkMsg convertCloudEventToUplink(CloudEvent cloudEvent) {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
+        EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
         switch (cloudEvent.getAction()) {
-            case ADDED, UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -> {
+            case ADDED, UPDATED, ADDED_TO_ENTITY_GROUP -> {
                 Device device = edgeCtx.getDeviceService().findDeviceById(cloudEvent.getTenantId(), deviceId);
                 if (device != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
-                    DeviceUpdateMsg deviceUpdateMsg = EdgeMsgConstructorUtils.constructDeviceUpdatedMsg(msgType, device);
+                    DeviceUpdateMsg deviceUpdateMsg = EdgeMsgConstructorUtils.constructDeviceUpdatedMsg(msgType, device, entityGroupId);
                     UplinkMsg.Builder builder = UplinkMsg.newBuilder()
                             .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg);
@@ -224,8 +263,8 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                     log.info("Skipping event as device was not found [{}]", cloudEvent);
                 }
             }
-            case DELETED -> {
-                DeviceUpdateMsg deviceUpdateMsg = EdgeMsgConstructorUtils.constructDeviceDeleteMsg(deviceId);
+            case DELETED, REMOVED_FROM_ENTITY_GROUP -> {
+                DeviceUpdateMsg deviceUpdateMsg = EdgeMsgConstructorUtils.constructDeviceDeleteMsg(deviceId, entityGroupId);
                 return UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceUpdateMsg(deviceUpdateMsg).build();
@@ -250,6 +289,27 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         if (isCustomerNotExists(tenantId, device.getCustomerId())) {
             device.setCustomerId(null);
         }
+    }
+
+    public ListenableFuture<Void> processDeviceGroupOtaPackageFromCloud(TenantId tenantId, DeviceGroupOtaPackageUpdateMsg deviceGroupOtaPackageUpdateMsg) {
+        log.trace("[{}] processDeviceGroupOtaPackageFromCloud [{}]", tenantId, deviceGroupOtaPackageUpdateMsg);
+        DeviceGroupOtaPackage deviceGroupOtaPackage = JacksonUtil.fromString(deviceGroupOtaPackageUpdateMsg.getEntity(), DeviceGroupOtaPackage.class, true);
+        if (deviceGroupOtaPackage == null) {
+            throw new RuntimeException("[{" + tenantId + "}] deviceGroupOtaPackageUpdateMsg {" + deviceGroupOtaPackageUpdateMsg + "} cannot be converted to device group ota package");
+        }
+        switch (deviceGroupOtaPackageUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage, false);
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                deviceGroupOtaPackageService.deleteDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+                break;
+            case UNRECOGNIZED:
+            default:
+                return handleUnsupportedMsgType(deviceGroupOtaPackageUpdateMsg.getMsgType());
+        }
+        return Futures.immediateFuture(null);
     }
 
     @Override

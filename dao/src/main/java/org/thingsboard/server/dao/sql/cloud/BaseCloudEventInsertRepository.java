@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.dao.sql.cloud;
 
 import jakarta.transaction.Transactional;
@@ -30,23 +31,26 @@ public class BaseCloudEventInsertRepository<T extends AbstractCloudEventEntity> 
 
     protected void save(List<T> entities, String tableName) {
         String insertQuery = "INSERT INTO " + tableName +
-                " (id, created_time, entity_body, entity_id, cloud_event_type, cloud_event_action, tenant_id, ts) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;";
+                " (id, created_time, entity_body, entity_id, cloud_event_type, cloud_event_action, tenant_id, ts, entity_group_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;";
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 jdbcTemplate.batchUpdate(insertQuery, new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        T event = entities.get(i);
-                        ps.setObject(1, event.getId());
-                        ps.setLong(2, event.getCreatedTime());
-                        ps.setString(3, event.getEntityBody() != null ? event.getEntityBody().toString() : null);
-                        ps.setObject(4, event.getEntityId());
-                        ps.setString(5, event.getCloudEventType().name());
-                        ps.setString(6, event.getCloudEventAction().name());
-                        ps.setObject(7, event.getTenantId());
-                        ps.setLong(8, event.getTs());
+                        T cloudEvent = entities.get(i);
+                        ps.setObject(1, cloudEvent.getId());
+                        ps.setLong(2, cloudEvent.getCreatedTime());
+                        ps.setString(3, cloudEvent.getEntityBody() != null
+                                ? cloudEvent.getEntityBody().toString()
+                                : null);
+                        ps.setObject(4, cloudEvent.getEntityId());
+                        ps.setString(5, cloudEvent.getCloudEventType().name());
+                        ps.setString(6, cloudEvent.getCloudEventAction().name());
+                        ps.setObject(7, cloudEvent.getTenantId());
+                        ps.setLong(8, cloudEvent.getTs());
+                        ps.setObject(9, cloudEvent.getEntityGroupId());
                     }
 
                     @Override

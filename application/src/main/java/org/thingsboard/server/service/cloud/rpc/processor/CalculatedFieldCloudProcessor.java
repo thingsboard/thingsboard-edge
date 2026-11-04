@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.google.common.util.concurrent.Futures;
@@ -67,7 +68,7 @@ public class CalculatedFieldCloudProcessor extends BaseCalculatedFieldProcessor 
         }
         Boolean calculatedFieldNameWasUpdated = resultPair.getSecond();
         if (calculatedFieldNameWasUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.CALCULATED_FIELD, EdgeEventActionType.UPDATED, calculatedFieldId, null);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.CALCULATED_FIELD, EdgeEventActionType.UPDATED, calculatedFieldId, null, null);
         }
     }
 

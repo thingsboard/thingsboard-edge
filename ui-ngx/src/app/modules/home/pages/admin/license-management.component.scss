@@ -1,0 +1,200 @@
+// SPDX-FileCopyrightText: Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+@import "../../../../../scss/constants.scss";
+
+$enabled-color: #198038;
+
+:host {
+
+  .mat-mdc-card.license-card {
+    @media #{$mat-md} {
+      width: 600px;
+    }
+    @media #{$mat-lg} {
+      width: 720px;
+    }
+    @media #{$mat-xl} {
+      width: 1000px;
+    }
+  }
+
+  .subscription {
+    display: flex;
+    &.info {
+      flex-direction: row;
+      gap: 16px;
+      @media #{$mat-xs} {
+        flex-direction: column;
+      }
+      @media #{$mat-gt-md} {
+        padding-left: 16px;
+      }
+      .info-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        .info-row {
+          width: 100%;
+          height: 40px;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          @media #{$mat-gt-md} {
+            flex-direction: row;
+            align-items: center;
+            gap: 16px;
+            .label {
+              min-width: 184px;
+            }
+          }
+        }
+      }
+      .action-container {
+        width: 225px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        .action-row {
+          width: 100%;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          .mdc-button {
+            width: 100%;
+          }
+        }
+        .last-update-section {
+          width: 100%;
+          height: 40px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          .last-update-text {
+            font-size: 14px;
+            line-height: 14px;
+            font-weight: 400;
+            color: rgba(0, 0, 0, 0.38);
+          }
+          .last-update-ts {
+            font-size: 16px;
+            line-height: 20px;
+            font-weight: 400;
+            color: rgba(0, 0, 0, 0.54);
+          }
+        }
+      }
+    }
+    &.items {
+      flex-direction: column;
+      .item-row {
+        height: 40px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 16px;
+        padding-right: 16px;
+        border-bottom: solid 1px rgba(0, 0, 0, 0.12);
+        &.column-xs {
+          .choose-pilot-xs {
+            display: none;
+          }
+          .choose-pilot {
+            display: block;
+          }
+          @media #{$mat-xs} {
+            height: auto;
+            flex-direction: column;
+            align-items: stretch;
+            padding-top: 8px;
+            padding-bottom: 8px;
+            gap: 4px;
+            .usage-row {
+              justify-content: space-between;
+            }
+            .choose-pilot-xs {
+              display: block;
+            }
+            .choose-pilot {
+              display: none;
+            }
+          }
+        }
+        .usage-row {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          gap: 24px;
+          .mat-mdc-progress-bar {
+            width: 200px;
+            border-radius: 6px;
+            --mat-progress-bar-track-height: 8px;
+            --mat-progress-bar-active-indicator-height: 8px;
+            --mat-progress-bar-track-color: #{rgba($enabled-color, 0.06)};
+            --mat-progress-bar-active-indicator-color: #{$enabled-color};
+          }
+          .usage-count {
+            min-width: 120px;
+            white-space: nowrap;
+            text-align: right;
+          }
+          .usage-row-spacer {
+            width: 40px;
+            flex-shrink: 0;
+          }
+        }
+        .status {
+          font-size: 14px;
+          font-weight: 400;
+          height: 32px;
+          line-height: 32px;
+          border-radius: 16px;
+          color: rgba(0, 0, 0, 0.38);
+          background: rgba(0, 0, 0, 0.06);
+          padding-left: 12px;
+          padding-right: 12px;
+          &.enabled {
+            background: #{rgba($enabled-color, 0.06)};
+            color: $enabled-color;
+          }
+        }
+        .mat-mdc-button {
+          white-space: nowrap;
+          &.add-to-plan {
+            padding-right: 0;
+          }
+        }
+        &.critical {
+          .label {
+            color: #D12730;
+          }
+          .usage-row {
+            .mat-mdc-progress-bar {
+              --mat-progress-bar-track-color: rgba(209, 39, 48, 0.06);
+              --mat-progress-bar-active-indicator-color: #D12730;
+            }
+            .value {
+              color: #D12730;
+            }
+          }
+        }
+      }
+    }
+    .label {
+      color: var(--tb-primary-500);
+      font-size: 16px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .value {
+      color: rgba(0, 0, 0, 0.76);
+      font-size: 16px;
+      font-weight: 400;
+      white-space: normal;
+    }
+  }
+}

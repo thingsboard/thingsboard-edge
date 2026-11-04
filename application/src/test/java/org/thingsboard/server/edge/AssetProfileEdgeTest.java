@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
@@ -7,8 +8,10 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -79,7 +82,11 @@ public class AssetProfileEdgeTest extends AbstractEdgeTest {
     @Ignore
     public void testSendAssetProfileToCloud() throws Exception {
         RuleChainId edgeRuleChainId = createEdgeRuleChainAndAssignToEdge("Asset Profile Rule Chain");
-        DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Dashboard");
+
+        EntityGroup dashboardEntityGroup = createEntityGroupAndAssignToEdge(EntityType.DASHBOARD, "DashboardGroup", tenantId);
+        edgeImitator.expectMessageAmount(1);
+        DashboardId dashboardId = saveDashboard("Edge Dashboard", dashboardEntityGroup.getId()).getId();
+        Assert.assertTrue(edgeImitator.waitForMessages());
 
         AssetProfile assetProfileOnEdge = buildAssetProfileForUplinkMsg("Asset Profile On Edge");
         assetProfileOnEdge.setDefaultRuleChainId(edgeRuleChainId);
@@ -124,7 +131,7 @@ public class AssetProfileEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(assetProfile.getUuidId().getLeastSignificantBits(), assetProfileUpdateMsg.getIdLSB());
 
         // cleanup
-        unAssignFromEdgeAndDeleteDashboard(dashboardId);
+        unAssignEntityGroupFromEdge(dashboardEntityGroup);
         unAssignFromEdgeAndDeleteRuleChain(edgeRuleChainId);
     }
 

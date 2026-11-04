@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 import { ItemType } from './iot-hub-item.models';
 import { PageLink } from '@shared/models/page/page-link';
 
@@ -95,6 +96,14 @@ export interface MpItemVersionView {
   creatorVerified: boolean;
   installCount: number;
   totalInstallCount: number;
+  /**
+   * Server-owned, read-only marker for content that already ships inside ThingsBoard
+   * (a bundled widget, a SCADA symbol) instead of being installed by the IoT Hub.
+   * Optional on purpose: older Hub deployments simply omit the field, so it must never
+   * be read directly — use `isBuiltInItem()` from `@home/components/iot-hub/iot-hub-utils`.
+   * Never send it back to the server.
+   */
+  builtIn?: boolean;
   resources: MpItemVersionResource[];
   relatedItems?: string[];
   checksum?: string;
@@ -111,7 +120,7 @@ export interface ListingItemVersionNotFound {
 
 export interface MpItemVersionQueryOptions {
   type?: string;
-  peOnly?: boolean;
+  ceOnly?: boolean;
   creatorId?: string;
   categories?: string[];
   useCases?: string[];
@@ -134,8 +143,8 @@ export class MpItemVersionQuery {
     if (o.type) {
       query += `&type=${o.type}`;
     }
-    if (o.peOnly != null) {
-      query += `&peOnly=${o.peOnly}`;
+    if (o.ceOnly != null) {
+      query += `&ceOnly=${o.ceOnly}`;
     }
     if (o.creatorId) {
       query += `&creatorId=${o.creatorId}`;

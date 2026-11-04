@@ -1,11 +1,13 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -18,6 +20,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.eventsourcing.ResetQueueOffsetEvent;
+import org.thingsboard.server.dao.subscription.SubscriptionService;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.service.cloud.CloudContextComponent;
@@ -39,6 +42,10 @@ public class BaseEdgeConfigurationHandler implements EdgeConfigurationHandler {
     private final PartitionService partitionService;
     private final ConnectionStatusManager connectionStatusManager;
     private final ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    @Lazy
+    private SubscriptionService subscriptionService;
 
     @Autowired(required = false)
     private CloudEventMigrationService cloudEventMigrationService;
@@ -90,8 +97,8 @@ public class BaseEdgeConfigurationHandler implements EdgeConfigurationHandler {
     private void saveOrUpdateEdge(TenantId tenantId, EdgeConfiguration edgeConfiguration) throws Exception {
         EdgeId edgeId = getEdgeId(edgeConfiguration);
         cloudCtx.getEdgeProcessor().processEdgeConfigurationMsgFromCloud(tenantId, edgeConfiguration);
-        cloudCtx.getCloudEventService().saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null);
-        cloudCtx.getCloudEventService().saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null);
+        cloudCtx.getCloudEventService().saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.ATTRIBUTES_REQUEST, edgeId, null, null);
+        cloudCtx.getCloudEventService().saveCloudEvent(tenantId, CloudEventType.EDGE, EdgeEventActionType.RELATION_REQUEST, edgeId, null, null);
     }
 
     private EdgeId getEdgeId(EdgeConfiguration edgeConfiguration) {
@@ -116,6 +123,8 @@ public class BaseEdgeConfigurationHandler implements EdgeConfigurationHandler {
             currentEdgeSettings.setName(newEdgeSettings.getName());
             currentEdgeSettings.setType(newEdgeSettings.getType());
             currentEdgeSettings.setRoutingKey(newEdgeSettings.getRoutingKey());
+            currentEdgeSettings.setMaxAssets(newEdgeSettings.getMaxAssets());
+            currentEdgeSettings.setMaxDevices(newEdgeSettings.getMaxDevices());
         }
 
         edgeInfo.setSettings(currentEdgeSettings);
@@ -132,6 +141,8 @@ public class BaseEdgeConfigurationHandler implements EdgeConfigurationHandler {
         edgeSettings.setType(edgeConfiguration.getType());
         edgeSettings.setRoutingKey(edgeConfiguration.getRoutingKey());
         edgeSettings.setFullSyncRequired(true);
+        edgeSettings.setMaxDevices(subscriptionService.maxDevices());
+        edgeSettings.setMaxAssets(subscriptionService.maxAssets());
         return edgeSettings;
     }
 

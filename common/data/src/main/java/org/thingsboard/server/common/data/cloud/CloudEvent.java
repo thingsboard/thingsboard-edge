@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.common.data.cloud;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -24,6 +25,7 @@ public class CloudEvent extends BaseData<CloudEventId> {
     private UUID entityId;
     private CloudEventType type;
     private transient JsonNode entityBody;
+    private UUID entityGroupId;
 
     public CloudEvent() {
         super();
@@ -33,11 +35,13 @@ public class CloudEvent extends BaseData<CloudEventId> {
         super(id);
     }
 
-    public CloudEvent(TenantId tenantId, EdgeEventActionType action, UUID entityId, CloudEventType type, JsonNode entityBody) {
+    public CloudEvent(TenantId tenantId, EdgeEventActionType action, UUID entityId, CloudEventType type, JsonNode entityBody, UUID entityGroupId) {
         this.tenantId = tenantId;
         this.action = action;
         this.entityId = entityId;
         this.type = type;
         this.entityBody = entityBody;
+        this.entityGroupId = entityGroupId;
     }
+
 }

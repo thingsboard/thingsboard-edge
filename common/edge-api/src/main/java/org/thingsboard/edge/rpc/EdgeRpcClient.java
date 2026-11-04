@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.edge.rpc;
 
@@ -20,6 +20,8 @@ public interface EdgeRpcClient {
                  Consumer<Exception> onError);
 
     void disconnect(boolean onError) throws InterruptedException;
+
+    boolean isConnected();
 
     void sendSyncRequestMsg(boolean fullSyncRequired);
 

@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.transport.mqtt.session;
 
@@ -245,8 +245,8 @@ public class SparkplugNodeSessionHandler extends AbstractGatewaySessionHandler<S
                 } else {
                     if (attributesMetricNames == null || !matches(attributesMetricNames, metricName)) {
                         long ts = protoMetric.getTimestamp();
-                        String key = SPARKPLUG_BD_SEQUENCE_NUMBER_KEY.equals(protoMetric.getName()) ?
-                                topicTypeName + " " + protoMetric.getName() : protoMetric.getName();
+                        String key = SPARKPLUG_BD_SEQUENCE_NUMBER_KEY.equals(metricName) ?
+                                topicTypeName + " " + metricName : metricName;
                         Optional<TransportProtos.KeyValueProto> keyValueProtoOpt = fromSparkplugBMetricToKeyValueProto(key, protoMetric);
                         keyValueProtoOpt.ifPresent(kvProto -> msgs.add(postTelemetryMsgCreated(kvProto, ts)));
                     }

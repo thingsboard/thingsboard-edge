@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
@@ -9,8 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
@@ -26,7 +30,7 @@ import java.util.UUID;
 @TbCoreComponent
 public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
-    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
+    public ListenableFuture<Void> processCustomerMsgFromCloud(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) throws ThingsboardException {
         CustomerId customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
         try {
             cloudSynchronizationManager.getSync().set(true);
@@ -40,13 +44,30 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                         if (customer == null) {
                             throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
                         }
+                        EntityId ownerId = customer.getOwnerId();
+                        if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                            createCustomerIfNotExists(tenantId, new CustomerId(ownerId.getId()));
+                        }
+                        boolean created = false;
                         CustomerService customerService = edgeCtx.getCustomerService();
-
+                        Customer customerById = customerService.findCustomerById(tenantId, customerId);
+                        if (customerById == null) {
+                            created = true;
+                        } else {
+                            CustomerId tmpCustomerOwnerId = new CustomerId(EntityId.NULL_UUID);
+                            if (EntityType.CUSTOMER.equals(ownerId.getEntityType())) {
+                                tmpCustomerOwnerId = new CustomerId(ownerId.getId());
+                            }
+                            changeOwnerIfRequired(tenantId, tmpCustomerOwnerId, customerId);
+                        }
                         Optional<Customer> edgeCustomer = customerService.findCustomerByTenantIdAndTitle(customer.getTenantId(), customer.getTitle());
                         edgeCustomer.filter(oldCustomer -> !oldCustomer.getId().equals(customer.getId()))
                                 .ifPresent(value -> customerService.deleteCustomer(value.getTenantId(), value.getId()));
 
-                        customerService.saveCustomer(customer, false);
+                        Customer savedCustomer = customerService.saveCustomer(customer, false);
+                        if (created) {
+                            postCreateSteps(savedCustomer);
+                        }
                     } finally {
                         customerCreationLock.unlock();
                     }
@@ -68,6 +89,10 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
     public void createCustomerIfNotExists(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
         CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
+        createCustomerIfNotExists(tenantId, customerId);
+    }
+
+    private void createCustomerIfNotExists(TenantId tenantId, CustomerId customerId) {
         Customer customer = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
         if (customer == null && customerId != null && !customerId.isNullUid()) {
             customerCreationLock.lock();
@@ -77,11 +102,23 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
                 customer.setTenantId(tenantId);
                 customer.setTitle("TMP_NAME_" + StringUtils.randomAlphanumeric(10));
-                edgeCtx.getCustomerService().saveCustomer(customer, false);
+                Customer savedCustomer = edgeCtx.getCustomerService().saveCustomer(customer, false);
+                postCreateSteps(savedCustomer);
             } finally {
                 customerCreationLock.unlock();
             }
         }
+    }
+
+    private void postCreateSteps(Customer savedCustomer) {
+        edgeCtx.getEntityGroupService().addEntityToEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getOwnerId(), savedCustomer.getId());
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.CUSTOMER);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ASSET);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DEVICE);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.ENTITY_VIEW);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.EDGE);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DASHBOARD);
+        edgeCtx.getEntityGroupService().createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
     }
 
 }

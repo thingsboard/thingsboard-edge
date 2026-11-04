@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,6 +24,7 @@ import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ACTION_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ENTITY_BODY_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ENTITY_GROUP_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ENTITY_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_SEQUENTIAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_TENANT_ID_PROPERTY;
@@ -57,6 +59,9 @@ public class AbstractCloudEventEntity extends BaseSqlEntity<CloudEvent> implemen
     @Column(name = CLOUD_EVENT_ENTITY_BODY_PROPERTY)
     private JsonNode entityBody;
 
+    @Column(name = CLOUD_EVENT_ENTITY_GROUP_ID_PROPERTY)
+    private UUID entityGroupId;
+
     @Column(name = TS_COLUMN)
     private long ts;
 
@@ -79,6 +84,9 @@ public class AbstractCloudEventEntity extends BaseSqlEntity<CloudEvent> implemen
         if (cloudEvent.getEntityId() != null) {
             this.entityId = cloudEvent.getEntityId();
         }
+        if (cloudEvent.getEntityGroupId() != null) {
+            this.entityGroupId = cloudEvent.getEntityGroupId();
+        }
         this.cloudEventType = cloudEvent.getType();
         this.cloudEventAction = cloudEvent.getAction();
         this.entityBody = cloudEvent.getEntityBody();
@@ -91,6 +99,9 @@ public class AbstractCloudEventEntity extends BaseSqlEntity<CloudEvent> implemen
         cloudEvent.setTenantId(TenantId.fromUUID(tenantId));
         if (entityId != null) {
             cloudEvent.setEntityId(entityId);
+        }
+        if (entityGroupId != null) {
+            cloudEvent.setEntityGroupId(entityGroupId);
         }
         cloudEvent.setType(cloudEventType);
         cloudEvent.setAction(cloudEventAction);

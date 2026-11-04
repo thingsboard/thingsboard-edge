@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.transport.mqtt.sparkplug.timeseries;
 
@@ -28,6 +28,11 @@ public class MqttV5ClientSparkplugBTelemetryTest extends AbstractMqttV5ClientSpa
     @Test
     public void testClientWithCorrectAccessTokenPublishNBIRTH() throws Exception {
         processClientWithCorrectAccessTokenPublishNBIRTH();
+    }
+
+    @Test
+    public void testClientWithCorrectAccessTokenPublishNBIRTH_NDATA_AliasWithoutMetricName() throws Exception {
+        processClientWithCorrectAccessTokenPublishNBIRTH_NDATA_AliasWithoutMetricName();
     }
 
     @Test

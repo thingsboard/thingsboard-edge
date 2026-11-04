@@ -1,0 +1,109 @@
+// SPDX-FileCopyrightText: Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+package org.thingsboard.server.service.cloud.rpc.processor;
+
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.dao.service.validator.IntegrationDataValidator;
+import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Component
+@Slf4j
+public class IntegrationCloudProcessor extends BaseEdgeProcessor {
+
+    @Autowired
+    private IntegrationDataValidator integrationValidator;
+
+    public ListenableFuture<Void> processIntegrationMsgFromCloud(TenantId tenantId, IntegrationUpdateMsg integrationUpdateMsg) {
+        try {
+            IntegrationId integrationId = new IntegrationId(new UUID(integrationUpdateMsg.getIdMSB(), integrationUpdateMsg.getIdLSB()));
+            switch (integrationUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    Integration integration = JacksonUtil.fromString(integrationUpdateMsg.getEntity(), Integration.class, true);
+                    if (integration == null) {
+                        throw new RuntimeException("[{" + tenantId + "}] integrationUpdateMsg {" + integrationUpdateMsg + "} cannot be converted to integration");
+                    }
+                    Integration integrationById = edgeCtx.getIntegrationService().findIntegrationById(tenantId, integrationId);
+                    boolean created = false;
+                    if (integrationById == null) {
+                        created = true;
+                        integration.setId(null);
+                    }
+                    integration.setEdgeTemplate(false);
+
+                    integrationValidator.validate(integration, Integration::getTenantId);
+
+                    if (created) {
+                        integration.setId(integrationId);
+                    }
+
+                    Integration savedIntegration = edgeCtx.getIntegrationService().saveIntegration(integration, false);
+
+                    edgeCtx.getClusterService().broadcastEntityStateChangeEvent(savedIntegration.getTenantId(), savedIntegration.getId(),
+                            created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
+
+                    cleanUpUnusedConverters(tenantId);
+
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    Integration integrationToDelete = edgeCtx.getIntegrationService().findIntegrationById(tenantId, integrationId);
+                    if (integrationToDelete != null) {
+                        edgeCtx.getIntegrationService().deleteIntegration(tenantId, integrationId);
+                        edgeCtx.getClusterService().broadcastEntityStateChangeEvent(integrationToDelete.getTenantId(), integrationToDelete.getId(), ComponentLifecycleEvent.DELETED);
+                        cleanUpUnusedConverters(tenantId);
+                    }
+                    break;
+                case UNRECOGNIZED:
+                    return handleUnsupportedMsgType(integrationUpdateMsg.getMsgType());
+            }
+        } catch (Exception e) {
+            String errMsg = String.format("Can't process integration msg [%s]", integrationUpdateMsg);
+            log.error(errMsg, e);
+            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
+        }
+        return Futures.immediateFuture(null);
+    }
+
+    private void cleanUpUnusedConverters(TenantId tenantId) {
+        List<Converter> tenantConverters = new ArrayList<>();
+        PageData<Converter> pageData;
+        PageLink pageLink = new PageLink(100);
+        do {
+            pageData = edgeCtx.getConverterService().findTenantConverters(tenantId, null, pageLink);
+            tenantConverters.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+        for (Converter tenantConverter : tenantConverters) {
+            cleanUpUnusedConverters(tenantId, tenantConverter.getId());
+        }
+    }
+
+    private void cleanUpUnusedConverters(TenantId tenantId, ConverterId converterId) {
+        List<Integration> integrationsByConverterId = edgeCtx.getIntegrationService().findIntegrationsByConverterId(tenantId, converterId);
+        if (integrationsByConverterId.isEmpty()) {
+            edgeCtx.getConverterService().deleteConverter(tenantId, converterId);
+            edgeCtx.getClusterService().broadcastEntityStateChangeEvent(tenantId, converterId, ComponentLifecycleEvent.DELETED);
+        }
+    }
+
+}

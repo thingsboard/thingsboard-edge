@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud;
 
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -62,6 +64,8 @@ public class CloudEventSourcingListener {
             EntityType.RULE_CHAIN,
             EntityType.TB_RESOURCE,
             EntityType.CALCULATED_FIELD,
+            EntityType.SCHEDULER_EVENT,
+            EntityType.REPORT_TEMPLATE,
             EntityType.USER,
             EntityType.AI_MODEL,
             EntityType.API_KEY);
@@ -74,7 +78,7 @@ public class CloudEventSourcingListener {
 
     @PostConstruct
     public void init() {
-        log.info("EdgeEventSourcingListener initiated");
+        log.info("CloudEventSourcingListener initiated");
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -93,7 +97,7 @@ public class CloudEventSourcingListener {
             CloudEventType cloudEventType = getCloudEventTypeForEntityEvent(event.getEntity());
             EdgeEventActionType action = getActionForEntityEvent(event.getEntity(), isCreated);
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    body, cloudEventType, action);
+                    body, cloudEventType, action, null);
         } catch (Exception e) {
             log.error("failed to process SaveEntityEvent: {}", event);
         }
@@ -118,7 +122,7 @@ public class CloudEventSourcingListener {
             CloudEventType type = getCloudEventTypeForEntityEvent(event.getEntity());
             EdgeEventActionType actionType = getEdgeEventActionTypeForEntityEvent(event.getEntity());
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    JacksonUtil.toString(event.getEntity()), type, actionType);
+                    JacksonUtil.toString(event.getEntity()), type, actionType, null);
         } catch (Exception e) {
             log.error("failed to process DeleteEntityEvent: {}", event, e);
         }
@@ -133,9 +137,16 @@ public class CloudEventSourcingListener {
             if (event.getEntityId() != null && !baseEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())) {
                 return;
             }
+            if (event.getEntityGroup() != null) {
+                if (event.getEntityGroup().isGroupAll()) {
+                    log.trace("skipping entity in case of 'All' group: {}", event);
+                    return;
+                }
+            }
             log.trace("ActionEntityEvent called: {}", event);
+            EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    event.getBody(), null, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()));
+                    event.getBody(), null, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()), entityGroupId);
         } catch (Exception e) {
             log.error("failed to process ActionEntityEvent: {}", event);
         }
@@ -158,7 +169,7 @@ public class CloudEventSourcingListener {
             }
             log.trace("RelationActionEvent called: {}", event);
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), null,
-                    JacksonUtil.toString(event.getRelation()), CloudEventType.RELATION, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()));
+                    JacksonUtil.toString(event.getRelation()), CloudEventType.RELATION, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()), null);
         } catch (Exception e) {
             log.error("failed to process RelationActionEvent: {}", event);
         }

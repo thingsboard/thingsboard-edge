@@ -1,7 +1,8 @@
 <!--
 
-    SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-    SPDX-License-Identifier: Apache-2.0
+    SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+    SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+    SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -9,13 +10,13 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>4.3.1.4EDGE-SNAPSHOT</version>
+        <version>4.4.0EDGE-SNAPSHOT</version>
         <artifactId>thingsboard</artifactId>
     </parent>
     <artifactId>dao</artifactId>
     <packaging>jar</packaging>
 
-    <name>Thingsboard Server DAO Layer</name>
+    <name>ThingsBoard Server DAO Layer</name>
     <url>https://thingsboard.io</url>
 
     <properties>
@@ -165,7 +166,7 @@
             <artifactId>takari-cpsuite</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
+		<dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
@@ -250,6 +251,12 @@
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.thingsboard.license</groupId>
+            <artifactId>client</artifactId>
+<!--            TODO: NM - Move to 2.0.* when https://thingsboard.slack.com/archives/D077T17JPKM/p1768401685964199 is reverted back and tested -->
+            <version>1.3.3</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -276,7 +283,21 @@
                         </goals>
                     </execution>
                 </executions>
+		    </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>thingsboard-repo</id>
+            <url>https://repo.thingsboard.io/artifactory/libs-release-public</url>
+        </repository>
+    </repositories>
 </project>
