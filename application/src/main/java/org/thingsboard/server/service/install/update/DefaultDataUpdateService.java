@@ -60,7 +60,7 @@ import org.thingsboard.server.service.component.RuleNodeClassInfo;
 import org.thingsboard.server.service.install.DatabaseSchemaSettingsService;
 import org.thingsboard.server.service.install.DbUpgradeExecutorService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
-import org.thingsboard.server.service.install.lts.LtsMigrationService;
+import org.thingsboard.server.service.install.lts.MigrationService;
 import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
 import java.lang.reflect.Field;
@@ -105,7 +105,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private final ComponentDiscoveryService componentDiscoveryService;
     private final DbUpgradeExecutorService executorService;
     private final DatabaseSchemaSettingsService schemaSettingsService;
-    private final LtsMigrationService ltsMigrationService;
+    private final MigrationService migrationService;
 
     // edge-only: for case "edge" in updateData
     private final TenantService tenantService;
@@ -118,7 +118,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
         }
         //TODO: should be cleaned after each release
         backfillForExistingTenants();
-        ltsMigrationService.runDataMigrations(schemaSettingsService.getDbSchemaVersion(), schemaSettingsService.getPackageSchemaVersion(),
+        migrationService.runDataMigrations(schemaSettingsService.getDbSchemaVersion(), schemaSettingsService.getPackageSchemaVersion(),
                 schemaSettingsService.isForcedReUpgrade());
         // Edge-only: always run next config:
 

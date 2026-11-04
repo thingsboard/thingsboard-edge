@@ -7,7 +7,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
 @TbCoreComponent
-public class V4_2_2_4Migration implements LtsMigration {
+public class V4_2_2_4Migration implements Migration {
 
     @Override
     public String getVersion() {
