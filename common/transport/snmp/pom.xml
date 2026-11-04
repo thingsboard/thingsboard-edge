@@ -11,7 +11,7 @@
 
     <parent>
         <groupId>org.thingsboard.common</groupId>
-        <version>4.4.0.1EDGE</version>
+        <version>4.4.0.2EDGE</version>
         <artifactId>transport</artifactId>
     </parent>
 
