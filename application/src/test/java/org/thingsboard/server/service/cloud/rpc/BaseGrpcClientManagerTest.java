@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.rpc;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.queue.discovery.PartitionService;
@@ -71,6 +73,8 @@ public class BaseGrpcClientManagerTest {
     private DownlinkMessageService downlinkMessageService;
     @Mock
     private ScheduledExecutorService reconnectExecutor;
+    @Mock
+    private EdgeSettingsService edgeSettingsService;
 
     private BaseGrpcClientManager manager;
 
@@ -82,7 +86,7 @@ public class BaseGrpcClientManagerTest {
     void setUp() {
         manager = new BaseGrpcClientManager(edgeRpcClient, edgeInfo, pendingMsgs, statsCounterService,
                 partitionService, eventPublisher, connectionStatusManager, context, edgeConfigurationHandler,
-                downlinkMessageService);
+                downlinkMessageService, edgeSettingsService);
         ReflectionTestUtils.setField(manager, "reconnectExecutor", reconnectExecutor);
 
         lenient().when(edgeInfo.getReconnectTimeoutMs()).thenReturn(INITIAL_TIMEOUT_MS);

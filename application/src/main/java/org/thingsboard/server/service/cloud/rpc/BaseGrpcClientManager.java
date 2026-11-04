@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.rpc;
 
 import com.google.common.util.concurrent.Futures;
@@ -8,20 +9,25 @@ import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.common.data.edge.EdgeSettings;
+import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsKey;
 import org.thingsboard.server.dao.eventsourcing.GrpcConnectionEstablishedEvent;
 import org.thingsboard.server.dao.eventsourcing.InterruptSendUplinkEvent;
 import org.thingsboard.server.dao.eventsourcing.StopCloudEventProcessingEvent;
+import org.thingsboard.server.dao.subscription.SubscriptionService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
@@ -35,6 +41,7 @@ import org.thingsboard.server.service.cloud.config.EdgeConfigurationHandler;
 import org.thingsboard.server.service.cloud.info.EdgeInfoHolder;
 import org.thingsboard.server.service.cloud.info.PendingUplinkMsgPackHolder;
 
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -44,6 +51,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.thingsboard.server.dao.subscription.BasicSubscriptionService.OFFLINE_CLOUD_ENDPOINT;
+import static org.thingsboard.server.dao.subscription.BasicSubscriptionService.OFFLINE_KEY;
 import static org.thingsboard.server.service.edge.rpc.session.EdgeGrpcSession.RATE_LIMIT_REACHED;
 
 @Service
@@ -61,6 +70,11 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
     private final ConfigurableApplicationContext context;
     private final EdgeConfigurationHandler edgeConfigurationHandler;
     private final DownlinkMessageService downlinkMessageService;
+    private final EdgeSettingsService edgeSettingsService;
+
+    @Autowired
+    @Lazy
+    private SubscriptionService subscriptionService;
 
     private ScheduledExecutorService shutdownExecutor;
     private ScheduledExecutorService reconnectExecutor;
@@ -216,6 +230,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             log.info("Trying to reconnect due to the error: ", e);
             try {
                 edgeRpcClient.disconnect(true);
+                tryInitOfflineMode();
             } catch (Exception ex) {
                 log.error("Exception during disconnect: ", ex);
             }
@@ -302,6 +317,17 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
         }
     }
 
+    private void tryInitOfflineMode() {
+        if (!edgeInfo.isOfflineInitialized()) {
+            EdgeSettings edgeSettings = edgeSettingsService.findEdgeSettings();
+            if (edgeSettings != null) {
+                subscriptionService.init(TenantId.fromUUID(UUID.fromString(edgeSettings.getTenantId())), new EdgeId(UUID.fromString(edgeSettings.getEdgeId())),
+                        OFFLINE_KEY, OFFLINE_CLOUD_ENDPOINT);
+                edgeInfo.setOfflineInitialized(true);
+            }
+        }
+    }
+
     private void onDownlink(DownlinkMsg downlinkMsg) {
         // Keeps the in-memory customer id in step with the cloud. The ownership change itself is
         // delivered by the regular edge assignment / change-owner event flow, so it must not trigger a
@@ -329,11 +355,25 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             cancelReconnect();
             eventPublisher.publishEvent(InterruptSendUplinkEvent.INSTANCE);
 
-            if ("CE".equals(edgeConfiguration.getCloudType())) {
-                initAndUpdateEdgeSettings(edgeConfiguration);
+            if ("PE".equals(edgeConfiguration.getCloudType())) {
+                subscriptionService.setLicenseVersion(edgeConfiguration.getLicenseVersion());
+                EdgeId edgeId = new EdgeId(new UUID(edgeConfiguration.getEdgeIdMSB(), edgeConfiguration.getEdgeIdLSB()));
+                TenantId tenantId = new TenantId(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
+                String cloudEndpoint = null;
+                if (edgeConfiguration.getLicenseVersion() < 2) {
+                    cloudEndpoint = "host.docker.internal".equals(edgeInfo.getRpcHost())
+                            ? edgeConfiguration.getCloudEndpoint().replace("localhost", "host.docker.internal")
+                            : edgeConfiguration.getCloudEndpoint();
+                }
+                if (subscriptionService.init(tenantId, edgeId, edgeConfiguration.getEdgeLicenseKey(), cloudEndpoint)) {
+                    log.debug("Subscription service was initialized successfully!");
+                    initAndUpdateEdgeSettings(edgeConfiguration);
+                } else {
+                    log.debug("Failed to initialize subscription service!");
+                }
             } else {
                 new Thread(() -> {
-                    log.error("Terminating application. CE edge can be connected only to CE server version...");
+                    log.error("Terminating application. PE edge can be connected only to PE server version...");
                     int exitCode = -1;
                     int appExitCode = exitCode;
                     try {
@@ -361,6 +401,7 @@ public class BaseGrpcClientManager extends TbApplicationEventListener<PartitionC
             requestSyncToCloud(edgeSettings.isFullSyncRequired());
         }
         edgeInfo.setInitialized(true);
+        edgeInfo.setOfflineInitialized(true);
     }
 
     private void onUplinkResponse(UplinkResponseMsg msg) {

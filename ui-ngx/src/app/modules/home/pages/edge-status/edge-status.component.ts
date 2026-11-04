@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 import { Component, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { FormBuilder, FormGroup } from '@angular/forms';
@@ -43,7 +44,9 @@ export class EdgeStatusComponent extends PageComponent implements OnInit {
       type: '',
       routingKey: '',
       lastConnectTime: '',
-      lastDisconnectTime: ''
+      lastDisconnectTime: '',
+      maxDevices: '',
+      maxAssets: ''
     });
     this.edgeStatusGroup.disable();
   }
@@ -67,7 +70,9 @@ export class EdgeStatusComponent extends PageComponent implements OnInit {
           type: edgeSettings.type,
           routingKey: edgeSettings.routingKey,
           lastConnectTime: this.datePipe.transform(lastConnectTime, 'yyyy-MM-dd HH:mm:ss'),
-          lastDisconnectTime: lastDisconnectTime ? this.datePipe.transform(lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss') : 'N/A'
+          lastDisconnectTime: lastDisconnectTime ? this.datePipe.transform(lastDisconnectTime, 'yyyy-MM-dd HH:mm:ss') : 'N/A',
+          maxDevices: edgeSettings.maxDevices,
+          maxAssets: edgeSettings.maxAssets
         });
       }
     );

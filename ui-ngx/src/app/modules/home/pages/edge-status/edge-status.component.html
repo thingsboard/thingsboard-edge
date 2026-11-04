@@ -1,7 +1,8 @@
 <!--
 
-    SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-    SPDX-License-Identifier: Apache-2.0
+    SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+    SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+    SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 
 -->
 <div>
@@ -36,6 +37,14 @@
           <mat-form-field class="mat-block">
             <mat-label translate>edge.routing-key</mat-label>
             <input matInput formControlName="routingKey"/>
+          </mat-form-field>
+          <mat-form-field class="mat-block">
+            <mat-label translate>edge.max-devices</mat-label>
+            <input matInput formControlName="maxDevices"/>
+          </mat-form-field>
+          <mat-form-field class="mat-block">
+            <mat-label translate>edge.max-assets</mat-label>
+            <input matInput formControlName="maxAssets"/>
           </mat-form-field>
           <mat-form-field class="mat-block">
             <mat-label translate>edge.last-connect-time</mat-label>

@@ -1,0 +1,192 @@
+<!--
+
+    SPDX-FileCopyrightText: Copyright ThingsBoard, Inc.
+    SPDX-License-Identifier: BUSL-1.1
+
+-->
+<div class="m-4 flex flex-col gap-2">
+  <mat-card appearance="outlined" class="license-card">
+    <div class="tb-form-panel no-border">
+      <div class="tb-form-panel-title">
+        {{ 'subscription.license-information' | translate }}
+      </div>
+      <div class="subscription info">
+        <div class="info-container">
+          <div class="info-row">
+            <div class="label">
+              {{ (subscriptionInfo.perpetual ? 'subscription.license-package' : 'subscription.subscription-plan') | translate }}
+            </div>
+            <div class="value">
+              {{ subscriptionInfo.subscriptionPlanName }}
+            </div>
+          </div>
+          @if (subscriptionInfo.perpetual) {
+            <div class="info-row">
+              <div class="label" translate>subscription.updates-available-until</div>
+              <div class="value">{{ subscriptionInfo.endTs | date:'yyyy-MM-dd' }}</div>
+            </div>
+          } @else {
+            <div class="info-row">
+              <div class="label" translate>subscription.subscription-period</div>
+              <div class="value">
+                {{
+                  'subscription.date-period' | translate:
+                    { startDate: (subscriptionInfo.currentPeriodStartTs | date:'yyyy-MM-dd'),
+                      endDate: (subscriptionInfo.currentPeriodEndTs | date:'yyyy-MM-dd')}
+                }}
+              </div>
+            </div>
+            @if (subscriptionInfo.upcomingInvoiceDate) {
+              <div class="info-row">
+                <div class="label" translate>subscription.next-charge</div>
+                <div class="value">
+                  {{'subscription.next-charge-details' | translate: {
+                  total: subscriptionInfo.upcomingInvoiceAmountDue | tbCurrency: {short: true},
+                  date: subscriptionInfo.upcomingInvoiceDate | date: 'MMM dd, yyyy'
+                }
+                  }}
+                </div>
+              </div>
+            }
+            <div class="info-row">
+              <div class="label" translate>subscription.due-date</div>
+              <div class="value">
+                {{ subscriptionInfo.endTs | date:'yyyy-MM-dd' }}
+              </div>
+            </div>
+          }
+        </div>
+        <div class="action-container">
+          @if (!subscriptionInfo.offline) {
+            <div class="action-row">
+              <button [disabled]="isLoading$ | async" mat-flat-button color="primary" (click)="manageSubscription($event)">
+                {{ (subscriptionInfo.perpetual ? 'subscription.customize-license' : 'subscription.manage-subscription') | translate }}
+              </button>
+            </div>
+            <div class="action-row">
+              <button [disabled]="isLoading$ | async" mat-stroked-button color="primary" (click)="refreshLicenseInfo($event)">
+                <tb-icon matButtonIcon>refresh</tb-icon>
+                {{ 'subscription.refresh-license-info' | translate }}
+              </button>
+            </div>
+          }
+          <ng-container *ngTemplateOutlet="lastUpdateSection"></ng-container>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+  <mat-card appearance="outlined" class="license-card">
+    <div class="tb-form-panel no-border">
+      <div class="tb-form-panel-title">
+        {{ 'subscription.license-details' | translate }}
+      </div>
+      <div class="subscription items">
+        <div class="item-row column-xs" [class.critical]="isItemCritical(subscriptionInfo.devicesCount, subscriptionInfo.maxDevices)">
+          <div class="label" translate>subscription.devices</div>
+          @let showExtraDevice = !subscriptionInfo.offline && subscriptionInfo.planExtraDeviceEnabled;
+          @let showAIUsage = !subscriptionInfo.offline && aiEnabled && subscriptionInfo.maxAiCredits > 0;
+          @let showExtraAi = showAIUsage && subscriptionInfo.planExtraAiCreditsEnabled;
+          <div class="usage-row">
+            <mat-progress-bar [value]="(subscriptionInfo.devicesCount / subscriptionInfo.maxDevices) * 100"></mat-progress-bar>
+            <div class="usage-count value">
+              {{ subscriptionInfo.devicesCount + ' / ' + subscriptionInfo.maxDevices }}
+            </div>
+            @if (showExtraDevice) {
+              <button class="tb-mat-40" mat-icon-button color="primary" (click)="addDevices($event)">
+                <tb-icon>add</tb-icon>
+              </button>
+            } @else if (showExtraAi){
+              <div class="usage-row-spacer"></div>
+            }
+          </div>
+        </div>
+        @if (showAIUsage) {
+          <div class="item-row column-xs" [class.critical]="isItemCritical(subscriptionInfo.usedAiCredits, subscriptionInfo.maxAiCredits)">
+            <div class="label" translate>subscription.ai-credits</div>
+            <div class="usage-row">
+              <mat-progress-bar [value]="(subscriptionInfo.usedAiCredits / subscriptionInfo.maxAiCredits) * 100"></mat-progress-bar>
+              <div class="usage-count value">
+                {{ (subscriptionInfo.usedAiCredits | shortNumber : {roundDown: true} ) + ' / ' + (subscriptionInfo.maxAiCredits | shortNumber: {roundDown: true}) }}
+              </div>
+              @if (showExtraAi) {
+                <button class="tb-mat-40" mat-icon-button color="primary" (click)="addAiCredits($event)">
+                  <tb-icon>add</tb-icon>
+                </button>
+              } @else if (showExtraDevice) {
+                <div class="usage-row-spacer"></div>
+              }
+            </div>
+          </div>
+        }
+        <div class="item-row" [class.column-xs]="planWithoutWhiteLabeling">
+          <div class="label" translate>subscription.white-labeling</div>
+          @if (planWithoutWhiteLabeling) {
+            <button mat-button color="primary" class="choose-pilot" (click)="choosePilotPlan($event)">
+              {{ 'subscription.choose-pilot-plan' | translate }}
+            </button>
+            <button mat-stroked-button color="primary" class="choose-pilot-xs" (click)="choosePilotPlan($event)">
+              {{ 'subscription.choose-pilot-plan' | translate }}
+            </button>
+          } @else {
+            <div class="status" [class.enabled]="subscriptionInfo.whiteLabelingEnabled">
+              {{ (subscriptionInfo.whiteLabelingEnabled ? 'api-usage.status.enabled' : 'api-usage.status.disabled') | translate }}
+            </div>
+          }
+        </div>
+        @if (subscriptionInfo.planEdgeEnabled && (!subscriptionInfo.offline || subscriptionInfo.offline && subscriptionInfo.edgeEnabled)) {
+          <div class="item-row">
+            <div class="label" translate>subscription.edge</div>
+            @if (subscriptionInfo.edgeEnabled) {
+              <div class="status enabled">
+                {{ 'api-usage.status.enabled' | translate }}
+              </div>
+            } @else {
+              <button class="add-to-plan" mat-button color="primary" (click)="addEdge($event)">
+                {{ 'subscription.add-to-plan' | translate }}
+                <tb-icon class="tb-mat-24" matButtonIcon iconPositionEnd>add</tb-icon>
+              </button>
+            }
+          </div>
+          @if (subscriptionInfo.edgeEnabled) {
+            <div class="item-row column-xs" [class.critical]="isItemCritical(subscriptionInfo.edgesCount, subscriptionInfo.maxEdges)">
+              <div class="label" translate>subscription.edges</div>
+              <div class="usage-row">
+                <mat-progress-bar [value]="(subscriptionInfo.edgesCount / subscriptionInfo.maxEdges) * 100"></mat-progress-bar>
+                <div class="usage-count value">
+                  {{ subscriptionInfo.edgesCount + ' / ' + subscriptionInfo.maxEdges }}
+                </div>
+                @if (!subscriptionInfo.offline && subscriptionInfo.planExtraEdgeEnabled) {
+                  <button class="tb-mat-40" mat-icon-button color="primary" (click)="addEdges($event)">
+                    <tb-icon>add</tb-icon>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        }
+        @if (subscriptionInfo.planTrendzEnabled && (!subscriptionInfo.offline || subscriptionInfo.offline && subscriptionInfo.trendzEnabled)) {
+          <div class="item-row">
+            <div class="label" translate>subscription.trendz</div>
+            @if (subscriptionInfo.trendzEnabled) {
+              <div class="status enabled">
+                {{ 'api-usage.status.enabled' | translate }}
+              </div>
+            } @else {
+              <button class="add-to-plan" mat-button color="primary" (click)="addTrendz($event)">
+                {{ 'subscription.add-to-plan' | translate }}
+                <tb-icon class="tb-mat-24" matButtonIcon iconPositionEnd>add</tb-icon>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </mat-card>
+</div>
+
+<ng-template #lastUpdateSection>
+  <div class="last-update-section">
+    <div class="last-update-text" translate>subscription.last-update</div>
+    <div class="last-update-ts">{{ subscriptionInfo.dataTs | date: 'yyyy-MM-dd hh:mm:ss' }}</div>
+  </div>
+</ng-template>

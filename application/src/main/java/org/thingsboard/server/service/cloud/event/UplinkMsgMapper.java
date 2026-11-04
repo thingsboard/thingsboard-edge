@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.event;
 
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.cloud.CloudContextComponent;
+import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.GroupPermissionCloudProcessor;
 import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 
 import java.util.List;
@@ -19,6 +22,8 @@ import java.util.Objects;
 public class UplinkMsgMapper {
 
     private final CloudContextComponent cloudCtx;
+    private final EntityGroupCloudProcessor entityGroupProcessor;
+    private final GroupPermissionCloudProcessor groupPermissionProcessor;
 
     public List<UplinkMsg> convertCloudEventsToUplink(List<CloudEvent> cloudEvents) {
         cloudEvents = EdgeMsgConstructorUtils.mergeAndFilterUplinkDuplicates(cloudEvents);
@@ -34,11 +39,13 @@ public class UplinkMsgMapper {
         try {
             return switch (cloudEvent.getAction()) {
                 case UPDATED, ADDED, DELETED, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, CREDENTIALS_UPDATED,
-                     RELATION_ADD_OR_UPDATE, RELATION_DELETED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER,
+                     RELATION_ADD_OR_UPDATE, RELATION_DELETED, ADDED_TO_ENTITY_GROUP, REMOVED_FROM_ENTITY_GROUP,
                      ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> convertEntityEventToUplink(cloudEvent);
                 case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
                         cloudCtx.getTelemetryProcessor().convertTelemetryEventToUplink(cloudEvent.getTenantId(), cloudEvent);
                 case ATTRIBUTES_REQUEST -> cloudCtx.getTelemetryProcessor().convertAttributesRequestEventToUplink(cloudEvent);
+                case GROUP_ENTITIES_REQUEST -> entityGroupProcessor.processGroupEntitiesRequestMsgToCloud(cloudEvent);
+                case GROUP_PERMISSIONS_REQUEST -> groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
                 case RELATION_REQUEST -> cloudCtx.getRelationProcessor().convertRelationRequestEventToUplink(cloudEvent);
                 case CALCULATED_FIELD_REQUEST -> cloudCtx.getCalculatedFieldProcessor().convertCalculatedFieldRequestEventToUplink(cloudEvent);
                 case RPC_CALL -> cloudCtx.getDeviceProcessor().convertRpcCallEventToUplink(cloudEvent);

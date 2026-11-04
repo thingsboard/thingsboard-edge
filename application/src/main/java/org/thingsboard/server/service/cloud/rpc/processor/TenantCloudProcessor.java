@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
@@ -10,13 +11,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
@@ -31,6 +36,9 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
     private ApiUsageStateService apiUsageStateService;
+
+    @Autowired
+    private WhiteLabelingService whiteLabelingService;
 
     public void createTenantIfNotExists(TenantId tenantId) throws Exception {
         try {
@@ -50,10 +58,24 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
                 apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
             } catch (Exception ignored) {}
 
+            tryCreateEntityGroupAll(savedTenant, EntityType.CUSTOMER);
+            tryCreateEntityGroupAll(savedTenant, EntityType.ASSET);
+            tryCreateEntityGroupAll(savedTenant, EntityType.DEVICE);
+            tryCreateEntityGroupAll(savedTenant, EntityType.ENTITY_VIEW);
+            tryCreateEntityGroupAll(savedTenant, EntityType.EDGE);
+            tryCreateEntityGroupAll(savedTenant, EntityType.DASHBOARD);
+            tryCreateEntityGroupAll(savedTenant, EntityType.USER);
+
             requestForAdditionalData(tenantId, tenantId).get();
         } finally {
             cloudSynchronizationManager.getSync().remove();
         }
+    }
+
+    private void tryCreateEntityGroupAll(Tenant tenant, EntityType entityType) {
+        try {
+            edgeCtx.getEntityGroupService().createEntityGroupAll(tenant.getId(), tenant.getId(), entityType);
+        } catch (Exception ignored) {}
     }
 
     public ListenableFuture<Void> processTenantMsgFromCloud(TenantUpdateMsg tenantUpdateMsg) {
@@ -100,6 +122,10 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
         edgeCtx.getWidgetTypeService().deleteWidgetTypesByTenantId(TenantId.SYS_TENANT_ID);
         edgeCtx.getWidgetsBundleService().deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
         removeTenantAttributes(TenantId.SYS_TENANT_ID);
+        edgeCtx.getRoleService().deleteRolesByTenantId(TenantId.SYS_TENANT_ID);
+        whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
+        whiteLabelingService.saveSystemWhiteLabelingParams(new WhiteLabelingParams());
+        edgeCtx.getCustomTranslationService().deleteCustomTranslationByTenantId(TenantId.SYS_TENANT_ID);
     }
 
     private void removeTenantAttributes(TenantId tenantId) {

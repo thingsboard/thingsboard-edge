@@ -1,10 +1,14 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.client.api.ThingsboardApi.GetDeviceCredentialsByDeviceIdArgs;
+import org.thingsboard.client.api.ThingsboardApi.GetDevicePublishTelemetryCommandsArgs;
+import org.thingsboard.client.api.ThingsboardApi.SaveDeviceArgs;
 import org.thingsboard.client.model.Device;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
@@ -26,16 +30,22 @@ public class DeviceConnectivityApiClientTest extends AbstractApiClientTest {
         device.setName(TEST_PREFIX + System.currentTimeMillis());
         device.setType("default");
 
-        Device savedDevice = client.saveDevice(device, null, null, null, null);
-        String token = client.getDeviceCredentialsByDeviceId(savedDevice.getId().getId().toString()).getCredentialsId();
+        Device savedDevice = client.saveDevice(SaveDeviceArgs.builder()
+                .device(device)
+                .build());
+        String token = client.getDeviceCredentialsByDeviceId(GetDeviceCredentialsByDeviceIdArgs.builder()
+                .deviceId(savedDevice.getId().getId().toString())
+                .build()).getCredentialsId();
 
         String deviceId = savedDevice.getId().getId().toString();
 
-        JsonNode commands = client.getDevicePublishTelemetryCommands(deviceId);
+        JsonNode commands = client.getDevicePublishTelemetryCommands(GetDevicePublishTelemetryCommandsArgs.builder()
+                .deviceId(deviceId)
+                .build());
         // Edge: the HTTP publish command reflects the live request port (DeviceConnectivityServiceImpl
         // overrides it with the base-URL port), not CE's configured 8080 — assert the dynamic test port.
         // assertEquals("curl -v -X POST http://localhost:8080/api/v1/" + token + "/telemetry --header Content-Type:application/json --data \"{temperature:25}\"", commands.get("http").get("http").asText());
-        assertEquals("curl -v -X POST http://localhost:" + wsPort + "/api/v1/" + token + "/telemetry --header Content-Type:application/json --data \"{temperature:25}\"", commands.get("http").get("http").asText());
+        assertEquals("curl -v -X POST http://localhost:" + serverPort + "/api/v1/" + token + "/telemetry --header Content-Type:application/json --data \"{temperature:25}\"", commands.get("http").get("http").asText());
         assertEquals("mosquitto_pub -d -q 1 -h localhost -p 1883 -t v1/devices/me/telemetry -u \"" + token + "\" -m \"{temperature:25}\"", commands.get("mqtt").get("mqtt").asText());
         assertEquals("coap-client -v 6 -m POST -t \"application/json\" -e \"{temperature:25}\" coap://localhost:5683/api/v1/" + token + "/telemetry", commands.get("coap").get("coap").asText());
     }
@@ -43,7 +53,9 @@ public class DeviceConnectivityApiClientTest extends AbstractApiClientTest {
     @Test
     public void testGetDevicePublishTelemetryCommands_nonExistentDevice() {
         String nonExistentId = UUID.randomUUID().toString();
-        assertReturns404(() -> client.getDevicePublishTelemetryCommands(nonExistentId));
+        assertReturns404(() -> client.getDevicePublishTelemetryCommands(GetDevicePublishTelemetryCommandsArgs.builder()
+                .deviceId(nonExistentId)
+                .build()));
     }
 
 }

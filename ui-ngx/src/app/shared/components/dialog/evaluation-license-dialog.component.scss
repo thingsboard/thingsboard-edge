@@ -1,0 +1,38 @@
+// SPDX-FileCopyrightText: Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: BUSL-1.1
+@import '../../../../scss/constants';
+
+.tb-evaluation-license-dialog {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .mat-toolbar {
+    height: 64px;
+    min-height: 64px;
+  }
+
+  p.tb-evaluation-license-content,
+  div.tb-evaluation-license-content {
+    padding: 0 30px;
+    font-size: .9em;
+    font-weight: 300;
+    line-height: 1.2em;
+    color: rgba(0, 0, 0, .8);
+    text-align: center;
+
+    &.enable {
+      font-size: 1.4em;
+    }
+
+    @media #{$mat-gt-sm} {
+      font-size: 1.2em;
+      line-height: 1.4em;
+
+      &.enable {
+        font-size: 1.8em;
+      }
+    }
+  }
+}

@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.info;
 
 import lombok.Data;
@@ -24,6 +25,8 @@ public class EdgeInfoHolder {
     private String routingSecret;
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
+    @Value("${cloud.rpc.host}")
+    private String rpcHost;
     @Value("${cloud.reconnect_max_timeout:180000}")
     private long reconnectMaxTimeoutMs;
     @Value("${cloud.reconnect_jitter_factor:0.15}")
@@ -35,6 +38,7 @@ public class EdgeInfoHolder {
 
     private volatile boolean generalProcessInProgress;
     private volatile boolean initialized;
+    private volatile boolean offlineInitialized;
     private volatile boolean initInProgress;
     private volatile boolean syncInProgress;
     private volatile boolean sendingInProgress;

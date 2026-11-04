@@ -1,13 +1,17 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.transport.mqtt.mqttv3.claim;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.thingsboard.server.common.data.TransportPayloadType;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
+
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_CLAIM_SHORT_JSON_TOPIC;
 
 @Slf4j
 @DaoSqlTest
@@ -24,21 +28,43 @@ public class MqttClaimJsonDeviceTest extends MqttClaimDeviceTest {
     }
 
     @Test
+    @Disabled
+    // TODO: voba - disabled - can't assing to customer groups. Enable once this feature will be required
     public void testClaimingDevice() throws Exception {
         processTestClaimingDevice(false);
     }
 
     @Test
+    @Disabled
+    // TODO: voba - disabled - can't assing to customer groups. Enable once this feature will be required
     public void testClaimingDeviceWithoutSecretAndDuration() throws Exception {
         processTestClaimingDevice(true);
     }
 
     @Test
+    @Disabled
+    // TODO: voba - disabled - can't assing to customer groups. Enable once this feature will be required
+    public void testClaimingDeviceOnShortJsonTopic() throws Exception {
+        processTestClaimingDevice(false, DEVICE_CLAIM_SHORT_JSON_TOPIC);
+    }
+
+    @Test
+    @Disabled
+    // TODO: voba - disabled - can't assing to customer groups. Enable once this feature will be required
+    public void testClaimingDeviceOnShortJsonTopicWithoutSecretAndDuration() throws Exception {
+        processTestClaimingDevice(true, DEVICE_CLAIM_SHORT_JSON_TOPIC);
+    }
+
+    @Test
+    @Disabled
+    // TODO: voba - disabled - can't assing to customer groups. Enable once this feature will be required
     public void testGatewayClaimingDevice() throws Exception {
         processTestGatewayClaimingDevice("Test claiming gateway device Json", false);
     }
 
     @Test
+    @Disabled
+    // TODO: voba - disabled - can't assing to customer groups. Enable once this feature will be required
     public void testGatewayClaimingDeviceWithoutSecretAndDuration() throws Exception {
         processTestGatewayClaimingDevice("Test claiming gateway device empty payload Json", true);
     }

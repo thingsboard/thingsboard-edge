@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.queue.provider;
 
 import com.google.protobuf.util.JsonFormat;
@@ -9,10 +10,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.msg.queue.ServiceType;
+import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
+import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
+import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
+import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.AgentBulkOperationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.FromEdqsMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.JobStatsMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToAgentNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCalculatedFieldNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
@@ -26,6 +35,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperService
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToTbReportNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
@@ -54,6 +64,8 @@ import org.thingsboard.server.queue.settings.TbQueueCloudEventSettings;
 import org.thingsboard.server.queue.settings.TbQueueCloudEventTSSettings;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
 import org.thingsboard.server.queue.settings.TbQueueEdgeSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
+import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
 import org.thingsboard.server.queue.settings.TbQueueRuleEngineSettings;
 import org.thingsboard.server.queue.settings.TbQueueTransportApiSettings;
@@ -73,11 +85,13 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
     private final TbQueueCoreSettings coreSettings;
     private final TbQueueRuleEngineSettings ruleEngineSettings;
     private final TbQueueTransportApiSettings transportApiSettings;
+    private final TbQueueIntegrationApiSettings integrationApiSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueVersionControlSettings vcSettings;
     private final TbKafkaConsumerStatsService consumerStatsService;
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueEdgeSettings edgeSettings;
+    private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
     private final TbQueueCalculatedFieldSettings calculatedFieldSettings;
     private final EdqsConfig edqsConfig;
     private final TasksQueueConfig tasksQueueConfig;
@@ -91,6 +105,8 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
     private final TbQueueAdmin jsExecutorResponseAdmin;
     private final TbQueueAdmin transportApiRequestAdmin;
     private final TbQueueAdmin transportApiResponseAdmin;
+    private final TbQueueAdmin integrationApiRequestAdmin;
+    private final TbQueueAdmin integrationApiResponseAdmin;
     private final TbQueueAdmin notificationAdmin;
     private final TbQueueAdmin fwUpdatesAdmin;
     private final TbQueueAdmin vcAdmin;
@@ -102,11 +118,13 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
     private final TbQueueAdmin edqsEventsAdmin;
     private final TbKafkaAdmin edqsRequestsAdmin;
     private final TbQueueAdmin tasksAdmin;
+    private final TbQueueAdmin agentBulkOpsAdmin;
 
     private final TbQueueAdmin cloudEventAdmin;
     private final TbQueueAdmin cloudEventTSAdmin;
 
-    private final AtomicLong consumerCount = new AtomicLong();
+    private final AtomicLong integrationConsumerCount = new AtomicLong();
+    private final AtomicLong coreConsumerCount = new AtomicLong();
     private final AtomicLong edgeConsumerCount = new AtomicLong();
 
     public KafkaTbCoreQueueFactory(TopicService topicService,
@@ -115,14 +133,16 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
                                    TbQueueCoreSettings coreSettings,
                                    TbQueueRuleEngineSettings ruleEngineSettings,
                                    TbQueueTransportApiSettings transportApiSettings,
+                                   TbQueueIntegrationApiSettings integrationApiSettings,
                                    TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                    TbQueueVersionControlSettings vcSettings,
                                    TbQueueEdgeSettings edgeSettings,
                                    TbKafkaConsumerStatsService consumerStatsService,
                                    TbQueueTransportNotificationSettings transportNotificationSettings,
-                                   TbQueueCalculatedFieldSettings calculatedFieldSettings,
+                                   TbQueueIntegrationExecutorSettings integrationExecutorSettings,
                                    TbQueueCloudEventSettings cloudEventSettings,
                                    TbQueueCloudEventTSSettings cloudEventTSSettings,
+                                   TbQueueCalculatedFieldSettings calculatedFieldSettings,
                                    EdqsConfig edqsConfig,
                                    TasksQueueConfig tasksQueueConfig,
                                    TbKafkaTopicConfigs kafkaTopicConfigs) {
@@ -132,11 +152,13 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         this.coreSettings = coreSettings;
         this.ruleEngineSettings = ruleEngineSettings;
         this.transportApiSettings = transportApiSettings;
+        this.integrationApiSettings = integrationApiSettings;
         this.jsInvokeSettings = jsInvokeSettings;
         this.vcSettings = vcSettings;
         this.consumerStatsService = consumerStatsService;
         this.transportNotificationSettings = transportNotificationSettings;
         this.edgeSettings = edgeSettings;
+        this.integrationExecutorSettings = integrationExecutorSettings;
         this.cloudEventSettings = cloudEventSettings;
         this.cloudEventTSSettings = cloudEventTSSettings;
         this.calculatedFieldSettings = calculatedFieldSettings;
@@ -149,6 +171,8 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         this.jsExecutorResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getJsExecutorResponseConfigs());
         this.transportApiRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiRequestConfigs());
         this.transportApiResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTransportApiResponseConfigs());
+        this.integrationApiRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiRequestConfigs());
+        this.integrationApiResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiResponseConfigs());
         this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());
         this.fwUpdatesAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getFwUpdatesConfigs());
         this.vcAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getVcConfigs());
@@ -162,6 +186,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         this.edqsEventsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsEventsConfigs());
         this.edqsRequestsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdqsRequestsConfigs());
         this.tasksAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getTasksConfigs());
+        this.agentBulkOpsAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getAgentBulkOpsConfigs());
     }
 
     @Override
@@ -176,12 +201,7 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineMsgProducer() {
-        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToRuleEngineMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
-        requestBuilder.settings(kafkaSettings);
-        requestBuilder.clientId("tb-core-rule-engine-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getTopic()));
-        requestBuilder.admin(coreAdmin);
-        return requestBuilder.build();
+        return createRuleEngineProducerTemplate("tb-core-rule-engine-");
     }
 
     @Override
@@ -215,11 +235,31 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
     }
 
     @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createIntegrationExecutorNotificationsMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-core-to-ie-notifications-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(integrationExecutorSettings.getNotificationsTopic()));
+        requestBuilder.admin(notificationAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createIntegrationExecutorDownlinkMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-core-to-ie-downlinks-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(integrationExecutorSettings.getDownlinkTopic()));
+        requestBuilder.admin(notificationAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
     public TbQueueConsumer<TbProtoQueueMsg<ToCoreMsg>> createToCoreMsgConsumer() {
         TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCoreMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
         consumerBuilder.topic(topicService.buildTopicName(coreSettings.getTopic()));
-        consumerBuilder.clientId("tb-core-consumer-" + serviceInfoProvider.getServiceId() + "-" + consumerCount.incrementAndGet());
+        consumerBuilder.clientId("tb-core-consumer-" + serviceInfoProvider.getServiceId() + "-" + coreConsumerCount.incrementAndGet());
         consumerBuilder.groupId(topicService.buildTopicName("tb-core-node"));
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreMsg.parseFrom(msg.getData()), msg.getHeaders()));
         consumerBuilder.admin(coreAdmin);
@@ -236,6 +276,46 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         consumerBuilder.groupId(topicService.buildTopicName("tb-core-notifications-node-" + serviceInfoProvider.getServiceId()));
         consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
         consumerBuilder.admin(notificationAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> createToIntegrationExecutorNotificationsMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.getNotificationsTopic(ServiceType.TB_INTEGRATION_EXECUTOR, serviceInfoProvider.getServiceId()).getFullTopicName());
+        consumerBuilder.clientId("tb-ie-notifications-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("ie-notifications-node-" + serviceInfoProvider.getServiceId()));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(notificationAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> createToIntegrationExecutorDownlinkMsgConsumer(IntegrationType integrationType) {
+        String queueName = integrationType.name();
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.buildTopicName(integrationExecutorSettings.getIntegrationDownlinkTopic(integrationType)));
+        consumerBuilder.clientId("ie-" + queueName + "-consumer-" + serviceInfoProvider.getServiceId() + "-" + integrationConsumerCount.incrementAndGet());
+        consumerBuilder.groupId(topicService.buildTopicName("ie-" + queueName + "-consumer"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToIntegrationExecutorDownlinkMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(ruleEngineAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createToCoreIntegrationMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToCoreIntegrationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.buildTopicName(integrationExecutorSettings.getUplinkTopic()));
+        consumerBuilder.clientId("tb-core-integrations-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("tb-core-integrations-node"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToCoreIntegrationMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(coreAdmin);
         consumerBuilder.statsService(consumerStatsService);
         return consumerBuilder.build();
     }
@@ -260,6 +340,29 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         requestBuilder.clientId("tb-core-transport-api-producer-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(topicService.buildTopicName(transportApiSettings.getResponsesTopic()));
         requestBuilder.admin(transportApiResponseAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<IntegrationApiRequestMsg>> createIntegrationApiRequestConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<IntegrationApiRequestMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.buildTopicName(integrationApiSettings.getRequestsTopic()));
+        consumerBuilder.clientId("tb-core-integration-api-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("tb-core-integration-api-consumer"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), IntegrationApiRequestMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(integrationApiRequestAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiResponseProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<IntegrationApiResponseMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-core-integration-api-producer-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(integrationApiSettings.getResponsesTopic()));
+        requestBuilder.admin(integrationApiResponseAdmin);
         return requestBuilder.build();
     }
 
@@ -340,6 +443,20 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         requestBuilder.clientId("tb-core-us-producer-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getUsageStatsTopic()));
         requestBuilder.admin(coreAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createIntegrationRuleEngineMsgProducer() {
+        return createRuleEngineProducerTemplate("tb-core-integration-rule-engine-");
+    }
+
+    private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createRuleEngineProducerTemplate(String clientIdPrefix) {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToRuleEngineMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId(clientIdPrefix + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(ruleEngineSettings.getTopic()));
+        requestBuilder.admin(ruleEngineAdmin);
         return requestBuilder.build();
     }
 
@@ -442,6 +559,52 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         requestBuilder.clientId("tb-core-to-edge-notifications-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(topicService.getEdgeNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
         requestBuilder.admin(notificationAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToAgentNotificationMsg>> createToAgentNotificationsMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToAgentNotificationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.getAgentNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
+        consumerBuilder.clientId("tb-agent-notifications-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("tb-agent-notifications-node-" + serviceInfoProvider.getServiceId()));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToAgentNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(notificationAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToAgentNotificationMsg>> createAgentNotificationsMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToAgentNotificationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-core-to-agent-notifications-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.getAgentNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
+        requestBuilder.admin(notificationAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<AgentBulkOperationMsg>> createAgentBulkOpsMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<AgentBulkOperationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.getAgentBulkOpsTopic().getFullTopicName());
+        consumerBuilder.clientId("tb-core-agent-bulk-ops-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("tb-core-agent-bulk-ops"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), AgentBulkOperationMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(agentBulkOpsAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<AgentBulkOperationMsg>> createAgentBulkOpsMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<AgentBulkOperationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("tb-core-agent-bulk-ops-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.getAgentBulkOpsTopic().getFullTopicName());
+        requestBuilder.admin(agentBulkOpsAdmin);
         return requestBuilder.build();
     }
 
@@ -594,6 +757,16 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
                 .build();
     }
 
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToTbReportNotificationMsg>> createTbReportNotificationsMsgProducer() {
+        return TbKafkaProducerTemplate.<TbProtoQueueMsg<ToTbReportNotificationMsg>>builder()
+                .clientId("to-report-notifications-producer-" + serviceInfoProvider.getServiceId())
+                .defaultTopic(topicService.getNotificationsTopic(ServiceType.TB_REPORT, serviceInfoProvider.getServiceId()).getFullTopicName())
+                .settings(kafkaSettings)
+                .admin(notificationAdmin)
+                .build();
+    }
+
     @PreDestroy
     private void destroy() {
         if (coreAdmin != null) {
@@ -622,6 +795,12 @@ public class KafkaTbCoreQueueFactory implements TbCoreQueueFactory, TbCloudEvent
         }
         if (vcAdmin != null) {
             vcAdmin.destroy();
+        }
+        if (integrationApiRequestAdmin != null) {
+            integrationApiRequestAdmin.destroy();
+        }
+        if (integrationApiResponseAdmin != null) {
+            integrationApiResponseAdmin.destroy();
         }
         if (cloudEventAdmin != null) {
             cloudEventAdmin.destroy();

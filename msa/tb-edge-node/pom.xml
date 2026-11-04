@@ -1,7 +1,8 @@
 <!--
 
-    SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-    SPDX-License-Identifier: Apache-2.0
+    SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+    SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+    SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -24,7 +25,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.dir>${maven.multiModuleProjectDirectory}</main.dir>
         <pkg.name>tb-edge</pkg.name>
-        <docker.name>tb-edge-node</docker.name>
+        <docker.name>tb-${tb.docker.id}-node</docker.name>
         <pkg.unixLogFolder>/var/log/${pkg.name}</pkg.unixLogFolder>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <docker.push-arm-amd-image.phase>pre-integration-test</docker.push-arm-amd-image.phase>
@@ -73,7 +74,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/docker-tb-edge-node</outputDirectory>
+                            <outputDirectory>${project.build.directory}/docker-${docker.name}</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>docker</directory>
@@ -89,7 +90,7 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/docker-tb-edge-node</outputDirectory>
+                            <outputDirectory>${project.build.directory}/docker-${docker.name}</outputDirectory>
                             <overwrite>true</overwrite>
                             <resources>
                                 <resource>
@@ -115,7 +116,7 @@
                         <configuration>
                             <skip>${dockerfile.skip}</skip>
                             <executable>docker</executable>
-                            <workingDirectory>${project.build.directory}/docker-tb-edge-node</workingDirectory>
+                            <workingDirectory>${project.build.directory}/docker-${docker.name}</workingDirectory>
                             <arguments>
                                 <argument>build</argument>
                                 <argument>--load</argument>
@@ -207,7 +208,7 @@
                                 </goals>
                                 <configuration>
                                     <executable>docker</executable>
-                                    <workingDirectory>${project.build.directory}/docker-tb-edge-node</workingDirectory>
+                                    <workingDirectory>${project.build.directory}/docker-${docker.name}</workingDirectory>
                                     <arguments>
                                         <argument>buildx</argument>
                                         <argument>build</argument>
@@ -230,7 +231,7 @@
                                 </goals>
                                 <configuration>
                                     <executable>docker</executable>
-                                    <workingDirectory>${project.build.directory}/docker-tb-edge-node</workingDirectory>
+                                    <workingDirectory>${project.build.directory}/docker-${docker.name}</workingDirectory>
                                     <arguments>
                                         <argument>buildx</argument>
                                         <argument>build</argument>

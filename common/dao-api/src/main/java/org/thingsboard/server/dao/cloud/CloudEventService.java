@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.dao.cloud;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -7,6 +8,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -20,13 +22,15 @@ public interface CloudEventService {
                         CloudEventType cloudEventType,
                         EdgeEventActionType cloudEventAction,
                         EntityId entityId,
-                        JsonNode entityBody) throws ExecutionException, InterruptedException;
+                        JsonNode entityBody,
+                        EntityGroupId entityGroupId) throws ExecutionException, InterruptedException;
 
     ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId,
                                                CloudEventType cloudEventType,
                                                EdgeEventActionType cloudEventAction,
                                                EntityId entityId,
-                                               JsonNode entityBody);
+                                               JsonNode entityBody,
+                                               EntityGroupId entityGroupId);
 
     ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
 

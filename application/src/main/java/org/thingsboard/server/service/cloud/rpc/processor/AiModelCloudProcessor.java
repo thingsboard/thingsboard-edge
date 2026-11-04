@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.google.common.util.concurrent.Futures;
@@ -59,7 +60,7 @@ public class AiModelCloudProcessor extends BaseAiModelProcessor {
         }
         Boolean aiModelNameUpdated = resultPair.getSecond();
         if (aiModelNameUpdated) {
-            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.AI_MODEL, EdgeEventActionType.UPDATED, aiModelId, null);
+            cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.AI_MODEL, EdgeEventActionType.UPDATED, aiModelId, null, null);
         }
     }
 

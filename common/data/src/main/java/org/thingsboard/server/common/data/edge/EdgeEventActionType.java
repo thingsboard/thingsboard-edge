@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.common.data.edge;
 
 import lombok.Getter;
@@ -16,8 +17,6 @@ public enum EdgeEventActionType {
     ATTRIBUTES_DELETED(ActionType.ATTRIBUTES_DELETED),
     TIMESERIES_UPDATED(ActionType.TIMESERIES_UPDATED),
     CREDENTIALS_UPDATED(ActionType.CREDENTIALS_UPDATED),
-    ASSIGNED_TO_CUSTOMER(ActionType.ASSIGNED_TO_CUSTOMER),
-    UNASSIGNED_FROM_CUSTOMER(ActionType.UNASSIGNED_FROM_CUSTOMER),
     RELATION_ADD_OR_UPDATE(ActionType.RELATION_ADD_OR_UPDATE),
     RELATION_DELETED(ActionType.RELATION_DELETED),
     RPC_CALL(ActionType.RPC_CALL),
@@ -38,6 +37,11 @@ public enum EdgeEventActionType {
     CALCULATED_FIELD_REQUEST(null),
     WIDGET_BUNDLE_TYPES_REQUEST(null), // deprecated
     ENTITY_VIEW_REQUEST(null), // deprecated
+    ADDED_TO_ENTITY_GROUP(ActionType.ADDED_TO_ENTITY_GROUP),
+    REMOVED_FROM_ENTITY_GROUP(ActionType.REMOVED_FROM_ENTITY_GROUP),
+    CHANGE_OWNER(ActionType.CHANGE_OWNER),
+    GROUP_ENTITIES_REQUEST(null),
+    GROUP_PERMISSIONS_REQUEST(null),
     ENTITY_MERGE_REQUEST(null), // deprecated
     DEVICE_PROFILE_DEVICES_REQUEST(null); // deprecated
 

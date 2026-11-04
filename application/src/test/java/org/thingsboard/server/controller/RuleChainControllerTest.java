@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -35,9 +36,9 @@ import org.thingsboard.server.common.data.rule.RuleChainNote;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.rule.RuleChainDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -286,7 +287,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
 
     @Test
     @Ignore("Edge entities support available for CE/PE only")
-    public void testFindEdgeRuleChainsByTenantIdAndName() throws Exception {
+    public void testFindEdgeRuleChainsByEdgeId() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
 
@@ -315,6 +316,9 @@ public class RuleChainControllerTest extends AbstractControllerTest {
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new RuleChain(), new RuleChain(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, cntEntity, cntEntity, cntEntity * 2);
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyWithGroup(new RuleChain(), new RuleChain(),
+                savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
+                ActionType.ASSIGNED_TO_EDGE, ActionType.ASSIGNED_TO_EDGE, cntEntity, cntEntity, cntEntity * 2, "", "", "");
         Mockito.reset(tbClusterService, auditLogService);
 
         List<RuleChain> loadedEdgeRuleChains = new ArrayList<>();
@@ -341,7 +345,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
             }
         }
 
-        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(new RuleChain(), new RuleChain(),
+        testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAnyWithGroup(new RuleChain(), new RuleChain(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.UNASSIGNED_FROM_EDGE, ActionType.UNASSIGNED_FROM_EDGE, cntEntity, cntEntity, 3);
 

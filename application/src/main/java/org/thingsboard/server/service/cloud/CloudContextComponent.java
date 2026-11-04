@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud;
 
 import lombok.Data;
@@ -15,29 +16,41 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.cloud.rpc.processor.AdminSettingsCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AiModelCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.ApiKeyCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCommentCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.ApiKeyCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CalculatedFieldCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.ConverterCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.CustomMenuCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.CustomTranslationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.EncryptionKeyCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.GroupPermissionCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.IntegrationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.NotificationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.OAuth2CloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.OtaPackageCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.QueueCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.ReportTemplateCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.ResourceCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.RoleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.SchedulerEventCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.SecretCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TenantProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.UserCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.WhiteLabelingCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetTypeCloudProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.EdgeProcessor;
@@ -146,6 +159,48 @@ public class CloudContextComponent {
     @Autowired
     private WidgetTypeCloudProcessor widgetTypeProcessor;
 
+    @Autowired
+    private AiModelCloudProcessor aiModelProcessor;
+
+    @Autowired
+    private EntityGroupCloudProcessor entityGroupProcessor;
+
+    @Autowired
+    private SchedulerEventCloudProcessor schedulerEventProcessor;
+
+    @Autowired
+    private RoleCloudProcessor roleProcessor;
+
+    @Autowired
+    private GroupPermissionCloudProcessor groupPermissionProcessor;
+
+    @Autowired
+    private CustomTranslationCloudProcessor customTranslationProcessor;
+
+    @Autowired
+    private CustomMenuCloudProcessor customMenuProcessor;
+
+    @Autowired
+    private WhiteLabelingCloudProcessor whiteLabelingProcessor;
+
+    @Autowired
+    private ConverterCloudProcessor converterProcessor;
+
+    @Autowired
+    private IntegrationCloudProcessor integrationProcessor;
+
+    @Autowired
+    private ResourceCloudProcessor tbResourceProcessor;
+
+    @Autowired
+    private ReportTemplateCloudProcessor reportTemplateProcessor;
+
+    @Autowired
+    private SecretCloudProcessor secretProcessor;
+
+    @Autowired
+    private EncryptionKeyCloudProcessor encryptionKeyCloudProcessor;
+
     // config
     @Autowired
     private EdgeSettingsService edgeSettingsService;
@@ -154,13 +209,10 @@ public class CloudContextComponent {
     private CloudEventStorageSettings cloudEventStorageSettings;
 
     @Autowired
-    private CalculatedFieldCloudProcessor calculatedFieldProcessor;
-
-    @Autowired
-    private AiModelCloudProcessor aiModelProcessor;
-
-    @Autowired
     private ApiKeyCloudProcessor apiKeyCloudProcessor;
+
+    @Autowired
+    private CalculatedFieldCloudProcessor calculatedFieldProcessor;
 
     // callback
     @Autowired

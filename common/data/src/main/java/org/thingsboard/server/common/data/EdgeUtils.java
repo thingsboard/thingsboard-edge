@@ -1,27 +1,37 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Throwables;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 public final class EdgeUtils {
 
-    // Subtract from queueStartTs to ensure no data is lost due to potential misordering of edge events by created_time.
-    public static final long MISORDERING_COMPENSATION_MILLIS = TimeUnit.SECONDS.toMillis(60);
+    public static final String DEFAULT_EDGE_LICENSE_KEY = "6qcGys6gz4M2ZuIqZ6hRDjWT";
+
+    private static final Pattern ATTRIBUTE_PATTERN = Pattern.compile("(\\$\\{\\{)(.*?)(}})");
+    private static final String ATTRIBUTE_PLACEHOLDER_PATTERN = "${{%s}}";
+    private static final String ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN = "\\$\\{\\{%s}}";
+    private static final int STACK_TRACE_LIMIT = 10;
 
     private static final EnumMap<EntityType, EdgeEventType> entityTypeEdgeEventTypeEnumMap;
     private static final EnumMap<ActionType, EdgeEventActionType> actionTypeEdgeEventActionTypeEnumMap;
@@ -42,9 +52,11 @@ public final class EdgeUtils {
         }
     }
 
-    private static final int STACK_TRACE_LIMIT = 10;
-
     private EdgeUtils() {}
+
+    public static boolean isAddonEdge(int licenseVersion) {
+        return licenseVersion == 2;
+    }
 
     public static int nextPositiveInt() {
         return ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE);
@@ -64,6 +76,16 @@ public final class EdgeUtils {
                                                EdgeEventActionType action,
                                                EntityId entityId,
                                                JsonNode body) {
+        return constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, null);
+    }
+
+    public static EdgeEvent constructEdgeEvent(TenantId tenantId,
+                                               EdgeId edgeId,
+                                               EdgeEventType type,
+                                               EdgeEventActionType action,
+                                               EntityId entityId,
+                                               JsonNode body,
+                                               EntityId entityGroupId) {
         EdgeEvent edgeEvent = new EdgeEvent();
         edgeEvent.setTenantId(tenantId);
         edgeEvent.setEdgeId(edgeId);
@@ -72,8 +94,28 @@ public final class EdgeUtils {
         if (entityId != null) {
             edgeEvent.setEntityId(entityId.getId());
         }
+        if (entityGroupId != null) {
+            edgeEvent.setEntityGroupId(entityGroupId.getId());
+        }
         edgeEvent.setBody(body);
         return edgeEvent;
+    }
+
+    public static Set<String> getAttributeKeysFromConfiguration(String integrationConfiguration) {
+        Set<String> result = new HashSet<>();
+        Matcher m = ATTRIBUTE_PATTERN.matcher(integrationConfiguration);
+        while (m.find()) {
+            result.add(m.group(2));
+        }
+        return result;
+    }
+
+    public static String formatAttributeKeyToPlaceholderFormat(String attributeKey) {
+        return String.format(ATTRIBUTE_PLACEHOLDER_PATTERN, attributeKey);
+    }
+
+    public static String formatAttributeKeyToRegexpPlaceholderFormat(String attributeKey) {
+        return String.format(ATTRIBUTE_REGEXP_PLACEHOLDER_PATTERN, attributeKey);
     }
 
     public static String createErrorMsgFromRootCauseAndStackTrace(Throwable t) {
@@ -91,4 +133,23 @@ public final class EdgeUtils {
         }
         return errorMsg.toString();
     }
+
+    public static boolean isEdgeGroupAll(String groupName) {
+        if (groupName == null) {
+            return false;
+        }
+        return groupName.startsWith(EntityGroup.GROUP_EDGE_ALL_STARTS_WITH) && groupName.endsWith(EntityGroup.GROUP_EDGE_ALL_ENDS_WITH);
+    }
+
+    public static String getEdgeGroupAllName(String edgeName) {
+        return getEdgeGroupAllName(null, edgeName);
+    }
+
+    public static String getEdgeGroupAllName(String customerName, String edgeName) {
+        if (customerName != null) {
+            return String.format(EntityGroup.GROUP_EDGE_CUSTOMER_ALL_NAME_PATTERN, customerName, edgeName);
+        }
+        return String.format(EntityGroup.GROUP_EDGE_ALL_NAME_PATTERN, edgeName);
+    }
+
 }

@@ -1,0 +1,64 @@
+<!--
+
+    SPDX-FileCopyrightText: Copyright ThingsBoard, Inc.
+    SPDX-License-Identifier: BUSL-1.1
+
+-->
+<div class="tb-white-labeling-feature-dialog">
+  <mat-toolbar class="flex flex-row" color="primary">
+    <h2 translate>subscription.white-labeling-feature</h2>
+    <span class="flex-1"></span>
+    <button mat-icon-button
+            (click)="close()"
+            type="button">
+      <mat-icon class="material-icons">close</mat-icon>
+    </button>
+  </mat-toolbar>
+  <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
+  </mat-progress-bar>
+  <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
+  <div mat-dialog-content>
+    <div style="text-align: center; padding-top: 10px;">
+      <img [src]="whiteLabelingSvg" style="height: 120px;"/>
+    </div>
+    <p class="tb-white-labeling-feature-content enable" style="margin-bottom: 10px;">{{'subscription.enable-white-labeling' | translate}}</p>
+    <div class="flex flex-row items-center justify-center" style="margin-bottom: 16px;">
+      <button mat-raised-button color="warn"
+              type="button"
+              [disabled]="(isLoading$ | async)" (click)="upgrade()">
+        <mat-icon>trending_up</mat-icon>
+        <span>{{ 'subscription.upgrade-your-plan' | translate }}</span>
+      </button>
+    </div>
+    <div class="tb-white-labeling-feature-content flex flex-row">
+      <div class="flex flex-1 flex-col">
+        <div [innerHTML]="'subscription.white-labeling-text-full' | translate" style="margin-bottom: 10px;"></div>
+        <div class="flex flex-row items-center justify-center">
+          <button mat-raised-button color="primary"
+                  type="button"
+                  [disabled]="(isLoading$ | async)" (click)="gotoWhiteLabelingDoc()">
+            <span>{{ 'subscription.read-more' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <p class="tb-white-labeling-feature-content" [innerHTML]="'subscription.white-labeling-video-text' | translate" style="margin-bottom: 10px;"></p>
+    <div class="flex flex-row items-center justify-center" style="padding-bottom: 10px;">
+      <div class="video">
+        <div class="video-wrapper">
+          <iframe src="https://www.youtube.com/embed/4dkbVASJ1JU" frameborder="0" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div mat-dialog-actions class="flex flex-row">
+    <span class="flex-1"></span>
+    <button mat-button
+            type="button"
+            [disabled]="(isLoading$ | async)"
+            (click)="close()"
+            style="margin-right:20px;">
+      {{ 'action.close' | translate }}
+    </button>
+  </div>
+</div>

@@ -1,5 +1,6 @@
-// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.cloud;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -14,6 +15,7 @@ import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -41,6 +43,8 @@ public class PostgresCloudEventService implements CloudEventService {
     private static final List<EdgeEventActionType> CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES = List.of(
             EdgeEventActionType.ATTRIBUTES_REQUEST,
             EdgeEventActionType.RELATION_REQUEST,
+            EdgeEventActionType.GROUP_ENTITIES_REQUEST,
+            EdgeEventActionType.GROUP_PERMISSIONS_REQUEST,
             EdgeEventActionType.CALCULATED_FIELD_REQUEST
     );
 
@@ -53,21 +57,22 @@ public class PostgresCloudEventService implements CloudEventService {
     @Override
     public void saveCloudEvent(TenantId tenantId, CloudEventType cloudEventType,
                                EdgeEventActionType cloudEventAction, EntityId entityId,
-                               JsonNode entityBody) throws ExecutionException, InterruptedException {
-        saveCloudEventAsync(tenantId, cloudEventType, cloudEventAction, entityId, entityBody).get();
+                               JsonNode entityBody, EntityGroupId entityGroupId) throws ExecutionException, InterruptedException {
+        saveCloudEventAsync(tenantId, cloudEventType, cloudEventAction, entityId, entityBody, entityGroupId).get();
     }
 
     @Override
     public ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId, CloudEventType cloudEventType,
                                                       EdgeEventActionType cloudEventAction, EntityId entityId,
-                                                      JsonNode entityBody) {
+                                                      JsonNode entityBody, EntityGroupId entityGroupId) {
         if (shouldAddEventToQueue(tenantId, cloudEventType, cloudEventAction, entityId)) {
             CloudEvent cloudEvent = new CloudEvent(
                     tenantId,
                     cloudEventAction,
                     entityId != null ? entityId.getId() : null,
                     cloudEventType,
-                    entityBody
+                    entityBody,
+                    entityGroupId != null ? entityGroupId.getId() : null
             );
             return saveAsync(cloudEvent);
         } else {
