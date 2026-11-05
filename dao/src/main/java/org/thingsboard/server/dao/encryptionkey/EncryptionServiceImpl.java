@@ -22,6 +22,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Service("EncryptionDaoService")
@@ -109,10 +110,23 @@ public class EncryptionServiceImpl implements EncryptionService {
     @Override
     public EncryptionKey save(TenantId tenantId, EncryptionKey encryptionKey) {
         EncryptionKey oldEncryptionKey = encryptionKeyDao.findByTenantId(encryptionKey.getTenantId());
-        if (oldEncryptionKey != null && oldEncryptionKey.equals(encryptionKey)) {
-            return oldEncryptionKey;
+        if (oldEncryptionKey != null) {
+            if (Objects.equals(oldEncryptionKey.getPassword(), encryptionKey.getPassword())
+                    && Objects.equals(oldEncryptionKey.getSalt(), encryptionKey.getSalt())) {
+                // Same key material - nothing to do (avoids a needless rewrite + cache eviction on every full sync).
+                return oldEncryptionKey;
+            }
+            // Reuse the existing row so the tenant keeps a single encryption_key row. The cloud->edge sync message
+            // carries the cloud's key id, which would otherwise be INSERTed as a duplicate row for the same tenant
+            // (encryption_key has no unique constraint on tenant_id) and break findByTenantId.
+            encryptionKey.setId(oldEncryptionKey.getId());
+            encryptionKey.setCreatedTime(oldEncryptionKey.getCreatedTime());
         }
-        return encryptionKeyDao.save(tenantId, encryptionKey);
+        EncryptionKey saved = encryptionKeyDao.save(tenantId, encryptionKey);
+        // Evict the cached encryptor so that the next encrypt/decrypt is rebuilt from the new key. Required for the
+        // cloud->edge key sync to take effect without an edge restart.
+        encryptorMap.remove(encryptionKey.getTenantId());
+        return saved;
     }
 
     @EventListener(ComponentLifecycleMsg.class)
