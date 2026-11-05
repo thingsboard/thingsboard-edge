@@ -42,7 +42,7 @@ TEMPLATES = {
     NON_CE: f"{TEMPLATE_DIRECTORY}/license-header-{NON_CE}.txt",
 }
 RELICENSING_COMMIT = "31936b09d24871e421f212502a8342f9d8aabb20"
-CE_REMOTE = "https://github.com/thingsboard/thingsboard-edge.git"
+CE_REMOTE = "https://github.com/thingsboard/thingsboard.git"
 CURATIONS = "tools/src/main/python/license-headers/curations.json"
 README = "tools/src/main/python/license-headers/README.md"
 CURATION_FIELDS = {"path", "contentHash", "header", "reason"}

@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.service.install.lts;
 
 import org.springframework.stereotype.Component;
@@ -7,7 +8,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
 @TbCoreComponent
-public class V4_2_2_4Migration implements LtsMigration {
+public class V4_2_2_4Migration implements Migration {
 
     @Override
     public String getVersion() {
