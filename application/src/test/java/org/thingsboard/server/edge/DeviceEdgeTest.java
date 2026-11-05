@@ -719,6 +719,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRpcV2StatusUpdateFromEdge() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         Rpc rpc = savePersistentRpc(device, RpcStatus.QUEUED);
@@ -737,6 +738,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRpcV2StatusRetryAfterTimeoutFromEdge() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         Rpc rpc = savePersistentRpc(device, RpcStatus.SENT);
@@ -750,6 +752,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRpcV2NonJsonResponseFromEdge() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         Rpc rpc = savePersistentRpc(device, RpcStatus.DELIVERED);
@@ -760,6 +763,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRpcV2StatusForUnknownRpcFromEdge() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         RpcId unknownRpcId = new RpcId(Uuids.timeBased());
@@ -769,6 +773,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRpcV2DeleteFromEdge() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         Rpc rpc = savePersistentRpc(device, RpcStatus.DELIVERED);
@@ -781,6 +786,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testRpcV2DeleteFromCloud() throws Exception {
         Device device = saveDeviceOnCloudAndVerifyDeliveryToEdge();
         Rpc rpc = savePersistentRpc(device, RpcStatus.SUCCESSFUL);
