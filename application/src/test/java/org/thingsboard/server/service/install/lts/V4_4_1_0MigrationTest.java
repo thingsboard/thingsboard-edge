@@ -19,10 +19,10 @@ import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsServ
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DaoSqlTest
-public class V4_4_0_1MigrationTest extends AbstractControllerTest {
+public class V4_4_1_0MigrationTest extends AbstractControllerTest {
 
     @Autowired
-    private V4_4_0_1Migration migration;
+    private V4_4_1_0Migration migration;
     @Autowired
     private AdminSettingsService adminSettingsService;
     @Autowired
