@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
     inputs:
       ce-branch:
-        description: CE branch to compare against; defaults to the counterpart of the current branch
+        description: CE ref to compare against instead of the history before the relicensing commit
         required: false
         type: string
 
@@ -36,7 +36,7 @@ jobs:
   check:
     name: Check license headers
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 60
     defaults:
       run:
         shell: bash
@@ -53,27 +53,14 @@ jobs:
           java-version: 21
           cache: maven
 
-      - name: Resolve CE branch
-        id: ce
-        env:
-          PE_BRANCH: ${{ github.base_ref || github.ref_name }}
-          CE_BRANCH: ${{ inputs.ce-branch }}
-        run: |
-          if [[ -z "$CE_BRANCH" ]]; then
-            case "$PE_BRANCH" in
-              master|rc) CE_BRANCH="$PE_BRANCH" ;;
-              lts-*|license-lts-*) CE_BRANCH="${PE_BRANCH#license-}" ;;
-              *) echo "::error::No CE counterpart is defined for branch $PE_BRANCH"; exit 1 ;;
-            esac
-          fi
-          echo "branch=$CE_BRANCH" >> "$GITHUB_OUTPUT"
-
+      # Without --ce-ref, CE is the history before the relicensing commit: ThingsBoard CE and the
+      # Apache-licensed ThingsBoard Edge history that this branch merged.
       - name: Check license headers
         env:
-          CE_BRANCH: ${{ steps.ce.outputs.branch }}
+          CE_REF: ${{ inputs.ce-branch }}
         run: |
           mkdir -p target/license-provenance
-          ./check-license-headers.sh --ce-ref "${CE_BRANCH}" 2>&1 | tee target/license-provenance/console.log
+          ./check-license-headers.sh ${CE_REF:+--ce-ref "$CE_REF" --ce-remote https://github.com/thingsboard/thingsboard.git} 2>&1 | tee target/license-provenance/console.log
 
       - name: Add findings to the job summary
         if: failure() && hashFiles('target/license-provenance/console.log') != ''
