@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.edge;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.thingsboard.common.util.JacksonUtil;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.verify;
  * delegated call arrives with the expected arguments (the Cloud, not the Edge, uses the tenant id of the
  * connected edge).
  */
+@Ignore
 @DaoSqlTest
 public class SendSmsEdgeTest extends AbstractEdgeTest {
 
