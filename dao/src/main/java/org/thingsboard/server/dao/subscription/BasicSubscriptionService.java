@@ -207,6 +207,7 @@ public class BasicSubscriptionService implements SubscriptionService, TbLicenseC
                     .licenseSecret(licenseSecret)
                     .licenseDataFilePath(this.edgeInstanceDataFilePath)
                     .releaseDate(releaseDate)
+                    .clusterId(licenseCtx.getClusterId())
                     .offlineTimeoutMs(TimeUnit.DAYS.toMillis(offlineTimeoutInDays))
                     .instanceLicenseCheckPeriodSeconds(INSTANCE_LICENSE_CHECK_PERIOD_SECONDS)
                     .instanceStatsReportPeriodSeconds(Integer.MAX_VALUE)

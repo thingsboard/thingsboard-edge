@@ -258,8 +258,7 @@
         <dependency>
             <groupId>org.thingsboard.license</groupId>
             <artifactId>client</artifactId>
-<!--            TODO: NM - Move to 2.0.* when https://thingsboard.slack.com/archives/D077T17JPKM/p1768401685964199 is reverted back and tested -->
-            <version>1.3.3</version>
+            <version>3.0.0</version>
         </dependency>
     </dependencies>
     <build>
