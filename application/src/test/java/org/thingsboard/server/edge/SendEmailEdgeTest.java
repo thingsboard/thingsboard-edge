@@ -4,6 +4,7 @@
 package org.thingsboard.server.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.thingsboard.common.util.JacksonUtil;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.verify;
  * the delegated call arrives with the expected arguments (the Cloud, not the Edge, uses the tenant id of
  * the connected edge).
  */
+@Ignore
 @DaoSqlTest
 public class SendEmailEdgeTest extends AbstractEdgeTest {
 

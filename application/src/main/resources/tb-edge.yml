@@ -1974,7 +1974,7 @@ device:
 agents:
   # Enable/disable the Docker Agent feature. When disabled, the agent gRPC service is not registered
   # and agents can not connect. Independent of 'edges.enabled', although both share the same RPC server and port.
-  enabled: "${AGENTS_ENABLED:true}"
+  enabled: "false" # must be disabled on edge
   # Number of threads that are used to send downlink messages to agent over gRPC
   write_pool_size: "${AGENTS_WRITE_POOL_SIZE:8}"
   # Max number of outbound messages buffered per agent session while the gRPC stream is not ready.
