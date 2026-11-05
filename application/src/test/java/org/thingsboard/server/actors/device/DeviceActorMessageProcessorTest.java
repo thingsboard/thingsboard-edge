@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.actors.device;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,6 +13,8 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.LinkedHashMapRemoveEldest;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.TbActorCtx;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RpcId;
@@ -30,6 +33,7 @@ import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.common.msg.edge.EdgeHighPriorityMsg;
 import org.thingsboard.server.common.msg.rule.engine.DeviceEdgeUpdateMsg;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
@@ -64,12 +68,14 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class DeviceActorMessageProcessorTest {
 
     private static final int MAX_CONCURRENT_SESSIONS_PER_DEVICE = 10;
     ActorSystemContext systemContext;
+    CloudEventService cloudEventService;
     DeviceService deviceService;
     TenantId tenantId = TenantId.fromUUID(UUID.fromString("ae651b45-2a92-4bdf-9d56-faede44eafb8"));
     DeviceId deviceId = DeviceId.fromString("78bf9b26-74ef-4af2-9cfb-ad6cf24ad2ec");
@@ -96,6 +102,10 @@ public class DeviceActorMessageProcessorTest {
         scheduler = mock(ScheduledExecutorService.class);
         doReturn(awaitResponseFuture).when(scheduler).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
         given(systemContext.getScheduler()).willReturn(scheduler);
+        // Edge-only: an undelivered one-way RPC is reported to the cloud through the cloud event queue.
+        cloudEventService = mock(CloudEventService.class);
+        given(cloudEventService.saveCloudEventAsync(any(), any(), any(), any(), any(), any())).willReturn(Futures.immediateFuture(null));
+        given(systemContext.getCloudEventService()).willReturn(cloudEventService);
         useStrategy(RpcSubmitStrategy.BURST);
     }
 
@@ -705,18 +715,22 @@ public class DeviceActorMessageProcessorTest {
     public void oneWayRpcIsNotCompletedOnPushUnderSequential() {
         // Under BURST a one-way RPC completes the caller as soon as it is pushed. Under a sequential strategy it
         // must not: the caller waits for the device's delivery ack, which is what keeps the queue ordered.
+        // Edge: persisted, because a non-persistent one-way RPC with no session is reported to the cloud and
+        // dropped instead of being queued (see nonPersistentOneWayRpcWithNoSessionIsReportedToCloud).
         useStrategy(RpcSubmitStrategy.SEQUENTIAL_ON_ACK_FROM_DEVICE);
         mockRpcInfra();
         UUID rpcId = UUID.randomUUID();
 
         // No session yet, so it is registered unsent...
         processor.processRpcRequest(mock(TbActorCtx.class), new ToDeviceRpcRequestActorMsg("svc",
-                nonPersistedRequest(rpcId, System.currentTimeMillis() + 60_000, true)));
+                persistedRequest(rpcId, System.currentTimeMillis() + 60_000, true)));
+        deliverPersistResult(rpcId, 0, RpcPersistResult.INSERTED);
+        assertRpcIdReplied(rpcId);
         // ...then pushed when one appears.
         pushViaAsyncSession();
 
         assertThat(publishedRequestIds()).containsExactly(0);
-        verify(coreRpcService, never()).processRpcResponseFromDeviceActor(any());
+        verify(coreRpcService, times(1)).processRpcResponseFromDeviceActor(any()); // only the rpcId reply
         assertThat(processor.toDeviceRpcPendingMap).containsKey(0);
     }
 
@@ -730,17 +744,39 @@ public class DeviceActorMessageProcessorTest {
         UUID rpcId = UUID.randomUUID();
 
         processor.processRpcRequest(mock(TbActorCtx.class), new ToDeviceRpcRequestActorMsg("svc",
-                nonPersistedRequest(rpcId, System.currentTimeMillis() + 60_000, true)));
+                persistedRequest(rpcId, System.currentTimeMillis() + 60_000, true)));
+        deliverPersistResult(rpcId, 0, RpcPersistResult.INSERTED);
         pushViaAsyncSession();
         assertThat(publishedRequestIds()).containsExactly(0);
-        verify(coreRpcService, never()).processRpcResponseFromDeviceActor(any());
+        verify(coreRpcService, times(1)).processRpcResponseFromDeviceActor(any()); // only the rpcId reply
 
         deliverDeliveryAck(rpcId, 0);
 
         ArgumentCaptor<FromDeviceRpcResponse> captor = ArgumentCaptor.forClass(FromDeviceRpcResponse.class);
-        verify(coreRpcService).processRpcResponseFromDeviceActor(captor.capture());
-        assertThat(captor.getValue().getId()).isEqualTo(rpcId);
+        verify(coreRpcService, times(2)).processRpcResponseFromDeviceActor(captor.capture());
+        assertThat(captor.getAllValues()).allSatisfy(r -> assertThat(r.getId()).isEqualTo(rpcId));
+        assertThat(captor.getValue().getResponse()).isEmpty(); // the completion, not another rpcId reply
         assertThat(processor.toDeviceRpcPendingMap).isEmpty();
+    }
+
+    @Test
+    public void nonPersistentOneWayRpcWithNoSessionIsReportedToCloud() {
+        // Edge-only: with no session to push to, a non-persistent one-way RPC is not queued - the cloud gets a
+        // NO_ACTIVE_CONNECTION reply through the cloud event queue instead.
+        useStrategy(RpcSubmitStrategy.SEQUENTIAL_ON_ACK_FROM_DEVICE);
+        mockRpcInfra();
+        UUID rpcId = UUID.randomUUID();
+
+        processor.processRpcRequest(mock(TbActorCtx.class), new ToDeviceRpcRequestActorMsg("svc",
+                nonPersistedRequest(rpcId, System.currentTimeMillis() + 60_000, true)));
+
+        ArgumentCaptor<JsonNode> body = ArgumentCaptor.forClass(JsonNode.class);
+        verify(cloudEventService).saveCloudEventAsync(eq(tenantId), eq(CloudEventType.DEVICE),
+                eq(EdgeEventActionType.RPC_CALL), eq(deviceId), body.capture(), any());
+        assertThat(body.getValue().get("rpcId").asText()).isEqualTo(rpcId.toString());
+        assertThat(body.getValue().get("error").asText()).isEqualTo("NO_ACTIVE_CONNECTION");
+        assertThat(processor.toDeviceRpcPendingMap).isEmpty();
+        verify(coreRpcService, never()).processRpcResponseFromDeviceActor(any());
     }
 
     @Test
