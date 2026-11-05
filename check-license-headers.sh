@@ -13,7 +13,7 @@ usage() {
     echo "                 and remove redundant or orphaned curations"
     echo "    --ce-ref     CE branch, tag or commit that this branch integrates, fetched on every run;"
     echo "                 without it, CE is the history that does not contain the relicensing commit"
-    echo "    --ce-remote  CE repository to fetch --ce-ref from (default: https://github.com/thingsboard/thingsboard-edge.git)"
+    echo "    --ce-remote  CE repository to fetch --ce-ref from (default: https://github.com/thingsboard/thingsboard.git)"
 }
 
 if [[ $# -gt 0 && ( "$1" == "-h" || "$1" == "--help" ) ]]; then
