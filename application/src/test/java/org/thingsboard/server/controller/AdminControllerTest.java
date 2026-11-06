@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -151,6 +152,7 @@ public class AdminControllerTest extends AbstractControllerTest {
         Mockito.verify(mailService).sendTestMail(Mockito.any(), Mockito.any(), Mockito.anyString());
     }
 
+    @Ignore("edge-only: mail is delegated to the cloud; the Edge only enqueues the test mail, so there is no SMTP timeout")
     @Test
     public void testSendTestMailTimeout() throws Exception {
         loginSysAdmin();

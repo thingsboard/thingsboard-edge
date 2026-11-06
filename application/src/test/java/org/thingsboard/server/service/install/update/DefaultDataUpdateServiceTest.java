@@ -35,9 +35,9 @@ import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.lts.MigrationService;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.calls;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -100,8 +100,11 @@ class DefaultDataUpdateServiceTest {
         service.updateData(true);
 
         InOrder inOrder = inOrder(tenantService, migrationService);
-        inOrder.verify(tenantService, atLeastOnce()).findTenants(any(PageLink.class));
+        // edge-only: calls(1), not atLeastOnce() - the edge full sync updater lists the tenants again after the
+        // migrations, and a greedy atLeastOnce() would consume that call too
+        inOrder.verify(tenantService, calls(1)).findTenants(any(PageLink.class));
         inOrder.verify(migrationService).runDataMigrations(DB_VERSION, PACKAGE_VERSION, false);
+        inOrder.verify(tenantService).findTenants(any(PageLink.class)); // edge-only: full sync updater
     }
 
     @Test
@@ -110,8 +113,11 @@ class DefaultDataUpdateServiceTest {
 
         service.updateData(false);
 
-        verify(tenantService, never()).findTenants(any(PageLink.class));
-        verify(migrationService).runDataMigrations(DB_VERSION, PACKAGE_VERSION, false);
+        // edge-only: the only tenant listing is the edge full sync updater, after the migrations - no CE conversion
+        InOrder inOrder = inOrder(migrationService, tenantService);
+        inOrder.verify(migrationService).runDataMigrations(DB_VERSION, PACKAGE_VERSION, false);
+        inOrder.verify(tenantService).findTenants(any(PageLink.class));
+        verify(tenantService, times(1)).findTenants(any(PageLink.class));
     }
 
     @Test

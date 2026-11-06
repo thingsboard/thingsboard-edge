@@ -149,7 +149,7 @@
       "path": "application/src/test/java/org/thingsboard/server/service/install/update/DefaultDataUpdateServiceTest.java",
       "header": "busl",
       "reason": "CE deleted its DefaultDataUpdateServiceTest (version 3.3.0 device profile conversion tests) in ba440ba7c1f. PE recreated a test at the same path in cdae38adc6b with entirely new content covering the CE-to-PE upgrade chain; nothing of the CE file (last CE version 40527f3da02^1, blob abfab844917) remains beyond the class name.",
-      "contentHash": "sha256:29cb5b743744501fc34c8251e6cde379817ae7e7acb43f6e2a53df5f2dcbc96a"
+      "contentHash": "sha256:eec743ac28e32942ec4f44ae94fe398aeaf9df0ea1da6ce4b36b0ee4359faf2e"
     },
     {
       "path": "application/src/test/java/org/thingsboard/server/service/integration/rpc/IntegrationRpcSslTest.java",

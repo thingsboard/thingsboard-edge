@@ -82,7 +82,7 @@ public class AdminApiClientTest extends AbstractApiClientTest {
         // get features info
         FeaturesInfo featuresInfo = client.getFeaturesInfo();
         assertNotNull(featuresInfo);
-        assertFalse(featuresInfo.getSmsEnabled());
+        assertTrue(featuresInfo.getSmsEnabled()); // edge-only: SMS is delegated to the cloud, so the Edge always reports it as enabled
         assertFalse(featuresInfo.getOauthEnabled());
 
         // check updates
