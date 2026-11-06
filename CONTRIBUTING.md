@@ -185,7 +185,7 @@ whether users would want to read about it in the release notes, and add the labe
 ## Contributor License Agreement
 
 Before we can merge your pull request, you need to sign the ThingsBoard
-[Contributor License Agreement](https://cla-assistant.io/thingsboard/thingsboard) (CLA). On your
+[Contributor License Agreement](https://cla-assistant.io/thingsboard/thingsboard-edge) (CLA). On your
 first pull request a bot posts a link: sign in with GitHub and accept the agreement. You sign once,
 and it covers all your contributions to this repository, including those made before you signed.
 
