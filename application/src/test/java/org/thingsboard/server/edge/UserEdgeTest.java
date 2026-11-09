@@ -406,6 +406,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedTenantAdmin.getUuidId().getLeastSignificantBits(), userUpdateMsg.getIdLSB());
     }
 
+    @Ignore("*EdgeTests are ignored on Edge side")
     @Test
     public void testSendUserWithUnsupportedAuthorityFromEdgeToCloud() throws Exception {
         UserId userId = new UserId(UUID.randomUUID());
@@ -423,6 +424,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertNull(userService.findUserById(TenantId.SYS_TENANT_ID, userId));
     }
 
+    @Ignore("*EdgeTests are ignored on Edge side")
     @Test
     public void testSendUserWithDifferentTenantIdFromEdgeToCloud() throws Exception {
         UserId userId = new UserId(UUID.randomUUID());
@@ -440,6 +442,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(tenantId, userFromCloud.getTenantId());
     }
 
+    @Ignore("*EdgeTests are ignored on Edge side")
     @Test
     public void testSendUserMsgsForUserOfAnotherTenantFromEdgeToCloud() throws Exception {
         User sysAdmin = userService.findUserByEmail(TenantId.SYS_TENANT_ID, SYS_ADMIN_EMAIL);
