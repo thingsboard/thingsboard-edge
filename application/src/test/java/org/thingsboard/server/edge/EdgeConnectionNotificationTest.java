@@ -4,6 +4,7 @@ package org.thingsboard.server.edge;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,12 +61,14 @@ public class EdgeConnectionNotificationTest extends AbstractEdgeTest {
         ReflectionTestUtils.setField(edgeGrpcService, "disconnectNotificationDelayMs", delayMs);
     }
 
+    @Ignore("*EdgeTests are ignored on Edge side")
     @Test
     public void givenEdgeStaysDisconnected_whenDelayElapses_thenDisconnectNotificationSent() throws Exception {
         // After the configured delay, the "disconnected" notification is sent exactly once.
         assertDisconnectNotificationSentOnce(DELAY_MS);
     }
 
+    @Ignore("*EdgeTests are ignored on Edge side")
     @Test
     public void givenZeroDelay_whenEdgeDisconnects_thenDisconnectNotificationSentImmediately() throws Exception {
         // With a zero delay there is no debounce window - the "disconnected" notification fires right away.
@@ -82,6 +85,7 @@ public class EdgeConnectionNotificationTest extends AbstractEdgeTest {
                 verify(notificationRuleProcessor, times(1)).process(argThat(edgeConnectionTrigger(false))));
     }
 
+    @Ignore("*EdgeTests are ignored on Edge side")
     @Test
     public void givenEdgeReconnectsWithinDelay_whenEdgeFlaps_thenDisconnectNotificationSuppressed() throws Exception {
         setDisconnectNotificationDelayMs(DELAY_MS);
