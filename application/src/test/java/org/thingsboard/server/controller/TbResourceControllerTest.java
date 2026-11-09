@@ -1007,6 +1007,8 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         Assert.assertTrue(pageData.getData().contains(systemJsModule));
 
         loginTenantAdmin();
+        // edge: workaround for tests - create a public customer
+        doPost("/api/customer/public");
         EntityGroupInfo deviceGroup = createSharedPublicEntityGroup("Public device group", EntityType.DEVICE, customerId);
         String publicId = deviceGroup.getAdditionalInfo().get("publicCustomerId").asText();
         resetTokens();
