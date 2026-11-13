@@ -6,3 +6,6 @@
 -- Tenant-scoped paging over calculated fields (WHERE tenant_id = ? ORDER BY id LIMIT ?), issued for every tenant
 -- when the calculated field actors initialize, otherwise scans the whole table and sorts on each call.
 CREATE INDEX IF NOT EXISTS idx_calculated_field_tenant_id_id ON calculated_field(tenant_id, id);
+
+-- Also added by upgrade/lts/4.3.1.9/schema_update.sql, which an installation already on 4.4.0 never runs.
+ALTER TABLE calculated_field ADD COLUMN IF NOT EXISTS compute_on varchar(32);
