@@ -62,6 +62,12 @@
       "contentHash": "sha256:f72de342ef3308706b866bb311ede8c07c4027a2b413154a4002807561887ed3"
     },
     {
+      "path": "application/src/main/java/org/thingsboard/server/service/install/lts/V4_3_1_9Migration.java",
+      "header": "busl",
+      "reason": "New migration bean for the calculated field compute on column; the path does not exist in the CE history of this branch. It resembles application/src/main/java/org/thingsboard/server/service/install/lts/V4_2_2_4Migration.java at 6f7b4c9f607 only through the shared Migration bean boilerplate (annotations and getVersion()).",
+      "contentHash": "sha256:c88d97c1101a2a5182b36144503a9545d74d2c20f8b32b7d977914e9b72f0055"
+    },
+    {
       "path": "application/src/main/java/org/thingsboard/server/service/install/lts/Version.java",
       "header": "ce-modified",
       "reason": "CE class application/src/main/java/org/thingsboard/server/service/install/lts/LtsVersion.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/main/java/org/thingsboard/server/service/install/lts/LtsVersion.java at 5954190c32f (blob fa59efcc5a2d50079e495e42c141139fc57f178b); a renamed CE file stays CE-derived.",

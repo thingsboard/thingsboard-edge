@@ -1,6 +1,6 @@
 --
--- SPDX-FileCopyrightText: Copyright The Thingsboard Authors
--- SPDX-License-Identifier: Apache-2.0
+-- SPDX-FileCopyrightText: Copyright ThingsBoard, Inc.
+-- SPDX-License-Identifier: BUSL-1.1
 --
 
 -- CALCULATED FIELD COMPUTE ON START
