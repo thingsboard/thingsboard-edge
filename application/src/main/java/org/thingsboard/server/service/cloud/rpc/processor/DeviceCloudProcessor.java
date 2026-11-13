@@ -1,18 +1,5 @@
-/**
- * Copyright © 2016-2026 The Thingsboard Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -32,12 +19,16 @@ import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rpc.RpcError;
+import org.thingsboard.server.common.data.rpc.RpcStatus;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
+import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
@@ -124,10 +115,32 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     public ListenableFuture<Void> processDeviceRpcCallFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
         log.trace("[{}] processDeviceRpcCallFromCloud [{}]", tenantId, deviceRpcCallMsg);
-        if (deviceRpcCallMsg.hasResponseMsg()) {
+        if (deviceRpcCallMsg.hasRpcStatus() && RpcStatus.DELETED.name().equals(deviceRpcCallMsg.getRpcStatus())) {
+            // RPC v2 (persistent) delete/abort propagated from the cloud - remove the edge-local copy.
+            return processDeviceRpcDeleteFromCloud(tenantId, deviceRpcCallMsg);
+        } else if (deviceRpcCallMsg.hasResponseMsg()) {
             return processDeviceRpcResponseFromCloud(deviceRpcCallMsg);
         } else if (deviceRpcCallMsg.hasRequestMsg()) {
             return processDeviceRpcRequestFromCloud(tenantId, deviceRpcCallMsg);
+        }
+        return Futures.immediateFuture(null);
+    }
+
+    private ListenableFuture<Void> processDeviceRpcDeleteFromCloud(TenantId tenantId, DeviceRpcCallMsg deviceRpcCallMsg) {
+        RpcId rpcId = new RpcId(new UUID(deviceRpcCallMsg.getRequestUuidMSB(), deviceRpcCallMsg.getRequestUuidLSB()));
+        try {
+            cloudSynchronizationManager.getSync().set(true);
+            Rpc rpc = edgeCtx.getTbRpcService().findRpcById(tenantId, rpcId);
+            if (rpc != null) {
+                if (rpc.getStatus().isIntermediate()) {
+                    // clear the pending RPC from the edge device actor so it is not delivered on device reconnect
+                    var removeMsg = new RemoveRpcActorMsg(tenantId, rpc.getDeviceId(), rpc.getUuidId());
+                    edgeCtx.getClusterService().pushMsgToCore(removeMsg, null);
+                }
+                edgeCtx.getTbRpcService().deleteRpc(tenantId, rpc);
+            }
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }

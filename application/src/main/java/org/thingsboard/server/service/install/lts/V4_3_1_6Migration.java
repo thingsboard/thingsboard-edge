@@ -1,30 +1,43 @@
-/**
- * Copyright © 2016-2026 The Thingsboard Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.install.lts;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
+import java.util.UUID;
+
+/**
+ * Creates {@code tb_cluster} and mints the cluster id on the no-downtime patch path, which runs neither
+ * {@code schema-entities.sql} nor {@code generateClusterIdIfNotExist()}. Both steps are idempotent.
+ */
+@Slf4j
 @Component
 @TbCoreComponent
+@RequiredArgsConstructor
 public class V4_3_1_6Migration implements LtsMigration {
+
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public String getVersion() {
         return "4.3.1.6";
     }
 
+    // Must run in the migration transaction: tb_cluster is created there and is not yet visible to other connections.
+    @Override
+    public void apply() {
+        UUID clusterId = UUID.randomUUID();
+        int insertedRows = jdbcTemplate.update(
+                "INSERT INTO tb_cluster (cluster_id) SELECT ?::uuid WHERE NOT EXISTS (SELECT 1 FROM tb_cluster) ON CONFLICT DO NOTHING",
+                clusterId.toString());
+        if (insertedRows > 0) {
+            log.info("Generated Cluster Id: {}", clusterId);
+        } else {
+            log.info("Cluster Id already exists, keeping it");
+        }
+    }
 }

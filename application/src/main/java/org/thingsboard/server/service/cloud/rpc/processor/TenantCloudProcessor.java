@@ -1,18 +1,5 @@
-/**
- * Copyright © 2016-2026 The Thingsboard Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.cloud.rpc.processor;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
@@ -28,12 +15,15 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -108,11 +98,20 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
     }
 
     private void cleanUpSystemTenant() {
-        edgeCtx.getAdminSettingsService().deleteByTenantId(TenantId.SYS_TENANT_ID);
+        removeSystemAdminSettings();
         edgeCtx.getQueueService().deleteQueuesByTenantId(TenantId.SYS_TENANT_ID);
         edgeCtx.getWidgetTypeService().deleteWidgetTypesByTenantId(TenantId.SYS_TENANT_ID);
         edgeCtx.getWidgetsBundleService().deleteWidgetsBundlesByTenantId(TenantId.SYS_TENANT_ID);
         removeTenantAttributes(TenantId.SYS_TENANT_ID);
+    }
+
+    private void removeSystemAdminSettings() {
+        List<String> keys = new ArrayList<>();
+        new PageDataIterable<>(pageLink -> edgeCtx.getAdminSettingsService().findAllByTenantId(TenantId.SYS_TENANT_ID, pageLink), 1024)
+                .forEach(adminSettings -> keys.add(adminSettings.getKey()));
+        keys.stream()
+                .filter(key -> !JwtSettingsService.ADMIN_SETTINGS_JWT_KEY.equals(key))
+                .forEach(key -> edgeCtx.getAdminSettingsService().deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, key));
     }
 
     private void removeTenantAttributes(TenantId tenantId) {

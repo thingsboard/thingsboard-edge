@@ -1,18 +1,5 @@
-/**
- * Copyright © 2016-2026 The Thingsboard Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// SPDX-FileCopyrightText: Copyright The Thingsboard Authors
+// SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.cloud.event.sender;
 
 import com.google.common.util.concurrent.Futures;
@@ -161,8 +148,14 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
 
                     if (!success) {
                         String batchPrefix = isGeneralMsg ? "General" : "Timeseries";
-                        log.warn("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgs.getQueueSize(), attempt);
+                        log.info("Failed to deliver {} batch (size: {}) on attempt {}", batchPrefix, pendingMsgs.getQueueSize(), attempt);
                         log.trace("Entities in failed batch: {}", pendingMsgs.getValues());
+                        if (!grpcClientManager.isConnected()) {
+                            log.info("Cloud session is not established. {} uplink msg(s) are going to be retried after reconnect",
+                                    pendingMsgs.getQueueSize());
+                            sendUplinkFutureResult.set(true);
+                            return;
+                        }
                         try {
                             Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
 
@@ -195,6 +188,9 @@ public class GrpcCloudEventUplinkSender implements CloudEventUplinkSender, Cloud
     }
 
     private boolean sendUplinkMsgPack() {
+        if (!grpcClientManager.isConnected()) {
+            return false;
+        }
         edgeInfo.setSendingInProgress(true);
         LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue = pendingMsgs.getQueue();
         try {
