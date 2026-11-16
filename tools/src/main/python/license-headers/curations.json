@@ -266,6 +266,12 @@
       "contentHash": "sha256:ce067f7aad61fb79c44ac80ceda3b26e9908a8a648380097754ff9ee097256b1"
     },
     {
+      "path": "common/data/src/main/java/org/thingsboard/server/common/data/ai/dto/TbChatPrompt.java",
+      "contentHash": "sha256:5fa64331c5c90df4ebd3ab0db1d62c995591dfa6a05b2316bdc6d9556359e205",
+      "header": "ce-modified",
+      "reason": "Prompt fields and LangChain conversion extracted from CE common/data/src/main/java/org/thingsboard/server/common/data/ai/dto/TbChatRequest.java at 5954190c32f; the conversion code is the CE implementation."
+    },
+    {
       "path": "common/data/src/main/java/org/thingsboard/server/common/data/edqs/fields/BlobEntityFields.java",
       "contentHash": "sha256:0fc26ec79e200fe6bf97b58993a9830be23175c260155764408f3f3b7d84bed1",
       "header": "busl",
@@ -1206,6 +1212,12 @@
       "contentHash": "sha256:5427b1c6bf59f9e9372c47717fee96bf94bddeaf65ad920b77647b16539bf5f9",
       "header": "busl",
       "reason": "ID wrapper for a PE-only entity. Maintainer resolved ConverterId and comparable PE-only entity wrappers as PE-authored; extending the common ID type and repeating its annotations/type tag is template use. Reviewed similarity candidate ui-ngx/src/app/shared/models/id/asset-id.ts at 0d3b41e002f958887a317ca8366fdc4efa549058 (blob 86ca874a92346a950b6912d78116f1f7ee6bb654). [Provenance decision reused verbatim from the thingsboard-pe lts-4.2 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.2.]"
+    },
+    {
+      "path": "ui-ngx/src/scss/filter-button.scss",
+      "contentHash": "sha256:3b19b678564aa147c087269d91d7996a5c2a58d7ff058afbe6610c5cda56cc0e",
+      "header": "ce-modified",
+      "reason": "Shared filter button styles extracted from the CE device filter component, which now uses this file instead of its own copy; the rules are the CE implementation with the panel class renamed. Reviewed against CE ui-ngx/src/app/modules/home/components/device/device-info-filter.component.scss at 269bc8dc73a4892e93cf61db6a8a41ea377c8636 (blob 4a79c6c9ce599e85209d5a6ee9062b6f713ac0f1)."
     }
   ]
 }

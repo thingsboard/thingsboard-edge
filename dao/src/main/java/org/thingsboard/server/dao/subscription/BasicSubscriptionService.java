@@ -40,7 +40,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.tenant.TenantService;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;

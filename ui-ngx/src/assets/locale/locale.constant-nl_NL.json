@@ -1880,6 +1880,8 @@
     "model": "Model",
     "name": "Naam",
     "ai-provider": "AI-provider",
+    "customer-access": "Klanttoegang",
+    "customer-access-hint": "Hiermee kunnen klantgebruikers chatverzoeken naar dit model sturen, bijvoorbeeld vanuit Trendz Analytics. De modelconfiguratie en inloggegevens worden nooit vrijgegeven.",
     "no-found": "Geen AI-modellen gevonden",
     "list": "{ count, plural, =1 {Eén model} other {Lijst van # modellen} }",
     "selected-fields": "{ count, plural, =1 {1 model} other {# modellen} } geselecteerd",
@@ -2833,7 +2835,6 @@
     "is-gateway": "Is gateway",
     "overwrite-activity-time": "Activiteitstijd voor verbonden apparaat overschrijven",
     "device-filter-title": "Apparaatfilter",
-    "filter-title": "Filter",
     "device-state": "Apparaatstatus",
     "state": "Status",
     "any": "Alles",
@@ -5422,7 +5423,6 @@
         "community-string": "SNMP community string"
       },
       "isgateway": "Is Gateway",
-      "activity-time-from-gateway-device": "Activiteitstijd van gatewayapparaat",
       "description": "Beschrijving",
       "edge-license-key": "Licentiesleutel",
       "cloud-endpoint": "Cloud endpoint",
@@ -5690,9 +5690,9 @@
     "type-aws-sqs-description": "Volledig beheerde wachtrijdienst.",
     "type-aws-kinesis": "AWS Kinesis",
     "type-aws-kinesis-description": "Dienst voor realtime video- en datastromen.",
-    "type-ttn": "The Things Stack Community",
+    "type-ttn": "The Things Stack Sandbox",
     "type-ttn-description": "Open en gedecentraliseerd LoRaWAN-netwerk.",
-    "type-tti": "The Things Stack Industries",
+    "type-tti": "The Things Stack Cloud & Enterprise",
     "type-tti-description": "Software om privé LoRaWAN-netwerken op schaal te beheren.",
     "type-things-stack": "The Things Stack",
     "type-chirpstack": "ChirpStack",
@@ -5742,7 +5742,7 @@
     "opc-ua-type": "Type",
     "opc-ua-keystore-type": "Type",
     "opc-ua-keystore-type-required": "Type is verplicht",
-    "opc-ua-keystore-location": "Locatie *",
+    "opc-ua-keystore-location": "Locatie",
     "opc-ua-keystore-password": "Wachtwoord",
     "opc-ua-keystore-password-required": "Wachtwoord is verplicht",
     "opc-ua-keystore-alias": "Alias",
@@ -7540,7 +7540,6 @@
     "drop-file": "Sleep een JavaScript-bestand of klik om een bestand te selecteren om te uploaden.",
     "drop-resource-file-or": "Sleep een JavaScript-bestand of",
     "javascript-library": "JavaScript-bibliotheek",
-    "javascript-type": "JavaScript-type",
     "scripts": "Scripts",
     "script-type": "Scripttype",
     "javascript-resource-details": "Details van JavaScript-bron",
@@ -8848,7 +8847,8 @@
         "SHARE_GROUP": "Groep delen",
         "ASSIGN_TO_TENANT": "Toewijzen aan tenant",
         "READ_CALCULATED_FIELD": "Berekend veld lezen",
-        "WRITE_CALCULATED_FIELD": "Berekend veld schrijven"
+        "WRITE_CALCULATED_FIELD": "Berekend veld schrijven",
+        "INVOKE": "Aanroepen"
       }
     }
   },
