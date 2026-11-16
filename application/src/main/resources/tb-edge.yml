@@ -1811,7 +1811,7 @@ transport:
     batch_retries: "${SNMP_BOOTSTRAP_RETRIES:8}"
   modbus:
     # Enable/disable MODBUS transport protocol
-    enabled: "${MODBUS_ENABLED:false}"
+    enabled: "${MODBUS_ENABLED:true}"
     # Maximum number of retry attempts for a single MODBUS devices batch during bootstrap.
     batch_retries: "${MODBUS_BOOTSTRAP_RETRIES:8}"
     # Number of threads that schedule Modbus poll cycles
