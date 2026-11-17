@@ -16,6 +16,7 @@ import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.exception.TenantNotFoundException;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -179,8 +180,10 @@ public class CloudEventSourcingListener {
             log.trace("RelationActionEvent called: {}", event);
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), null,
                     JacksonUtil.toString(event.getRelation()), CloudEventType.RELATION, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()), null);
+        } catch (TenantNotFoundException e) {
+            log.debug("[{}] Ignoring RelationActionEvent because tenant does not exist: {}", event.getTenantId(), event);
         } catch (Exception e) {
-            log.error("failed to process RelationActionEvent: {}", event);
+            log.error("failed to process RelationActionEvent: {}", event, e);
         }
     }
 

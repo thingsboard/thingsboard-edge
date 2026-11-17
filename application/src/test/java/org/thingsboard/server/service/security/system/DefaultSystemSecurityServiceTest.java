@@ -216,13 +216,14 @@ public class DefaultSystemSecurityServiceTest {
     }
 
     @Test
-    public void resolveBaseUrlTakesSettingsUrlWhenDifferentUrlsAreProhibited() {
+    public void resolveBaseUrlTakesRequestUrlWhenDifferentUrlsAreProhibited() {
         givenGeneralSettings("https://tb.example.com", true);
 
         ResolvedBaseUrl baseUrl = systemSecurityService.resolveBaseUrl(tenantId, null, request());
 
-        assertThat(baseUrl.url()).isEqualTo("https://tb.example.com");
-        assertThat(baseUrl.fromRequest()).isFalse();
+        // edge-only: base URL from settings is ignored, request URL is always used
+        assertThat(baseUrl.url()).isEqualTo("http://192.168.1.10:8080");
+        assertThat(baseUrl.fromRequest()).isTrue();
     }
 
     @Test

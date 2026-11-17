@@ -236,7 +236,9 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
                 result.put(protocol, new ResolvedDeviceConnectivityInfo(true,
                         getHost(baseUrl, info, protocol),
                         StringUtils.isBlank(info.getPort()) ? STANDARD_PORTS.get(protocol) : info.getPort(),
-                        StringUtils.isNotBlank(info.getHost()) ? DeviceConnectivityHostSource.DEVICE_CONNECTIVITY : baseUrlSource));
+                        // edge-only: host is always taken from the base URL, see DeviceConnectivityUtil.getHost
+                        // StringUtils.isNotBlank(info.getHost()) ? DeviceConnectivityHostSource.DEVICE_CONNECTIVITY : baseUrlSource));
+                        baseUrlSource));
             }
         }
         return JacksonUtil.valueToTree(result);
