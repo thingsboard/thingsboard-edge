@@ -128,10 +128,11 @@ class CommunityGrantUploadPayloadLimitTest {
 
     private static String matchInYaml(String regex, String property) {
         String yaml;
-        try (var in = CommunityGrantUploadPayloadLimitTest.class.getResourceAsStream("/thingsboard.yml")) {
+        // edge-only: the Edge configuration file is tb-edge.yml
+        try (var in = CommunityGrantUploadPayloadLimitTest.class.getResourceAsStream("/tb-edge.yml")) {
             yaml = new String(in.readAllBytes(), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new IllegalStateException("thingsboard.yml is not on the test classpath", e);
+            throw new IllegalStateException("tb-edge.yml is not on the test classpath", e);
         }
         Matcher matcher = Pattern.compile(regex).matcher(yaml);
         if (!matcher.find()) {
