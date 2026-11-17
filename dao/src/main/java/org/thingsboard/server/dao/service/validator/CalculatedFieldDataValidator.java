@@ -40,6 +40,7 @@ public class CalculatedFieldDataValidator extends DataValidator<CalculatedField>
         validateRelationQuerySourceArguments(tenantId, calculatedField);
         validateRelatedAggregationConfiguration(tenantId, calculatedField);
         validateEntityAggregationConfiguration(tenantId, calculatedField);
+        validateComputeOn(tenantId, calculatedField);
     }
 
     @Override
@@ -130,6 +131,10 @@ public class CalculatedFieldDataValidator extends DataValidator<CalculatedField>
             throw new IllegalArgumentException("Aggregation interval duration is less than configured " +
                     "minimum allowed aggregation interval in tenant profile: " + minAggregationIntervalInSec + " sec.");
         }
+    }
+
+    private void validateComputeOn(TenantId tenantId, CalculatedField calculatedField) {
+        // edge only: the edge assignment relations live on the cloud, so there is nothing to validate here
     }
 
     private static void wrapAsDataValidation(Runnable validation) {
