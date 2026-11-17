@@ -31,15 +31,18 @@ class DeviceConnectivityServiceImplTest {
     private DeviceConnectivityServiceImpl service;
 
     @Test
-    void configuredHostIsReportedAsDeviceConnectivity() throws Exception {
+    void configuredHostIsIgnoredInFavorOfBaseUrl() throws Exception {
         givenConnectivity("""
                 {"mqtt": {"enabled": true, "host": "10.0.0.5", "port": "1884"}}""");
 
-        JsonNode mqtt = service.getConnectivityInfo(BASE_URL, DeviceConnectivityHostSource.REQUEST).get("mqtt");
+        JsonNode fromRequest = service.getConnectivityInfo(BASE_URL, DeviceConnectivityHostSource.REQUEST).get("mqtt");
+        JsonNode fromBaseUrl = service.getConnectivityInfo(BASE_URL, DeviceConnectivityHostSource.BASE_URL).get("mqtt");
 
-        assertThat(mqtt.get("host").asText()).isEqualTo("10.0.0.5");
-        assertThat(mqtt.get("port").asText()).isEqualTo("1884");
-        assertThat(mqtt.get("hostSource").asText()).isEqualTo("DEVICE_CONNECTIVITY");
+        // edge-only: configured host is ignored, host and its source always come from the base URL
+        assertThat(fromRequest.get("host").asText()).isEqualTo("192.168.1.10");
+        assertThat(fromRequest.get("port").asText()).isEqualTo("1884");
+        assertThat(fromRequest.get("hostSource").asText()).isEqualTo("REQUEST");
+        assertThat(fromBaseUrl.get("hostSource").asText()).isEqualTo("BASE_URL");
     }
 
     @Test
