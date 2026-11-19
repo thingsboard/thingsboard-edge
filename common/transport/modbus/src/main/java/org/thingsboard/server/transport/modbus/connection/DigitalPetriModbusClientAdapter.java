@@ -27,17 +27,34 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * {@link ModbusClientAdapter} over digitalpetri/modbus: {@link ModbusTcpClient} for MBAP framing,
- * {@link ModbusRtuClient} for RTU frames tunnelled over TCP. The clients run over our own {@link TcpClientTransport}s
- * (reconnecting), not the library's Netty transports: those need a {@code netty-channel-fsm} version that conflicts with Milo.
+ * {@link ModbusRtuClient} for RTU frames tunnelled over TCP or sent over a serial port. The clients run over our own
+ * transports, not the library's: its Netty transports need a {@code netty-channel-fsm} version that conflicts with Milo,
+ * and its serial transport never returns from a write once the port is gone (see {@link SerialClientTransport}).
  */
 public class DigitalPetriModbusClientAdapter implements ModbusClientAdapter {
 
     private final ModbusClient client;
 
-    @Builder
+    @Builder(builderMethodName = "serial", builderClassName = "SerialBuilder")
+    public DigitalPetriModbusClientAdapter(String serialPort, int baudRate, int dataBits, int stopBits, int parity, boolean rs485Mode,
+                                           boolean rs485RtsActiveHigh, boolean rs485Termination, boolean rs485DuringTx,
+                                           int rs485DelayBefore, int rs485DelayAfter, Duration requestTimeout,
+                                           ExecutorService executor, ScheduledExecutorService scheduler) {
+        this.client = ModbusRtuClient.create(
+                SerialClientTransport.builder()
+                        .portName(serialPort).baudRate(baudRate).dataBits(dataBits).stopBits(stopBits).parity(parity)
+                        .rs485Mode(rs485Mode).rs485RtsActiveHigh(rs485RtsActiveHigh).rs485Termination(rs485Termination)
+                        .rs485RxDuringTx(rs485DuringTx).rs485DelayBefore(rs485DelayBefore).rs485DelayAfter(rs485DelayAfter)
+                        .writeTimeout(requestTimeout).executor(executor).scheduler(scheduler)
+                        .build(),
+                cfg -> cfg.requestTimeout = requestTimeout);
+    }
+
+    @Builder(builderMethodName = "tcp", builderClassName = "TcpBuilder")
     public DigitalPetriModbusClientAdapter(String host, int port, ModbusTcpFraming framing, Duration requestTimeout,
                                            Duration connectTimeout, EventLoopGroup eventLoopGroup, ExecutorService executor) {
         this.client = switch (framing) {
