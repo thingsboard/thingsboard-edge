@@ -466,6 +466,8 @@ public abstract class AbstractCalculatedFieldProcessingService {
                 .entries(entries)
                 .strategy(strategy)
                 .previousCalculatedFieldIds(cfIds)
+                // edge only
+                .propagateToCloud(true)
                 .callback(new FutureCallback<>() {
                     @Override
                     public void onSuccess(Void result) {
@@ -513,6 +515,8 @@ public abstract class AbstractCalculatedFieldProcessingService {
                 .entityId(entityId)
                 .entries(tsEntries)
                 .strategy(strategy)
+                // edge only
+                .propagateToCloud(true)
                 .callback(new FutureCallback<>() {
                     @Override
                     public void onSuccess(Void result) {
