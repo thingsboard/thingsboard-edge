@@ -183,8 +183,10 @@ public class MigrationService {
         // Load-bearing invariant: no two beans may reproduce the same change within a single supported upgrade
         // range. A reproduction-duplicate bean (one that re-does an older bean's work on a newer-family branch)
         // must sit STRICTLY BELOW the minimum supported upgrade source, so it can never be selected together with
-        // the bean it duplicates. The pairs today are 4.2.2.3 <-> 4.3.1.3 and 4.2.2.4 <-> 4.3.1.4, and the
-        // supported-source floor is 4.3.0.0 (SUPPORTED_FAMILIES_FOR_UPGRADE), well above both 4.2.2.x beans.
+        // the bean it duplicates. The pairs today are 4.2.2.3 <-> 4.3.1.3, 4.2.2.4 <-> 4.3.1.4 and 4.2.2.8 <-> 4.3.1.8, and
+        // the supported-source floor is 4.3.0.0 (SUPPORTED_FAMILIES_FOR_UPGRADE), well above the 4.2.2.x beans.
+        // Accepted exception: 4.3.1.8 <-> 4.4.1.0 (edge admin settings purge + JWT signing key rotation) can both run on a
+        // 4.3.0.0-4.3.1.7 source; the purge is idempotent and the second rotation only replaces the key again.
         // MigrationServiceTest guards this.
         //
         // A forced run takes the closed [from, to] instead, so the source version's own migration re-runs rather than
