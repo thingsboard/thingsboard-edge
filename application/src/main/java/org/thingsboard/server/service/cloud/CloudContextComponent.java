@@ -17,6 +17,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.AdminSettingsCloudProc
 import org.thingsboard.server.service.cloud.rpc.processor.AiModelCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AlarmCommentCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.ApiKeyCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CalculatedFieldCloudProcessor;
@@ -169,6 +170,9 @@ public class CloudContextComponent {
 
     @Autowired
     private SendNotificationCloudProcessor sendNotificationProcessor;
+
+    @Autowired
+    private ApiKeyCloudProcessor apiKeyCloudProcessor;
 
     // callback
     @Autowired
