@@ -141,7 +141,7 @@
                             <arguments>
                                 <argument>tag</argument>
                                 <argument>${docker.repo}/${docker.name}:latest</argument>
-                                <argument>${docker.repo}/${docker.name}:${project.version}</argument>
+                                <argument>${docker.repo}/${docker.name}:${docker.version.tag}</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -188,7 +188,7 @@
                                     <executable>docker</executable>
                                     <arguments>
                                         <argument>push</argument>
-                                        <argument>${docker.repo}/${docker.name}:${project.version}</argument>
+                                        <argument>${docker.repo}/${docker.name}:${docker.version.tag}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -247,7 +247,7 @@
                                         <argument>build</argument>
                                         <argument>--pull</argument>
                                         <argument>-t</argument>
-                                        <argument>${docker.repo}/${docker.name}:${project.version}</argument>
+                                        <argument>${docker.repo}/${docker.name}:${docker.version.tag}</argument>
                                         <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>--no-cache</argument>
                                         <argument>-o</argument>
