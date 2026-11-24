@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 import {
   CartoMapLayerSettings,
   CustomMapLayerSettings,
@@ -177,6 +178,8 @@ export abstract class TbMapLayer<S extends MapLayerSettings> {
       map(spec => {
         return L.TB.MapLibreGL.mapLibreGLLayer({
           style: spec,
+          // The reference layer is drawn over a raster base, so the base layer's zoom limit applies
+          maxZoom: undefined
         });
       })
     );

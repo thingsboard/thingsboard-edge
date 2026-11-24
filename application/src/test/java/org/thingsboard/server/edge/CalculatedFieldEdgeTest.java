@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.edge;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
@@ -21,6 +22,7 @@ import org.thingsboard.server.common.data.cf.configuration.TimeSeriesOutput;
 import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.CalculatedFieldRequestMsg;
@@ -110,6 +112,42 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
         UplinkMsg uplinkMsg = getUplinkMsg(uuid, calculatedField, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
 
         checkCalculatedFieldOnCloud(uplinkMsg, uuid, calculatedField.getName());
+    }
+
+    @Test
+    @Ignore
+    public void testSendCalculatedFieldToCloudSavesItUnderEdgeTenant() throws Exception {
+        Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        SimpleCalculatedFieldConfiguration config = new SimpleCalculatedFieldConfiguration();
+        CalculatedField calculatedField = createSimpleCalculatedField(savedDevice.getId(), config);
+        calculatedField.setTenantId(TenantId.fromUUID(UUID.randomUUID()));
+        UUID uuid = Uuids.timeBased();
+        UplinkMsg uplinkMsg = getUplinkMsg(uuid, calculatedField, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+
+        checkCalculatedFieldOnCloud(uplinkMsg, uuid, calculatedField.getName());
+
+        CalculatedField calculatedFieldFromCloud = doGet("/api/calculatedField/" + uuid, CalculatedField.class);
+        Assert.assertEquals(tenantId, calculatedFieldFromCloud.getTenantId());
+    }
+
+    @Test
+    @Ignore
+    public void testSendCalculatedFieldWithOtherTenantReferenceToCloud() throws Exception {
+        Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        SimpleCalculatedFieldConfiguration config = new SimpleCalculatedFieldConfiguration();
+        CalculatedField calculatedField = createSimpleCalculatedField(savedDevice.getId(), config);
+        config.getArguments().get("T").setRefEntityId(TenantId.fromUUID(UUID.randomUUID()));
+        UUID uuid = Uuids.timeBased();
+        UplinkMsg uplinkMsg = getUplinkMsg(uuid, calculatedField, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.sendUplinkMsg(uplinkMsg);
+        Assert.assertTrue(edgeImitator.waitForResponses());
+
+        Assert.assertFalse(edgeImitator.getLatestResponseMsg().getSuccess());
+        doGet("/api/calculatedField/" + uuid).andExpect(status().isNotFound());
     }
 
     @Test
