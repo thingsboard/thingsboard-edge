@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.edge;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
@@ -8,6 +9,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.cf.CalculatedField;
@@ -18,13 +20,17 @@ import org.thingsboard.server.common.data.cf.configuration.ReferencedEntityKey;
 import org.thingsboard.server.common.data.cf.configuration.SimpleCalculatedFieldConfiguration;
 import org.thingsboard.server.common.data.cf.configuration.TimeSeriesOutput;
 import org.thingsboard.server.common.data.debug.DebugSettings;
+import org.thingsboard.server.common.data.id.CalculatedFieldId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.cf.CalculatedFieldService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.CalculatedFieldRequestMsg;
 import org.thingsboard.server.gen.edge.v1.CalculatedFieldUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
+import org.thingsboard.server.service.edge.EdgeMsgConstructorUtils;
 
 import java.util.Map;
 import java.util.Optional;
@@ -34,6 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DaoSqlTest
 public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
+
+    @Autowired
+    private CalculatedFieldService calculatedFieldService;
     private static final String DEFAULT_CF_NAME = "Edge Test CalculatedField";
     private static final String UPDATED_CF_NAME = "Updated Edge Test CalculatedField";
 
@@ -103,6 +112,42 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
         UplinkMsg uplinkMsg = getUplinkMsg(uuid, calculatedField, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
 
         checkCalculatedFieldOnCloud(uplinkMsg, uuid, calculatedField.getName());
+    }
+
+    @Test
+    @Ignore
+    public void testSendCalculatedFieldToCloudSavesItUnderEdgeTenant() throws Exception {
+        Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        SimpleCalculatedFieldConfiguration config = new SimpleCalculatedFieldConfiguration();
+        CalculatedField calculatedField = createSimpleCalculatedField(savedDevice.getId(), config);
+        calculatedField.setTenantId(TenantId.fromUUID(UUID.randomUUID()));
+        UUID uuid = Uuids.timeBased();
+        UplinkMsg uplinkMsg = getUplinkMsg(uuid, calculatedField, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+
+        checkCalculatedFieldOnCloud(uplinkMsg, uuid, calculatedField.getName());
+
+        CalculatedField calculatedFieldFromCloud = doGet("/api/calculatedField/" + uuid, CalculatedField.class);
+        Assert.assertEquals(tenantId, calculatedFieldFromCloud.getTenantId());
+    }
+
+    @Test
+    @Ignore
+    public void testSendCalculatedFieldWithOtherTenantReferenceToCloud() throws Exception {
+        Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
+
+        SimpleCalculatedFieldConfiguration config = new SimpleCalculatedFieldConfiguration();
+        CalculatedField calculatedField = createSimpleCalculatedField(savedDevice.getId(), config);
+        config.getArguments().get("T").setRefEntityId(TenantId.fromUUID(UUID.randomUUID()));
+        UUID uuid = Uuids.timeBased();
+        UplinkMsg uplinkMsg = getUplinkMsg(uuid, calculatedField, UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE);
+
+        edgeImitator.expectResponsesAmount(1);
+        edgeImitator.sendUplinkMsg(uplinkMsg);
+        Assert.assertTrue(edgeImitator.waitForResponses());
+
+        Assert.assertFalse(edgeImitator.getLatestResponseMsg().getSuccess());
+        doGet("/api/calculatedField/" + uuid).andExpect(status().isNotFound());
     }
 
     @Test
@@ -256,6 +301,32 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
         Assert.assertNotNull(calculatedField);
         Assert.assertEquals(resourceTitle, calculatedField.getName());
         Assert.assertEquals(JacksonUtil.newObjectNode(), calculatedField.getAdditionalInfo());
+    }
+
+    @Test
+    public void testSendCalculatedFieldForEntityOfDifferentTenantToCloud() throws Exception {
+        Device device = saveDifferentTenantDevice();
+        CalculatedField calculatedField = createSimpleCalculatedField(device.getId(), new SimpleCalculatedFieldConfiguration());
+        calculatedField.setId(new CalculatedFieldId(Uuids.timeBased()));
+        sendUplinkMsgAndWaitForResponse(uplinkMsgBuilder -> uplinkMsgBuilder.addCalculatedFieldUpdateMsg(
+                EdgeMsgConstructorUtils.constructCalculatedFieldUpdatedMsg(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, calculatedField)));
+
+        Assert.assertNull(calculatedFieldService.findById(tenantId, calculatedField.getId()));
+    }
+
+    @Test
+    public void testSendCalculatedFieldDeleteForCalculatedFieldOfDifferentTenantToCloud() throws Exception {
+        Device device = saveDifferentTenantDevice();
+        CalculatedField calculatedField = createSimpleCalculatedField(device.getId(), new SimpleCalculatedFieldConfiguration());
+        calculatedField.setTenantId(differentTenantId);
+        loginDifferentTenant();
+        CalculatedField savedCalculatedField = doPost("/api/calculatedField", calculatedField, CalculatedField.class);
+        loginTenantAdmin();
+
+        sendUplinkMsgAndWaitForResponse(uplinkMsgBuilder -> uplinkMsgBuilder.addCalculatedFieldUpdateMsg(
+                EdgeMsgConstructorUtils.constructCalculatedFieldDeleteMsg(savedCalculatedField.getId())));
+
+        Assert.assertNotNull(calculatedFieldService.findById(differentTenantId, savedCalculatedField.getId()));
     }
 
 }

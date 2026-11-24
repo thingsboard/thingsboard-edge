@@ -71,7 +71,7 @@ public class ThingsboardSecurityConfiguration {
     public static final String FORM_BASED_LOGIN_ENTRY_POINT = "/api/auth/login";
     public static final String PUBLIC_LOGIN_ENTRY_POINT = "/api/auth/login/public";
     public static final String TOKEN_REFRESH_ENTRY_POINT = "/api/auth/token";
-    protected static final String[] NON_TOKEN_BASED_AUTH_ENTRY_POINTS = new String[]{"/index.html", "/assets/**", "/static/**", "/api/noauth/**", "/webjars/**", "/api/license/**", "/api/images/public/**", "/api/v2/report/public/**", "/.well-known/**"};
+    protected static final String[] NON_TOKEN_BASED_AUTH_ENTRY_POINTS = new String[]{"/index.html", "/assets/**", "/static/**", "/api/noauth/**", "/webjars/**", "/api/license/**", "/api/v2/license/**", "/api/images/public/**", "/api/v2/report/public/**", "/.well-known/**"};
     public static final String[] TOKEN_BASED_AUTH_ENTRY_POINTS = new String[]{"/api/**", "/apiTrendz/**"};
     protected static final String[] TRENDZ_NON_TOKEN_BASED_AUTH_ENTRY_POINTS = new String[]{"/api/trendz/public/connect", "/apiTrendz/publicApi/**", "/trendz/**"};
     public static final String WS_ENTRY_POINT = "/api/ws/**";

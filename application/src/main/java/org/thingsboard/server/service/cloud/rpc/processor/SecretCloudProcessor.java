@@ -30,6 +30,14 @@ public class SecretCloudProcessor extends BaseEdgeProcessor {
                     if (secret == null) {
                         throw new RuntimeException("[{" + tenantId + "}] SecretUpdateMsg {" + secretUpdateMsg + " } cannot be converted to secret");
                     }
+                    // The synced secret carries the cloud's id. Reuse the existing row's id (matched by tenant + name)
+                    // so it is updated in place instead of colliding on the (tenant_id, name) unique constraint with an
+                    // edge auto-generated secret. Use the secret's own tenant so system-tenant secrets are matched too.
+                    Secret existing = edgeCtx.getSecretService().findSecretByName(secret.getTenantId(), secret.getName());
+                    if (existing != null) {
+                        secret.setId(existing.getId());
+                        secret.setCreatedTime(existing.getCreatedTime());
+                    }
                     edgeCtx.getSecretService().saveSecret(tenantId, secret, false);
                 } catch (Exception e) {
                     log.error("[{}] Failed to process SecretUpdateMsg [{}]", tenantId, secretUpdateMsg, e);

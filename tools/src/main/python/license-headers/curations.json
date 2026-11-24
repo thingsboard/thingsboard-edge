@@ -11,13 +11,13 @@
       "path": "application/src/main/java/org/thingsboard/server/service/edge/DefaultEdgeLicenseService.java",
       "header": "ce-modified",
       "reason": "Retained CE file subsequently deleted on the selected lts-4.2 mainline. PE retains the CE implementation with HTTP client migration, timeout and request-handling changes. Reviewed against last CE path version 3af76140cd7dd2968cdba2875a92eccbbcfc05fe^1 (blob 034ac5148483fda6234c6fae2a46cf601396606a); absence from the selected CE tree does not change origin.",
-      "contentHash": "sha256:1d9614ac78d02d46eebefd0a2679b429a220c9bd122cbdfb96df1e24c19270f0"
+      "contentHash": "sha256:eecfaa3b7a1a6e24f09816fbce577ddad12ce5fc0a0ccb14391982673adc081f"
     },
     {
       "path": "application/src/main/java/org/thingsboard/server/service/edge/EdgeLicenseService.java",
-      "contentHash": "sha256:a5d72a772b07a9ca6688c6f2531878ed06659473d43c76b3dc7bc0ab34826ab7",
-      "header": "apache",
-      "reason": "Retained CE file subsequently deleted on the selected lts-4.2 mainline. The retained interface has the exact normalized body of the last CE version. Reviewed against last CE path version 3af76140cd7dd2968cdba2875a92eccbbcfc05fe^1 (blob aa4d281aba2e442b05b09bfb73b9f3221de25764); absence from the selected CE tree does not change origin. [Provenance decision reused verbatim from the thingsboard-pe lts-4.2 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.2.]"
+      "header": "ce-modified",
+      "reason": "Retained CE file subsequently deleted on the selected lts-4.2 mainline. PE retains the CE interface and adds the V2 checkInstance/activateInstance methods. Reviewed against last CE path version 3af76140cd7dd2968cdba2875a92eccbbcfc05fe^1 (blob aa4d281aba2e442b05b09bfb73b9f3221de25764); absence from the selected CE tree does not change origin.",
+      "contentHash": "sha256:2e51d1ca879d2c61c348b78db1f814f0b35c6d0802e5cec4927a9411daa987a7"
     },
     {
       "path": "application/src/main/java/org/thingsboard/server/service/edge/rpc/fetch/IntegrationsEdgeEventFetcher.java",
@@ -48,6 +48,24 @@
       "contentHash": "sha256:6f960791993777f636b230e3829422af292370a5b5a113b082dc2d05ee151491",
       "header": "busl",
       "reason": "PE-specific service adapter/message SecretEdgeProcessor.java. Reviewed methods bind the common framework to PE integration, scheduler, encryption/secret, group, or customer-parent behavior. This is a new typed PE extension, not a relocation of the candidate CE implementation. Reviewed candidate application/src/main/java/org/thingsboard/server/service/edge/rpc/processor/queue/QueueEdgeProcessor.java at 0d3b41e002f958887a317ca8366fdc4efa549058 (blob 8e5a65b588937e5703ff87f301be023d27ce1808). [Provenance decision reused verbatim from the thingsboard-pe lts-4.2 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.2.]"
+    },
+    {
+      "path": "application/src/main/java/org/thingsboard/server/service/install/lts/Migration.java",
+      "header": "ce-modified",
+      "reason": "CE interface application/src/main/java/org/thingsboard/server/service/install/lts/LtsMigration.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/main/java/org/thingsboard/server/service/install/lts/LtsMigration.java at 5954190c32f (blob f0cadee1f657ab6d1a0f670f1166ef3140ec4438); a renamed CE file stays CE-derived.",
+      "contentHash": "sha256:c12598c1c6ccd66fe6cfd7833fe1624d379c937151df7d13bf162212cb7344aa"
+    },
+    {
+      "path": "application/src/main/java/org/thingsboard/server/service/install/lts/MigrationService.java",
+      "header": "ce-modified",
+      "reason": "CE service application/src/main/java/org/thingsboard/server/service/install/lts/LtsMigrationService.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/main/java/org/thingsboard/server/service/install/lts/LtsMigrationService.java at 5954190c32f (blob 2f063c3a1a469cb578503bdf548f5e1a4cfb4035); a renamed CE file stays CE-derived.",
+      "contentHash": "sha256:f72de342ef3308706b866bb311ede8c07c4027a2b413154a4002807561887ed3"
+    },
+    {
+      "path": "application/src/main/java/org/thingsboard/server/service/install/lts/Version.java",
+      "header": "ce-modified",
+      "reason": "CE class application/src/main/java/org/thingsboard/server/service/install/lts/LtsVersion.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/main/java/org/thingsboard/server/service/install/lts/LtsVersion.java at 5954190c32f (blob fa59efcc5a2d50079e495e42c141139fc57f178b); a renamed CE file stays CE-derived.",
+      "contentHash": "sha256:d7698c48f928583c2ade63ed5f16620677bb6d0a59376d9dbe1fb1ee1457a095"
     },
     {
       "path": "application/src/main/java/org/thingsboard/server/service/integration/rpc/IntegrationSessionCaffeineCache.java",
@@ -110,10 +128,28 @@
       "contentHash": "sha256:fd319f8910fa50f4db8dd30fe3f90e60e34910e1ddc0bb9db390db64f56b27db"
     },
     {
+      "path": "application/src/test/java/org/thingsboard/server/service/install/lts/MigrationIntegrationTest.java",
+      "header": "ce-modified",
+      "reason": "CE test application/src/test/java/org/thingsboard/server/service/install/lts/LtsMigrationIntegrationTest.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/test/java/org/thingsboard/server/service/install/lts/LtsMigrationIntegrationTest.java at 5954190c32f (blob cf60ec2e4b5fce7a55862805e9bd959c125ce17e); a renamed CE file stays CE-derived.",
+      "contentHash": "sha256:24cb205ad1c7a7577284aa2fca5b245d60e0c554accfe9f26021a6d60e0807ce"
+    },
+    {
+      "path": "application/src/test/java/org/thingsboard/server/service/install/lts/MigrationServiceTest.java",
+      "header": "ce-modified",
+      "reason": "CE test application/src/test/java/org/thingsboard/server/service/install/lts/LtsMigrationServiceTest.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/test/java/org/thingsboard/server/service/install/lts/LtsMigrationServiceTest.java at 5954190c32f (blob 18ee8b6506742c7bf3e39a8fe0e5d9e9370e5614); a renamed CE file stays CE-derived.",
+      "contentHash": "sha256:1ba9703bfe4a8fdb30ef11d151c9de62b4f89279ad030738021986db9fd64d8d"
+    },
+    {
+      "path": "application/src/test/java/org/thingsboard/server/service/install/lts/VersionTest.java",
+      "header": "ce-modified",
+      "reason": "CE test application/src/test/java/org/thingsboard/server/service/install/lts/LtsVersionTest.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/test/java/org/thingsboard/server/service/install/lts/LtsVersionTest.java at 5954190c32f (blob f3d280a915e59fb37e93c45e6404b09728a772a8); a renamed CE file stays CE-derived.",
+      "contentHash": "sha256:6a1b1d2f264dbae3ad420d9eef4466449a50f9f721c7256441a4aab0e4a87037"
+    },
+    {
       "path": "application/src/test/java/org/thingsboard/server/service/install/update/DefaultDataUpdateServiceTest.java",
       "header": "busl",
       "reason": "CE deleted its DefaultDataUpdateServiceTest (version 3.3.0 device profile conversion tests) in ba440ba7c1f. PE recreated a test at the same path in cdae38adc6b with entirely new content covering the CE-to-PE upgrade chain; nothing of the CE file (last CE version 40527f3da02^1, blob abfab844917) remains beyond the class name.",
-      "contentHash": "sha256:c0ebbc47ce2ff97d2e00182781ed38ca137ad54393e706c064c0ca6919b27eb8"
+      "contentHash": "sha256:eec743ac28e32942ec4f44ae94fe398aeaf9df0ea1da6ce4b36b0ee4359faf2e"
     },
     {
       "path": "application/src/test/java/org/thingsboard/server/service/integration/rpc/IntegrationRpcSslTest.java",
@@ -228,6 +264,12 @@
       "header": "busl",
       "reason": "PE agent installation instructions model added in e0db7ac7154 as part of the PE agent feature introduced on lts-4.4, which has no counterpart in CE. The candidate CE common/data/src/main/java/org/thingsboard/server/common/data/edge/EdgeInstructions.java shares only the instructions model boilerplate. Reviewed candidate at a0aff29ef42d3636473b017115a9334b48d54d15 (blob 409985284c6).",
       "contentHash": "sha256:ce067f7aad61fb79c44ac80ceda3b26e9908a8a648380097754ff9ee097256b1"
+    },
+    {
+      "path": "common/data/src/main/java/org/thingsboard/server/common/data/ai/dto/TbChatPrompt.java",
+      "contentHash": "sha256:5fa64331c5c90df4ebd3ab0db1d62c995591dfa6a05b2316bdc6d9556359e205",
+      "header": "ce-modified",
+      "reason": "Prompt fields and LangChain conversion extracted from CE common/data/src/main/java/org/thingsboard/server/common/data/ai/dto/TbChatRequest.java at 5954190c32f; the conversion code is the CE implementation."
     },
     {
       "path": "common/data/src/main/java/org/thingsboard/server/common/data/edqs/fields/BlobEntityFields.java",
@@ -435,7 +477,7 @@
     },
     {
       "path": "common/data/src/main/java/org/thingsboard/server/common/data/permission/Operation.java",
-      "contentHash": "sha256:d4bcb4e694df750984b311d786923a3a68291c5e1e45cb7715a0db9541d9dbe7",
+      "contentHash": "sha256:f57a3606b1303177721db29d33490e8a763f02a7a660c1358c55d4efff6f9e6b",
       "header": "ce-modified",
       "reason": "Reviewed relocation from application/src/main/java/org/thingsboard/server/service/security/permission/Operation.java in PE commit d97b2f71224e96c27fbdf287f592a08b6fa0407b. The source exists in shared CE ancestry 4c2aa4a60368318eafc2dea155b93721668654c4. The relocated CE permission enum has PE permission/group extensions. Compared with CE fa82445a7078506defbaadc5bea07227dc1b016d (blob b481176e53d5d4e1460882c578b4e4c00f895b3b); a move alone does not imply PE authorship. [Provenance decision reused verbatim from the thingsboard-pe lts-4.3 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.3.]"
     },
@@ -443,7 +485,7 @@
       "path": "common/data/src/main/java/org/thingsboard/server/common/data/permission/Resource.java",
       "header": "ce-modified",
       "reason": "Reviewed relocation from application/src/main/java/org/thingsboard/server/service/security/permission/Resource.java in PE commit d97b2f71224e96c27fbdf287f592a08b6fa0407b. The source exists in shared CE ancestry 4c2aa4a60368318eafc2dea155b93721668654c4. The relocated CE permission enum has PE permission/group extensions. Compared with CE fa82445a7078506defbaadc5bea07227dc1b016d (blob d8b4dd8f4ef95df06ba22fd584813f437a8b453a); a move alone does not imply PE authorship.",
-      "contentHash": "sha256:635cb50f3945d1bca662a7100a6129bea1270755bf4fe7cd6bc9849f228a4f08"
+      "contentHash": "sha256:0f4157c5bea567a4fc31dfd45e793fe111a26e520a27442bf9f72b18348beb7d"
     },
     {
       "path": "common/data/src/main/java/org/thingsboard/server/common/data/query/EntityGroupNameFilter.java",
@@ -698,12 +740,6 @@
       "reason": "PE converter autocomplete styling. The entire body is a host-scoped Material icon-link border/color reset, also present in unrelated CE autocomplete controls. This trivial shared UI style does not establish CE provenance for a PE converter component. Reviewed candidate ui-ngx/src/app/modules/home/components/profile/tenant-profile-autocomplete.component.scss at 0d3b41e002f958887a317ca8366fdc4efa549058 (blob 95fd62939ec09897ed96164f7a2a47d6805c3245). [Provenance decision reused verbatim from the thingsboard-pe lts-4.2 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.2.]"
     },
     {
-      "path": "ui-ngx/src/app/modules/home/components/converter/converter-dialog.component.html",
-      "contentHash": "sha256:845e3846f9f41be29dc209df6c28c8870c3886886018155735affb0c49c5a9f9",
-      "header": "busl",
-      "reason": "PE view template converter-dialog.component.html. Reviewed form fields, bindings and entity/component selection implement the PE feature; the candidate shares standard Material dialog/form/tab scaffolding rather than a CE feature implementation. Reviewed CE candidate ui-ngx/src/app/modules/home/components/entity/add-entity-dialog.component.html at 0d3b41e002f958887a317ca8366fdc4efa549058 (blob 955f8f58be2d9d462570164005f4a2ee693b0dd7). [Provenance decision reused verbatim from the thingsboard-pe lts-4.2 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.2.]"
-    },
-    {
       "path": "ui-ngx/src/app/modules/home/components/converter/converter-test-dialog.component.scss",
       "contentHash": "sha256:0d83f8ec2da9c911f51d8e5eebe7da1b5db1f3100c483aa24769dc58ea75c3ad",
       "header": "busl",
@@ -854,12 +890,6 @@
       "contentHash": "sha256:774979b5f77b5d58e1d7dfabc31f6271a46cfa346b8f43e6bb18db92e0cb2429"
     },
     {
-      "path": "ui-ngx/src/app/modules/home/pages/asset/asset-table-header.component.scss",
-      "contentHash": "sha256:57aabaed35a0bf7d372df84d6d3c7e7562eeccc06bd19655f94000bd2693f3c0",
-      "header": "ce-modified",
-      "reason": "Retained CE file subsequently deleted on the CE mainline in d81add6fd73 (Angular 15 migration). PE keeps the assets table header stylesheet and updated it for the MDC slide toggle. Reviewed against last CE path version 80430897422ae13b600ee9c9dbc57f7d558a3b4b^1 (blob 488e5b4c27e). [Provenance decision reused verbatim from the thingsboard-pe lts-4.3 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.3.]"
-    },
-    {
       "path": "ui-ngx/src/app/modules/home/pages/converter/converter.module.ts",
       "contentHash": "sha256:92d96e89c654fa7d0e000083169e992e709ed6a050ce180f71fa11970479bdb2",
       "header": "busl",
@@ -900,12 +930,6 @@
       "contentHash": "sha256:07f295f637db24d600798215d33391f4e966954899f644a41b9735f5ed5392db",
       "header": "busl",
       "reason": "New PE file implementing a PE feature. It was written by adapting CE ui-ngx/src/app/modules/home/pages/dashboard/make-dashboard-public-dialog.component.ts, which PE still carries at its own path, so this is not a CE file with PE modifications. Adaptation from CE does not make it CE-derived. Maintainer rule (2026-09-09): a file that exists in CE and carries PE changes is modified CE; a file that does not exist in CE and implements a PE feature is PE-only, however closely it resembles a CE file. [Provenance decision reused verbatim from the thingsboard-pe lts-4.2 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.2.]"
-    },
-    {
-      "path": "ui-ngx/src/app/modules/home/pages/entity-view/entity-view-table-header.component.scss",
-      "contentHash": "sha256:6c7ddc99037190175a49c49f17e30954e2e46d03f7e91cb02ae5e40381a4850b",
-      "header": "ce-modified",
-      "reason": "Retained CE file subsequently deleted on the CE mainline in d81add6fd73 (Angular 15 migration). PE keeps the entity views table header stylesheet and updated it for the MDC slide toggle. Reviewed against last CE path version 80430897422ae13b600ee9c9dbc57f7d558a3b4b^1 (blob 66a9d55fb35). [Provenance decision reused verbatim from the thingsboard-pe lts-4.3 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.3.]"
     },
     {
       "path": "ui-ngx/src/app/modules/home/pages/iframe/iframe-view.module.ts",
@@ -1170,6 +1194,12 @@
       "contentHash": "sha256:5427b1c6bf59f9e9372c47717fee96bf94bddeaf65ad920b77647b16539bf5f9",
       "header": "busl",
       "reason": "ID wrapper for a PE-only entity. Maintainer resolved ConverterId and comparable PE-only entity wrappers as PE-authored; extending the common ID type and repeating its annotations/type tag is template use. Reviewed similarity candidate ui-ngx/src/app/shared/models/id/asset-id.ts at 0d3b41e002f958887a317ca8366fdc4efa549058 (blob 86ca874a92346a950b6912d78116f1f7ee6bb654). [Provenance decision reused verbatim from the thingsboard-pe lts-4.2 curation for this same path; confirmed here that the path is absent from thingsboard-edge lts-4.2.]"
+    },
+    {
+      "path": "ui-ngx/src/scss/filter-button.scss",
+      "contentHash": "sha256:3b19b678564aa147c087269d91d7996a5c2a58d7ff058afbe6610c5cda56cc0e",
+      "header": "ce-modified",
+      "reason": "Shared filter button styles extracted from the CE device filter component, which now uses this file instead of its own copy; the rules are the CE implementation with the panel class renamed. Reviewed against CE ui-ngx/src/app/modules/home/components/device/device-info-filter.component.scss at 269bc8dc73a4892e93cf61db6a8a41ea377c8636 (blob 4a79c6c9ce599e85209d5a6ee9062b6f713ac0f1)."
     }
   ]
 }

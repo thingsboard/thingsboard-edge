@@ -40,7 +40,7 @@ import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.tenant.TenantService;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -207,6 +207,7 @@ public class BasicSubscriptionService implements SubscriptionService, TbLicenseC
                     .licenseSecret(licenseSecret)
                     .licenseDataFilePath(this.edgeInstanceDataFilePath)
                     .releaseDate(releaseDate)
+                    .clusterId(licenseCtx.getClusterId())
                     .offlineTimeoutMs(TimeUnit.DAYS.toMillis(offlineTimeoutInDays))
                     .instanceLicenseCheckPeriodSeconds(INSTANCE_LICENSE_CHECK_PERIOD_SECONDS)
                     .instanceStatsReportPeriodSeconds(Integer.MAX_VALUE)
