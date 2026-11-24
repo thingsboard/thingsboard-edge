@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Loads the real thingsboard.yml, so the test fails if its static resource chain keys stop binding again.
  */
-@SpringBootTest(classes = StaticResourceCompressionTest.WebMvcConfig.class, properties = "spring.config.name=thingsboard")
+@SpringBootTest(classes = StaticResourceCompressionTest.WebMvcConfig.class, properties = "spring.config.name=tb-edge")
 @AutoConfigureMockMvc(addFilters = false)
 public class StaticResourceCompressionTest {
 
