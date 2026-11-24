@@ -59,7 +59,7 @@
       "path": "application/src/main/java/org/thingsboard/server/service/install/lts/MigrationService.java",
       "header": "ce-modified",
       "reason": "CE service application/src/main/java/org/thingsboard/server/service/install/lts/LtsMigrationService.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/main/java/org/thingsboard/server/service/install/lts/LtsMigrationService.java at 5954190c32f (blob 2f063c3a1a469cb578503bdf548f5e1a4cfb4035); a renamed CE file stays CE-derived.",
-      "contentHash": "sha256:f72de342ef3308706b866bb311ede8c07c4027a2b413154a4002807561887ed3"
+      "contentHash": "sha256:b03c2b3b552eee5788a05e3776bfae3916dc2289ac5fd04fe552448bb02070c3"
     },
     {
       "path": "application/src/main/java/org/thingsboard/server/service/install/lts/Version.java",
@@ -131,13 +131,19 @@
       "path": "application/src/test/java/org/thingsboard/server/service/install/lts/MigrationIntegrationTest.java",
       "header": "ce-modified",
       "reason": "CE test application/src/test/java/org/thingsboard/server/service/install/lts/LtsMigrationIntegrationTest.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/test/java/org/thingsboard/server/service/install/lts/LtsMigrationIntegrationTest.java at 5954190c32f (blob cf60ec2e4b5fce7a55862805e9bd959c125ce17e); a renamed CE file stays CE-derived.",
-      "contentHash": "sha256:24cb205ad1c7a7577284aa2fca5b245d60e0c554accfe9f26021a6d60e0807ce"
+      "contentHash": "sha256:93368d856e5f3e286d8e7c98a6c5a2846379c7c8221ca68c5c55f2f314119644"
     },
     {
       "path": "application/src/test/java/org/thingsboard/server/service/install/lts/MigrationServiceTest.java",
       "header": "ce-modified",
       "reason": "CE test application/src/test/java/org/thingsboard/server/service/install/lts/LtsMigrationServiceTest.java renamed in 7a926f2c1f2 when the Lts prefix was dropped from migrations, with PE changes on top. Reviewed against CE application/src/test/java/org/thingsboard/server/service/install/lts/LtsMigrationServiceTest.java at 5954190c32f (blob 18ee8b6506742c7bf3e39a8fe0e5d9e9370e5614); a renamed CE file stays CE-derived.",
       "contentHash": "sha256:1ba9703bfe4a8fdb30ef11d151c9de62b4f89279ad030738021986db9fd64d8d"
+    },
+    {
+      "path": "application/src/test/java/org/thingsboard/server/service/install/lts/V4_4_1_0MigrationEdgeTest.java",
+      "contentHash": "sha256:8434392ae28d3bb7da28e6f8e57ce03f8691404f5e7004aa203a1fa188e56b62",
+      "header": "ce-modified",
+      "reason": "Port of the CE (edge lts-4.3) test application/src/test/java/org/thingsboard/server/service/install/lts/V4_2_2_8MigrationTest.java / V4_3_1_8MigrationTest.java to the 4.4.1.0 migration: identical apart from the class and migration names, so it keeps the Apache-2.0 attribution with ThingsBoard modifications."
     },
     {
       "path": "application/src/test/java/org/thingsboard/server/service/install/lts/VersionTest.java",
