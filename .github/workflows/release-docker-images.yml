@@ -26,6 +26,11 @@ on:
         required: false
         type: boolean
         default: true
+      upload_packages:
+        description: 'Upload deb/rpm/zip packages to S3 (dist.thingsboard.io)'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: release-docker-images-${{ github.ref_name }}
@@ -128,6 +133,30 @@ jobs:
           echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
           echo "Branch: $GITHUB_REF_NAME | Version: $VERSION | Profile: $PROFILE | Tags: $TAGS"
 
+      - name: Check S3 access
+        id: s3
+        if: ${{ inputs.upload_packages }}
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+        run: |
+          if [[ "$VERSION" == *-SNAPSHOT ]]; then
+            echo "::error::Packages of SNAPSHOT version $VERSION must not be uploaded to S3. Disable 'upload_packages'."
+            exit 1
+          fi
+          if [[ -z "$S3_BUCKET" || -z "$AWS_ACCESS_KEY_ID" || -z "$AWS_SECRET_ACCESS_KEY" ]]; then
+            echo "::error::S3 upload needs the S3_BUCKET variable and the AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY secrets."
+            exit 1
+          fi
+          aws s3 ls "s3://$S3_BUCKET/" --page-size 1 > /dev/null
+          TAG="${VERSION%EDGE}"
+          TAG="${TAG%.0}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Packages will be uploaded as tb-edge-$TAG.deb, tb-edge-$TAG.rpm, tb-edge-windows-$TAG.zip"
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -146,6 +175,28 @@ jobs:
           PROFILE: ${{ steps.meta.outputs.profile }}
         run: |
           mvn clean install -DskipTests -Ddockerfile.skip=false -P "$PROFILE"
+
+      - name: Upload packages to S3
+        if: ${{ inputs.upload_packages }}
+        env:
+          TAG: ${{ steps.s3.outputs.tag }}
+          S3_BUCKET: ${{ vars.S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+        run: |
+          RELEASE_DIR="$RUNNER_TEMP/tb-release"
+          mkdir -p "$RELEASE_DIR"
+          cp application/target/tb-edge.deb "$RELEASE_DIR/tb-edge-$TAG.deb"
+          cp application/target/tb-edge.rpm "$RELEASE_DIR/tb-edge-$TAG.rpm"
+          cp application/target/tb-edge-windows.zip "$RELEASE_DIR/tb-edge-windows-$TAG.zip"
+          echo "### Uploaded packages" >> "$GITHUB_STEP_SUMMARY"
+          for f in "$RELEASE_DIR"/*; do
+            name=$(basename "$f")
+            aws s3 cp "$f" "s3://$S3_BUCKET/$name" --no-progress
+            aws s3api head-object --bucket "$S3_BUCKET" --key "$name" > /dev/null
+            echo "- \`https://dist.thingsboard.io/$name\`" >> "$GITHUB_STEP_SUMMARY"
+          done
 
       - name: Verify pushed images
         env:
