@@ -160,15 +160,7 @@
     "@angular-devkit/core" "^20.0.0"
     "@angular/build" "^20.0.0"
 
-"@angular-devkit/architect@0.2003.34", "@angular-devkit/architect@>= 0.2000.0 < 0.2100.0", "@angular-devkit/architect@>=0.2000.0 < 0.2100.0":
-  version "0.2003.34"
-  resolved "https://registry.yarnpkg.com/@angular-devkit/architect/-/architect-0.2003.34.tgz#4346108edc5084cf37a6f719b27d91ecfee7ff9a"
-  integrity sha512-JX68qGFvv8Duy5UL21IJCived83tOZBVCxNcOS2XCII0CS8Z5nCEndRre73JfDsleTNkeS3fo2P5tjqN+/S80A==
-  dependencies:
-    "@angular-devkit/core" "20.3.34"
-    rxjs "7.8.2"
-
-"@angular-devkit/architect@0.2003.41":
+"@angular-devkit/architect@0.2003.41", "@angular-devkit/architect@>= 0.2000.0 < 0.2100.0", "@angular-devkit/architect@>=0.2000.0 < 0.2100.0":
   version "0.2003.41"
   resolved "https://registry.yarnpkg.com/@angular-devkit/architect/-/architect-0.2003.41.tgz#fe89faf41b0a226f8f94ceab86881e5c5bf5040b"
   integrity sha512-gKZUuuNA0EY32AvdRpMKXTvjyOcxUN4ay4eo73Eq1HnO4hBrvMf6i9VptyoMp9HKzEm1mlYaRjDXykCt921ZPg==
@@ -176,19 +168,7 @@
     "@angular-devkit/core" "20.3.41"
     rxjs "7.8.2"
 
-"@angular-devkit/core@20.3.34", "@angular-devkit/core@>= 20.0.0 < 21.0.0", "@angular-devkit/core@^20.0.0":
-  version "20.3.34"
-  resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-20.3.34.tgz#10beedd0c5af94f3115a16f1244acf004c741b0a"
-  integrity sha512-vcDaXzF3E+gGD62gdPa0AZlEertqB3raufEjT5Y0bl9MO4t2CCanEbbIfIyPtpLp22SJOyOErx/39weeEbfmjQ==
-  dependencies:
-    ajv "8.18.0"
-    ajv-formats "3.0.1"
-    jsonc-parser "3.3.1"
-    picomatch "4.0.4"
-    rxjs "7.8.2"
-    source-map "0.7.6"
-
-"@angular-devkit/core@20.3.41":
+"@angular-devkit/core@20.3.41", "@angular-devkit/core@>= 20.0.0 < 21.0.0", "@angular-devkit/core@^20.0.0":
   version "20.3.41"
   resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-20.3.41.tgz#91b409f5bb464d08fbc2ea13d49bd9f09f08a012"
   integrity sha512-zkAUfR+uH+KAOZwEAx4PAFGvdM449JoWF0JN7ViXnlSX/kNavKCZ2ZbZjeIOUiuN1KCPx81n6UbeyesmxrLudw==
@@ -200,23 +180,12 @@
     rxjs "7.8.2"
     source-map "0.7.6"
 
-"@angular-devkit/schematics@20.3.41":
+"@angular-devkit/schematics@20.3.41", "@angular-devkit/schematics@>= 20.0.0 < 21.0.0":
   version "20.3.41"
   resolved "https://registry.yarnpkg.com/@angular-devkit/schematics/-/schematics-20.3.41.tgz#9223e0ac3fdcde5d83efc693f2a479227d123ff6"
   integrity sha512-cDT/j0wI2GfQLBKws1icGZm3Nsn1SfvBd8FLqmwzMQrR9yyoopwPVCaoFHuFad1bMKO/YzW7z95bIcIEJ7wXwQ==
   dependencies:
     "@angular-devkit/core" "20.3.41"
-    jsonc-parser "3.3.1"
-    magic-string "0.30.17"
-    ora "8.2.0"
-    rxjs "7.8.2"
-
-"@angular-devkit/schematics@>= 20.0.0 < 21.0.0":
-  version "20.3.34"
-  resolved "https://registry.yarnpkg.com/@angular-devkit/schematics/-/schematics-20.3.34.tgz#2628c1319f56f3506ce8c60da0594d2dbe5c78e1"
-  integrity sha512-JW+RmDOeCGrzcdiTthw/ZlYMmsI3n2akWAdOUeczMdnbWfygMcbft3r8D+k1uefuxfAhJ4PgTtvECKhDqLN67g==
-  dependencies:
-    "@angular-devkit/core" "20.3.34"
     jsonc-parser "3.3.1"
     magic-string "0.30.17"
     ora "8.2.0"
@@ -289,7 +258,7 @@
   dependencies:
     tslib "^2.3.0"
 
-"@angular/build@20.3.41":
+"@angular/build@20.3.41", "@angular/build@^20.0.0":
   version "20.3.41"
   resolved "https://registry.yarnpkg.com/@angular/build/-/build-20.3.41.tgz#9ba43ee37863b8a61f3846074855b18900cab912"
   integrity sha512-kjIQqJpx8ULyXCN2aLSnTEoFmvlzYfzzptA/4Vvmb93hdekN8agYsIUbOsrjYx3A1n9mE7pT06z0qUiH51UAYg==
@@ -319,40 +288,6 @@
     source-map-support "0.5.21"
     tinyglobby "0.2.14"
     vite "7.3.7"
-    watchpack "2.4.4"
-  optionalDependencies:
-    lmdb "3.4.2"
-
-"@angular/build@^20.0.0":
-  version "20.3.34"
-  resolved "https://registry.yarnpkg.com/@angular/build/-/build-20.3.34.tgz#1cd20f8b87faf033e563d1ca0b216d950e474a0a"
-  integrity sha512-uV7zgmvbLwaT/blpYqVVWkrJnHBGSjkuB+ADCruIou7j+/kmo9k/dXCnXVAlP22nR/gdKi24NBahDBNXxrBpzg==
-  dependencies:
-    "@ampproject/remapping" "2.3.0"
-    "@angular-devkit/architect" "0.2003.34"
-    "@babel/core" "7.29.7"
-    "@babel/helper-annotate-as-pure" "7.27.3"
-    "@babel/helper-split-export-declaration" "7.24.7"
-    "@inquirer/confirm" "5.1.14"
-    "@vitejs/plugin-basic-ssl" "2.1.0"
-    beasties "0.3.5"
-    browserslist "^4.23.0"
-    esbuild "0.28.1"
-    https-proxy-agent "7.0.6"
-    istanbul-lib-instrument "6.0.3"
-    jsonc-parser "3.3.1"
-    listr2 "9.0.1"
-    magic-string "0.30.17"
-    mrmime "2.0.1"
-    parse5-html-rewriting-stream "8.0.0"
-    picomatch "4.0.4"
-    piscina "5.2.0"
-    rollup "4.59.0"
-    sass "1.90.0"
-    semver "7.7.2"
-    source-map-support "0.5.21"
-    tinyglobby "0.2.14"
-    vite "7.3.6"
     watchpack "2.4.4"
   optionalDependencies:
     lmdb "3.4.2"
@@ -4107,11 +4042,6 @@ deep-extend@~0.6.0:
   resolved "https://registry.yarnpkg.com/deep-extend/-/deep-extend-0.6.0.tgz#c4fa7c95404a17a9c3e8ca7e1537312b736330ac"
   integrity sha512-LOHxIOaPYdHlJRtCQfDIVZtfw/ufM8+rVj649RIHzcm/vGwQRXFt6OPqIFWsm2XEMrNIEtWR64sY1LEKD2vAOA==
 
-deep-freeze-strict@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/deep-freeze-strict/-/deep-freeze-strict-1.1.1.tgz#77d0583ca24a69be4bbd9ac2fae415d55523e5b0"
-  integrity sha512-QemROZMM2IvhAcCFvahdX2Vbm4S/txeq5rFYU9fh4mQP79WTMW5c/HkQ2ICl1zuzcDZdPZ6zarDxQeQMsVYoNA==
-
 deep-is@^0.1.3:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.4.tgz#a6f2dce612fadd2ef1f519b73551f17e85199831"
@@ -4255,12 +4185,12 @@ eastasianwidth@^0.2.0:
   resolved "https://registry.yarnpkg.com/eastasianwidth/-/eastasianwidth-0.2.0.tgz#696ce2ec0aa0e6ea93a397ffcf24aa7840c827cb"
   integrity sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==
 
-"echarts@https://github.com/thingsboard/echarts/archive/5.5.2-TB.tar.gz":
-  version "5.5.2-TB"
-  resolved "https://github.com/thingsboard/echarts/archive/5.5.2-TB.tar.gz#779494c24fb5448ecaf79315bf609bb52b431df9"
+"echarts@https://github.com/thingsboard/echarts/archive/5.5.4-TB.tar.gz":
+  version "5.5.4-TB"
+  resolved "https://github.com/thingsboard/echarts/archive/5.5.4-TB.tar.gz#05955421715b5a4ceb9b9b1b503d8e2504d0501d"
   dependencies:
     tslib "2.3.0"
-    zrender "https://github.com/thingsboard/zrender/archive/5.5.0-TB.tar.gz"
+    zrender "https://github.com/thingsboard/zrender/archive/5.5.1-TB.tar.gz"
 
 editorconfig@^1.0.4:
   version "1.0.4"
@@ -6414,13 +6344,6 @@ negotiator@^1.0.0:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-1.0.0.tgz#b6c91bb47172d69f93cfd7c357bbb529019b5f6a"
   integrity sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==
 
-ngrx-store-freeze@^0.2.4:
-  version "0.2.4"
-  resolved "https://registry.yarnpkg.com/ngrx-store-freeze/-/ngrx-store-freeze-0.2.4.tgz#146687cdf7e21244eb9003c7e883f2125847076c"
-  integrity sha512-90awpbbMa/x2H81eWWYniyli3LJ1PZU/FaztL10d9Rp/4kw2+97pqyLjdxSPxcOv9St//m9kfuWZ7gyoVDjgcg==
-  dependencies:
-    deep-freeze-strict "^1.1.1"
-
 ngx-clipboard@^16.0.0:
   version "16.0.0"
   resolved "https://registry.yarnpkg.com/ngx-clipboard/-/ngx-clipboard-16.0.0.tgz#bb97584d33e8009420b8d7f83b185f68ca06869f"
@@ -7031,13 +6954,6 @@ pirates@^4.0.1:
   version "4.0.7"
   resolved "https://registry.yarnpkg.com/pirates/-/pirates-4.0.7.tgz#643b4a18c4257c8a65104b73f3049ce9a0a15e22"
   integrity sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==
-
-piscina@5.2.0:
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/piscina/-/piscina-5.2.0.tgz#3a9a568ab9e3a0556b5c94522ba305962de13e3b"
-  integrity sha512-DszUCKeVN/5G5QKo6jAVHL8fmKnkJvQ0ACiVgY7YGCq3TUB2oznAOayvZPIAdEThvhczkXR+qm3IHsNXpFCYfA==
-  optionalDependencies:
-    "@napi-rs/nice" "^1.0.4"
 
 piscina@5.3.2:
   version "5.3.2"
@@ -8533,20 +8449,6 @@ vary@^1, vary@^1.1.2:
   resolved "https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz#2299f02c6ded30d4a5961b0b9f74524a18f634fc"
   integrity sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==
 
-vite@7.3.6:
-  version "7.3.6"
-  resolved "https://registry.yarnpkg.com/vite/-/vite-7.3.6.tgz#0547a395e68d3746e9a505f1fd4469fe09b49cc4"
-  integrity sha512-4XP60spRGjSZFf1qYH+dJIkK2znL3zQfl9KkOV9MkkRR/3Dls0dxaBsQPTloEc5BLXWPL9vsOxopxyKoMmDueg==
-  dependencies:
-    esbuild "^0.27.0 || ^0.28.0"
-    fdir "^6.5.0"
-    picomatch "^4.0.3"
-    postcss "^8.5.6"
-    rollup "^4.43.0"
-    tinyglobby "^0.2.15"
-  optionalDependencies:
-    fsevents "~2.3.3"
-
 vite@7.3.7:
   version "7.3.7"
   resolved "https://registry.yarnpkg.com/vite/-/vite-7.3.7.tgz#017a80fdce051003a4aa290dddd0b159aa769282"
@@ -8859,8 +8761,8 @@ zone.js@~0.15.1:
   resolved "https://registry.yarnpkg.com/zone.js/-/zone.js-0.15.1.tgz#1e109adb75f80e9e004ee8e0d4a0a52e0a336481"
   integrity sha512-XE96n56IQpJM7NAoXswY3XRLcWFW83xe0BiAOeMD7K5k5xecOeul3Qcpx6GqEeeHNkW5DWL5zOyTbEfB4eti8w==
 
-"zrender@https://github.com/thingsboard/zrender/archive/5.5.0-TB.tar.gz":
-  version "5.5.0-TB"
-  resolved "https://github.com/thingsboard/zrender/archive/5.5.0-TB.tar.gz#9605f08284436a9be86085e27f1c01b29a9923bf"
+"zrender@https://github.com/thingsboard/zrender/archive/5.5.1-TB.tar.gz":
+  version "5.5.1-TB"
+  resolved "https://github.com/thingsboard/zrender/archive/5.5.1-TB.tar.gz#30d441616d8125f78ce4de9a45033207b87d5fd9"
   dependencies:
     tslib "2.3.0"
