@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package org.thingsboard.server.service.notification;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.common.util.JacksonUtil;
@@ -24,6 +26,8 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -71,6 +75,7 @@ import org.thingsboard.server.common.data.notification.template.SmsDeliveryMetho
 import org.thingsboard.server.common.data.notification.template.WebDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.notification.DefaultNotifications;
 import org.thingsboard.server.dao.notification.DefaultNotifications.DefaultNotification;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -86,6 +91,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -93,15 +99,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DaoSqlTest
@@ -114,6 +117,9 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
     private MicrosoftTeamsNotificationChannel microsoftTeamsNotificationChannel;
     @MockitoBean
     private FirebaseService firebaseService;
+    // edge-only: Slack and mobile pushes are delegated to the cloud as SEND_NOTIFICATION cloud events
+    @MockitoSpyBean
+    private CloudEventService cloudEventService;
 
     private static final String TEST_MOBILE_TOKEN = "tenantFcmToken";
 
@@ -715,17 +721,31 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         NotificationRequest successfulNotificationRequest = submitNotificationRequest(List.of(notificationTarget.getId()), notificationTemplate.getId(), 0);
         await().atMost(2, TimeUnit.SECONDS)
                 .until(() -> findNotificationRequest(successfulNotificationRequest.getId()).isSent());
-        verify(slackService).sendMessage(eq(tenantId), eq(slackToken), eq(conversationId), eq(slackNotificationTemplate.getBody()));
+        // edge-only: the Edge delegates the whole Slack send; the cloud resolves the bot token
+        assertThat(verifyEdgeNotificationRequests(1)).singleElement().satisfies(edgeRequest -> {
+            assertThat(edgeRequest.getMethod()).isEqualTo(EdgeNotificationRequest.NotificationMethod.SEND_SLACK);
+            assertThat(edgeRequest.getConversationId()).isEqualTo(conversationId);
+            assertThat(edgeRequest.getMessage()).isEqualTo(slackNotificationTemplate.getBody());
+        });
         NotificationRequestStats stats = getStats(successfulNotificationRequest.getId());
         assertThat(stats.getSent().get(NotificationDeliveryMethod.SLACK)).hasValue(1);
 
         String errorMessage = "Error!!!";
-        doThrow(new RuntimeException(errorMessage)).when(slackService).sendMessage(any(), any(), any(), any());
+        doThrow(new RuntimeException(errorMessage)).when(cloudEventService).saveCloudEvent(any(), any(),
+                eq(EdgeEventActionType.SEND_NOTIFICATION), any(), any()); // edge-only
         NotificationRequest failedNotificationRequest = submitNotificationRequest(List.of(notificationTarget.getId()), notificationTemplate.getId(), 0);
         await().atMost(2, TimeUnit.SECONDS)
                 .until(() -> findNotificationRequest(failedNotificationRequest.getId()).isSent());
         stats = getStats(failedNotificationRequest.getId());
         assertThat(stats.getErrors().get(NotificationDeliveryMethod.SLACK).values()).containsExactly(errorMessage);
+    }
+
+    // edge-only: returns the requests the Edge delegated to the cloud, in no particular order
+    private List<EdgeNotificationRequest> verifyEdgeNotificationRequests(int count) throws Exception {
+        ArgumentCaptor<JsonNode> captor = ArgumentCaptor.forClass(JsonNode.class);
+        verify(cloudEventService, timeout(TimeUnit.SECONDS.toMillis(TIMEOUT)).times(count)).saveCloudEvent(eq(tenantId),
+                eq(CloudEventType.TENANT), eq(EdgeEventActionType.SEND_NOTIFICATION), eq(tenantId), captor.capture());
+        return captor.getAllValues().stream().map(json -> JacksonUtil.treeToValue(json, EdgeNotificationRequest.class)).toList();
     }
 
     @Test
@@ -915,12 +935,17 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         assertThat(stats.getErrors().get(NotificationDeliveryMethod.MOBILE_APP).get(differentCustomerUser.getEmail()))
                 .contains("doesn't use the mobile app");
 
-        verify(firebaseService).sendMessage(eq(tenantId), eq("testCredentials"),
-                eq(TEST_MOBILE_TOKEN), eq("Title"), eq("Message"), argThat(data -> "test".equals(data.get("test.test"))), eq(1));
-        verify(firebaseService).sendMessage(eq(tenantId), eq("testCredentials"),
-                eq("tenantFcmToken2"), eq("Title"), eq("Message"), argThat(data -> "test".equals(data.get("test.test"))), eq(1));
-        verify(firebaseService).sendMessage(eq(tenantId), eq("testCredentials"),
-                eq("customerFcmToken"), eq("Title"), eq("Message"), argThat(data -> "test".equals(data.get("test.test"))), eq(1));
+        // edge-only: one delegated push per recipient, carrying all of that recipient's tokens
+        List<EdgeNotificationRequest> pushes = verifyEdgeNotificationRequests(2);
+        assertThat(pushes).extracting(EdgeNotificationRequest::getFcmTokens)
+                .containsExactlyInAnyOrder(Set.of(TEST_MOBILE_TOKEN, "tenantFcmToken2"), Set.of("customerFcmToken"));
+        assertThat(pushes).allSatisfy(push -> {
+            assertThat(push.getMethod()).isEqualTo(EdgeNotificationRequest.NotificationMethod.SEND_MOBILE_PUSH);
+            assertThat(push.getSubject()).isEqualTo("Title");
+            assertThat(push.getBody()).isEqualTo("Message");
+            assertThat(push.getData()).containsEntry("test.test", "test");
+            assertThat(push.getBadge()).isEqualTo(1);
+        });
         assertThat(getMyNotifications(NotificationDeliveryMethod.MOBILE_APP, true, 10)).singleElement().satisfies(notification -> {
             assertThat(notification.getDeliveryMethod()).isEqualTo(NotificationDeliveryMethod.MOBILE_APP);
             assertThat(notification.getText()).isEqualTo("Message");
@@ -929,17 +954,16 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
         assertThat(getMyNotifications(true, 10)).singleElement().satisfies(notification -> {
             assertThat(notification.getDeliveryMethod()).isEqualTo(NotificationDeliveryMethod.WEB);
         });
-        verifyNoMoreInteractions(firebaseService);
-        clearInvocations(firebaseService);
+        clearInvocations(cloudEventService); // edge-only
 
         doDelete("/api/user/mobile/session").andExpect(status().isOk());
         request = submitNotificationRequest(List.of(target.getId()), template.getId(), 0);
         awaitNotificationRequest(request.getId());
-        verify(firebaseService).sendMessage(eq(tenantId), eq("testCredentials"),
-                eq(TEST_MOBILE_TOKEN), eq("Title"), eq("Message"), anyMap(), eq(2));
-        verify(firebaseService).sendMessage(eq(tenantId), eq("testCredentials"),
-                eq("customerFcmToken"), eq("Title"), eq("Message"), anyMap(), eq(2));
-        verifyNoMoreInteractions(firebaseService);
+        // edge-only
+        pushes = verifyEdgeNotificationRequests(2);
+        assertThat(pushes).extracting(EdgeNotificationRequest::getFcmTokens)
+                .containsExactlyInAnyOrder(Set.of(TEST_MOBILE_TOKEN), Set.of("customerFcmToken"));
+        assertThat(pushes).extracting(EdgeNotificationRequest::getBadge).containsOnly(2);
 
         Integer unreadCount = doGet("/api/notifications/unread/count", Integer.class);
         assertThat(unreadCount).isEqualTo(2);
@@ -975,14 +999,14 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
 
         String expectedSubject = "Comment on 'test' alarm";
         String expectedBody = TENANT_ADMIN_EMAIL + " added comment: text";
-        ArgumentCaptor<Map<String, String>> msgCaptor = ArgumentCaptor.captor();
-        await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(firebaseService).sendMessage(eq(tenantId), eq("testCredentials"),
-                    eq(TEST_MOBILE_TOKEN), eq(expectedSubject),
-                    eq(expectedBody),
-                    msgCaptor.capture(), eq(1));
-        });
-        Map<String, String> firebaseMessageData = msgCaptor.getValue();
+        // edge-only: the push is delegated to the cloud
+        EdgeNotificationRequest push = verifyEdgeNotificationRequests(1).get(0);
+        assertThat(push.getMethod()).isEqualTo(EdgeNotificationRequest.NotificationMethod.SEND_MOBILE_PUSH);
+        assertThat(push.getFcmTokens()).containsExactly(TEST_MOBILE_TOKEN);
+        assertThat(push.getSubject()).isEqualTo(expectedSubject);
+        assertThat(push.getBody()).isEqualTo(expectedBody);
+        assertThat(push.getBadge()).isEqualTo(1);
+        Map<String, String> firebaseMessageData = push.getData();
         assertThat(firebaseMessageData.keySet()).doesNotContainNull().doesNotContain("");
         assertThat(firebaseMessageData.values()).doesNotContainNull();
         assertThat(firebaseMessageData.get("info.userEmail")).isEqualTo(TENANT_ADMIN_EMAIL);
