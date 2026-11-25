@@ -5,6 +5,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -36,7 +37,11 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
     WhiteLabelingDao whiteLabelingDao;
 
     @After
-    public void afterTest() {
+    public void afterTest() throws Exception {
+        // System-level login/white-labeling params are shared by every test class in the same DB;
+        // restore defaults so the base URL set here (e.g. "https://domain.com") does not leak.
+        resetSysAdminWhiteLabelingSettings();
+
         if (tenantId != null) {
             WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.MAIL_TEMPLATES);
             if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
@@ -186,6 +191,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         assertThat(tenantMailTemplates.get("subject")).isEqualTo(systemMailTemplates.get("subject"));
     }
 
+    @Ignore("edge-only: mail is delegated to the cloud, which renders the templates and blocks unsafe FreeMarker; the Edge only enqueues the test mail")
     @Test
     public void shouldNotSendMailIfMailTemplateContainsVulnerableCodeExecution() throws Exception {
         loginTenantAdmin();

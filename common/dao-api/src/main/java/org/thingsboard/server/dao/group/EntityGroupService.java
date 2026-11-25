@@ -41,6 +41,10 @@ public interface EntityGroupService extends EntityDaoService {
 
     EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup, boolean doValidate);
 
+    EntityGroupInfo findEntityGroupInfoByTenantIdAndId(TenantId tenantId, EntityGroupId entityGroupId);
+
+    ListenableFuture<EntityGroupInfo> findEntityGroupInfoByTenantIdAndIdAsync(TenantId tenantId, EntityGroupId entityGroupId);
+
     EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup);
 
     EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType);

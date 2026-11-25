@@ -301,8 +301,8 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
         alarmComment.setComment(JacksonUtil.newObjectNode()
                 .put("text", String.format(COMMENT_DELETED.getText(), savedCustomerAdministrator.getTitle()))
                 .put("subtype", COMMENT_DELETED.name())
-                .put("userName", CUSTOMER_USER_EMAIL));
-        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, customerUserId, CUSTOMER_USER_EMAIL, ActionType.DELETED_COMMENT, 1, alarmComment);
+                .put("userName", savedCustomerAdministrator.getTitle()));
+        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, customerAdminUserId, CUSTOMER_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, alarmComment);
     }
 
     @Test
@@ -331,13 +331,14 @@ public class AlarmCommentControllerTest extends AbstractControllerTest {
 
         doDelete("/api/alarm/" + alarm.getId() + "/comment/" + alarmComment.getId())
                 .andExpect(status().isOk());
+
         alarmComment.setType(AlarmCommentType.SYSTEM);
         alarmComment.setUserId(null);
         alarmComment.setComment(JacksonUtil.newObjectNode()
                 .put("text", String.format(COMMENT_DELETED.getText(), savedSecondCustomerAdministrator.getTitle()))
                 .put("subtype", COMMENT_DELETED.name())
-                .put("userName", TENANT_ADMIN_EMAIL));
-        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, tenantAdminUserId, TENANT_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, alarmComment);
+                .put("userName", savedSecondCustomerAdministrator.getTitle()));
+        testLogEntityActionEntityEqClass(alarm, alarm.getId(), tenantId, customerId, savedSecondCustomerAdministrator.getId(), SECOND_CUSTOMER_ADMIN_EMAIL, ActionType.DELETED_COMMENT, 1, alarmComment);
     }
 
     @Test

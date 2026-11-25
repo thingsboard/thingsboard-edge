@@ -39,6 +39,7 @@ const routes: Routes = [
         component: EntitiesTableComponent,
         data: {
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER, Authority.SYS_ADMIN],
+          requiredMenuLink: MenuId.notification_inbox,
           title: 'notification.inbox',
           breadcrumb: {
             menuId: MenuId.notification_inbox

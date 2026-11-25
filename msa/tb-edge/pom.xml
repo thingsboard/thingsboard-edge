@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>4.4.0.2EDGE</version>
+        <version>4.4.1EDGE</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
@@ -26,6 +26,8 @@
         <main.dir>${maven.multiModuleProjectDirectory}</main.dir>
         <pkg.name>tb-edge</pkg.name>
         <docker.name>tb-${tb.docker.id}</docker.name>
+        <sbom.metadata.skip>true</sbom.metadata.skip>
+        <sbom.image.package.dir>${main.dir}/application/target</sbom.image.package.dir>
         <pkg.installFolder>/usr/share/${pkg.name}</pkg.installFolder>
         <docker.push-arm-amd-image.phase>pre-integration-test</docker.push-arm-amd-image.phase>
     </properties>
@@ -139,11 +141,16 @@
                             <arguments>
                                 <argument>tag</argument>
                                 <argument>${docker.repo}/${docker.name}:latest</argument>
-                                <argument>${docker.repo}/${docker.name}:${project.version}</argument>
+                                <argument>${docker.repo}/${docker.name}:${docker.version.tag}</argument>
                             </arguments>
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- After exec-maven-plugin: the image SBOM is made in the phase that pushes the image, once it is pushed -->
+            <plugin>
+                <groupId>org.thingsboard</groupId>
+                <artifactId>sbom-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
@@ -181,7 +188,7 @@
                                     <executable>docker</executable>
                                     <arguments>
                                         <argument>push</argument>
-                                        <argument>${docker.repo}/${docker.name}:${project.version}</argument>
+                                        <argument>${docker.repo}/${docker.name}:${docker.version.tag}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -240,7 +247,7 @@
                                         <argument>build</argument>
                                         <argument>--pull</argument>
                                         <argument>-t</argument>
-                                        <argument>${docker.repo}/${docker.name}:${project.version}</argument>
+                                        <argument>${docker.repo}/${docker.name}:${docker.version.tag}</argument>
                                         <argument>--platform=linux/amd64,linux/arm64,linux/arm/v7</argument>
                                         <argument>--no-cache</argument>
                                         <argument>-o</argument>

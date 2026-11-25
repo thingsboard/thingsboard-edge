@@ -43,7 +43,10 @@ public enum EdgeEventActionType {
     GROUP_ENTITIES_REQUEST(null),
     GROUP_PERMISSIONS_REQUEST(null),
     ENTITY_MERGE_REQUEST(null), // deprecated
-    DEVICE_PROFILE_DEVICES_REQUEST(null); // deprecated
+    DEVICE_PROFILE_DEVICES_REQUEST(null), // deprecated
+    SEND_EMAIL(null),
+    SEND_SMS(null),
+    SEND_NOTIFICATION(null);
 
     private final ActionType actionType;
 

@@ -87,7 +87,9 @@ public class SecretServiceImpl extends AbstractCachedEntityService<SecretCacheKe
                 byte[] encrypted = encryptionService.encrypt(tenantId, secret.getType(), secret.getValue().getBytes());
                 secret.setEncryptedValue(encrypted);
                 isValueUpdated = true;
-            } else if (old != null) {
+            } else if (old != null && secret.getEncryptedValue() == null) {
+                // Preserve the existing encrypted value only when the incoming secret carries none. A secret synced
+                // from the cloud already provides its own encrypted value, which must win here.
                 secret.setEncryptedValue(old.getEncryptedValue());
             }
 

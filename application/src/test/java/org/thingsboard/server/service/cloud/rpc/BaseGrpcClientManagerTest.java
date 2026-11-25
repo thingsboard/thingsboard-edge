@@ -17,6 +17,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.stats.CloudStatsCounterService;
+import org.thingsboard.server.dao.subscription.SubscriptionService;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.service.cloud.DownlinkMessageService;
@@ -75,6 +76,8 @@ public class BaseGrpcClientManagerTest {
     private ScheduledExecutorService reconnectExecutor;
     @Mock
     private EdgeSettingsService edgeSettingsService;
+    @Mock
+    private SubscriptionService subscriptionService;
 
     private BaseGrpcClientManager manager;
 
@@ -88,6 +91,7 @@ public class BaseGrpcClientManagerTest {
                 partitionService, eventPublisher, connectionStatusManager, context, edgeConfigurationHandler,
                 downlinkMessageService, edgeSettingsService);
         ReflectionTestUtils.setField(manager, "reconnectExecutor", reconnectExecutor);
+        ReflectionTestUtils.setField(manager, "subscriptionService", subscriptionService);
 
         lenient().when(edgeInfo.getReconnectTimeoutMs()).thenReturn(INITIAL_TIMEOUT_MS);
         lenient().when(edgeInfo.getReconnectMaxTimeoutMs()).thenReturn(MAX_TIMEOUT_MS);
@@ -291,10 +295,11 @@ public class BaseGrpcClientManagerTest {
 
     @Test
     void failedEdgeUpdateReArmsReconnect() throws Exception {
+        when(subscriptionService.init(any(), any(), any(), any())).thenReturn(true);
         when(edgeConfigurationHandler.initAndUpdateEdgeSettings(any())).thenThrow(new RuntimeException("DB is down"));
 
         // The channel stays up after a failed init, so nothing else would ever retry the handshake.
-        ReflectionTestUtils.invokeMethod(manager, "onEdgeUpdate", ceEdgeConfiguration());
+        ReflectionTestUtils.invokeMethod(manager, "onEdgeUpdate", peEdgeConfiguration());
 
         assertThat(scheduledDelays).as("failed init must re-arm the reconnect loop").containsExactly(INITIAL_TIMEOUT_MS);
         assertThat((Boolean) ReflectionTestUtils.getField(manager, "reconnecting")).isTrue();
@@ -307,17 +312,18 @@ public class BaseGrpcClientManagerTest {
         triggerReconnect();
         runScheduledTask(0);
         assertThat(scheduledDelays).containsExactly(INITIAL_TIMEOUT_MS, 2 * INITIAL_TIMEOUT_MS);
+        when(subscriptionService.init(any(), any(), any(), any())).thenReturn(true);
         when(edgeConfigurationHandler.initAndUpdateEdgeSettings(any())).thenThrow(new RuntimeException("DB is down"));
 
-        ReflectionTestUtils.invokeMethod(manager, "onEdgeUpdate", ceEdgeConfiguration());
+        ReflectionTestUtils.invokeMethod(manager, "onEdgeUpdate", peEdgeConfiguration());
 
         assertThat(scheduledDelays).as("a failed init must not restart the backoff from the initial timeout")
                 .containsExactly(INITIAL_TIMEOUT_MS, 2 * INITIAL_TIMEOUT_MS, 2 * INITIAL_TIMEOUT_MS);
         assertThat((Boolean) ReflectionTestUtils.getField(manager, "reconnecting")).isTrue();
     }
 
-    private static EdgeConfiguration ceEdgeConfiguration() {
-        return EdgeConfiguration.newBuilder().setCloudType("CE").build();
+    private static EdgeConfiguration peEdgeConfiguration() {
+        return EdgeConfiguration.newBuilder().setCloudType("PE").build();
     }
 
     private void shutdownConnectExecutor() {
