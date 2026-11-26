@@ -13,8 +13,12 @@ python3 weekly-merge/render.py CE_LTS_43=4.3.1.10-SNAPSHOT  # or set any of them
 
 ## Variables
 
+- **CE** lts-4.2 version `4.2.2.9-SNAPSHOT`
+  - https://github.com/thingsboard/thingsboard/blob/lts-4.2/pom.xml
 - **CE** lts-4.3 version `4.3.1.9-SNAPSHOT`
   - https://github.com/thingsboard/thingsboard/blob/lts-4.3/pom.xml
+- **PE** lts-4.2 version `4.2.2.9PE-SNAPSHOT`
+  - https://github.com/thingsboard/thingsboard-pe/blob/lts-4.2/pom.xml
 - **PE** lts-4.3 version `4.3.1.9PE-SNAPSHOT`
   - https://github.com/thingsboard/thingsboard-pe/blob/lts-4.3/pom.xml
 - **Edge CE** lts-4.2 version `4.2.2.9EDGE-SNAPSHOT`
@@ -32,6 +36,46 @@ git remote -v
 # Expected output
 # ce       git@github.com:thingsboard/thingsboard.git
 # upstream git@github.com:thingsboard/thingsboard-edge.git
+```
+
+## LTS 4.2
+
+Checkout lts-4.2
+
+```bash
+git checkout lts-4.2
+git pull upstream lts-4.2
+```
+
+**[Optional]** Update version to **CE** lts-4.2
+
+```bash
+mvn versions:set versions:commit -DnewVersion=4.2.2.9-SNAPSHOT
+git add .
+git commit -m "Temp set version to 4.2.2.9-SNAPSHOT"
+```
+
+Merge **CE** lts-4.2
+
+```bash
+git fetch ce
+git merge ce/lts-4.2
+git commit
+```
+
+**[Optional]** Set version to **Edge CE** lts-4.2
+
+```bash
+mvn versions:set versions:commit -DnewVersion=4.2.2.9EDGE-SNAPSHOT
+git add .
+git commit -m "Set version to 4.2.2.9EDGE-SNAPSHOT"
+```
+
+Push changes and verify
+
+```bash
+mvn -T 1C clean install -DskipTests
+git push upstream lts-4.2
 ```
 
 ## LTS 4.3
@@ -100,6 +144,62 @@ git remote -v
 # pe       git@github.com:thingsboard/thingsboard-pe.git
 # upstream git@github.com:thingsboard/thingsboard-edge-pe.git
 # edge-ce  git@github.com:thingsboard/thingsboard-edge.git
+```
+
+## LTS 4.2
+
+Checkout lts-4.2
+
+```bash
+git checkout lts-4.2
+git pull upstream lts-4.2
+```
+
+**[Optional]** Update version to **PE** lts-4.2
+
+```bash
+mvn versions:set versions:commit -DnewVersion=4.2.2.9PE-SNAPSHOT
+git add .
+git commit -m "Temp set version to 4.2.2.9PE-SNAPSHOT"
+```
+
+Merge **PE** lts-4.2
+
+```bash
+git fetch pe
+git merge pe/lts-4.2
+git commit
+```
+
+**[Optional]** Update version to **Edge CE** lts-4.2
+
+```bash
+mvn versions:set versions:commit -DnewVersion=4.2.2.9EDGE-SNAPSHOT
+git add .
+git commit -m "Temp set version to 4.2.2.9EDGE-SNAPSHOT"
+```
+
+Merge **Edge CE** lts-4.2
+
+```bash
+git fetch edge-ce
+git merge edge-ce/lts-4.2
+git commit
+```
+
+**[Optional]** Set version to **Edge PE** lts-4.2
+
+```bash
+mvn versions:set versions:commit -DnewVersion=4.2.2.9EDGEPE-SNAPSHOT
+git add .
+git commit -m "Set version to 4.2.2.9EDGEPE-SNAPSHOT"
+```
+
+Push changes and verify
+
+```bash
+mvn -T 1C clean install -DskipTests
+git push upstream lts-4.2
 ```
 
 ## LTS 4.3
