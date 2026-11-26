@@ -9,13 +9,19 @@ import sys
 from pathlib import Path
 
 SOURCES = {
+    'CE_LTS_42': ('thingsboard', 'lts-4.2'),
     'CE_LTS_43': ('thingsboard', 'lts-4.3'),
     'CE_LTS_44': ('thingsboard', 'lts-4.4'),
+    'PE_LTS_42': ('thingsboard-pe', 'lts-4.2'),
+    'PE_LTS_43': ('thingsboard-pe', 'lts-4.3'),
 }
 
 DERIVED = {
+    'EDGE_CE_LTS_42': ('CE_LTS_42', '-SNAPSHOT', 'EDGE-SNAPSHOT'),
     'EDGE_CE_LTS_43': ('CE_LTS_43', '-SNAPSHOT', 'EDGE-SNAPSHOT'),
     'EDGE_CE_LTS_44': ('CE_LTS_44', '-SNAPSHOT', 'EDGE-SNAPSHOT'),
+    'EDGE_PE_LTS_42': ('PE_LTS_42', 'PE-SNAPSHOT', 'EDGEPE-SNAPSHOT'),
+    'EDGE_PE_LTS_43': ('PE_LTS_43', 'PE-SNAPSHOT', 'EDGEPE-SNAPSHOT'),
 }
 
 HERE = Path(__file__).resolve().parent
