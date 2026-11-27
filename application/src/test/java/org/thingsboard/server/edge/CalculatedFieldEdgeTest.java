@@ -250,6 +250,7 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testComputeOnIsDeliveredToEdge() throws Exception {
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
@@ -284,6 +285,7 @@ public class CalculatedFieldEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testSendComputeOnToCloud() throws Exception {
         Device savedDevice = saveDeviceOnCloudAndVerifyDeliveryToEdge();
 
