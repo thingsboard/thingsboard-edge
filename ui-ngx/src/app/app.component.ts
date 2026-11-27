@@ -13,8 +13,8 @@ import { AppState } from '@core/core.state';
 import { LocalStorageService } from '@core/local-storage/local-storage.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material/icon';
-import { selectUserReady } from '@core/auth/auth.selectors';
-import { filter, skip, tap } from 'rxjs/operators';
+import { getCurrentAuthState, selectUserReady } from '@core/auth/auth.selectors';
+import { filter, skip, switchMap, take, takeWhile, tap } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
 import { DashboardReportService } from '@core/http/dashboard-report.service';
 import { DevelopmentService } from '@core/http/development.service';
@@ -23,6 +23,9 @@ import { ActionSettingsChangeLanguage } from '@core/settings/settings.actions';
 import { SETTINGS_KEY } from '@core/settings/settings.effects';
 import { initCustomJQueryEvents } from '@shared/models/jquery-event.models';
 import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
+import { NavigationEnd, NavigationError, Router } from '@angular/router';
+import { ToastNotificationService } from '@core/services/toast-notification.service';
+import { NotificationMessage } from '@core/notification/notification.models';
 
 @Component({
     selector: 'tb-root',
@@ -40,7 +43,9 @@ export class AppComponent {
               private domSanitizer: DomSanitizer,
               private authService: AuthService,
               private reportService: DashboardReportService,
-              private developmentService: DevelopmentService) {
+              private developmentService: DevelopmentService,
+              private router: Router,
+              private toastNotificationService: ToastNotificationService) {
 
     if (!env.production) {
       console.log(`ThingsBoard Version: ${env.tbVersion}`);
@@ -75,6 +80,30 @@ export class AppComponent {
     this.setupAuth();
 
     initCustomJQueryEvents();
+
+    this.gotoDefaultPlaceOnInitialNavigationError();
+  }
+
+  private gotoDefaultPlaceOnInitialNavigationError() {
+    const pendingNotifications: NotificationMessage[] = [];
+    this.toastNotificationService.getNotification().pipe(
+      takeWhile(() => !this.router.navigated)
+    ).subscribe((notification) => pendingNotifications.push(notification));
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationError && !this.router.navigated),
+      take(1),
+      switchMap(() => {
+        this.authService.gotoDefaultPlace(getCurrentAuthState(this.store).isAuthenticated);
+        return this.router.events.pipe(
+          filter((event) => event instanceof NavigationEnd),
+          take(1)
+        );
+      })
+    ).subscribe(() => {
+      setTimeout(() => {
+        pendingNotifications.forEach((notification) => this.toastNotificationService.dispatchNotification(notification));
+      });
+    });
   }
 
   setupTranslate() {
