@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard</groupId>
-        <version>4.3.1.8EDGE-SNAPSHOT</version>
+        <version>4.3.1.9EDGE-SNAPSHOT</version>
         <artifactId>msa</artifactId>
     </parent>
     <groupId>org.thingsboard.msa</groupId>
@@ -137,7 +137,7 @@
                             <arguments>
                                 <argument>tag</argument>
                                 <argument>${docker.repo}/${docker.name}:latest</argument>
-                                <argument>${docker.repo}/${docker.name}:${project.version}</argument>
+                                <argument>${docker.repo}/${docker.name}:${docker.version.tag}</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -179,7 +179,7 @@
                                     <executable>docker</executable>
                                     <arguments>
                                         <argument>push</argument>
-                                        <argument>${docker.repo}/${docker.name}:${project.version}</argument>
+                                        <argument>${docker.repo}/${docker.name}:${docker.version.tag}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
