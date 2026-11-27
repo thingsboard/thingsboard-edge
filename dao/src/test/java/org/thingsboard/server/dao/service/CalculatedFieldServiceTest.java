@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: Copyright The ThingsBoard Authors
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: Modifications Copyright ThingsBoard, Inc.
+// SPDX-License-Identifier: Apache-2.0 AND BUSL-1.1
 package org.thingsboard.server.dao.service;
 
 import org.apache.commons.lang3.RandomUtils;
@@ -11,6 +12,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+import org.thingsboard.server.common.data.cf.ComputeOn;
 import org.thingsboard.server.common.data.cf.configuration.Argument;
 import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
 import org.thingsboard.server.common.data.cf.configuration.AttributesOutput;
@@ -87,6 +89,25 @@ public class CalculatedFieldServiceTest extends AbstractServiceTest {
         assertThat(updatedCalculatedField.getAdditionalInfo()).isEqualTo(savedCalculatedField.getAdditionalInfo());
 
         calculatedFieldService.deleteCalculatedField(tenantId, savedCalculatedField.getId());
+    }
+
+    @Test
+    public void testSaveCalculatedFieldComputeOn() {
+        Device device = createTestDevice();
+        CalculatedField calculatedField = getCalculatedField(device.getId(), device.getId());
+
+        CalculatedField savedCalculatedField = calculatedFieldService.save(calculatedField);
+        assertThat(savedCalculatedField.getComputeOn()).isNull();
+        assertThat(calculatedFieldService.findById(tenantId, savedCalculatedField.getId()).getComputeOn()).isNull();
+
+        savedCalculatedField.setComputeOn(ComputeOn.CLOUD);
+        savedCalculatedField = calculatedFieldService.save(savedCalculatedField);
+        assertThat(savedCalculatedField.getComputeOn()).isEqualTo(ComputeOn.CLOUD);
+        assertThat(calculatedFieldService.findById(tenantId, savedCalculatedField.getId()).getComputeOn()).isEqualTo(ComputeOn.CLOUD);
+
+        savedCalculatedField.setComputeOn(null);
+        savedCalculatedField = calculatedFieldService.save(savedCalculatedField);
+        assertThat(calculatedFieldService.findById(tenantId, savedCalculatedField.getId()).getComputeOn()).isNull();
     }
 
     @Test

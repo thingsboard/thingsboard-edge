@@ -12,6 +12,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.cf.CalculatedField;
 import org.thingsboard.server.common.data.cf.CalculatedFieldType;
+import org.thingsboard.server.common.data.cf.ComputeOn;
 import org.thingsboard.server.common.data.cf.configuration.Argument;
 import org.thingsboard.server.common.data.cf.configuration.ArgumentType;
 import org.thingsboard.server.common.data.cf.configuration.ReferencedEntityKey;
@@ -154,6 +155,40 @@ public class CalculatedFieldDataValidatorTest {
         Device device = new Device(deviceId);
         device.setTenantId(tenantId);
         return device;
+    }
+
+    @Test
+    public void testComputeOnIsNotValidatedOnEdge() { // edge only
+        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, edgeOnlyCf(DEVICE_ID))).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, cf(DEVICE_ID, ComputeOn.CLOUD))).doesNotThrowAnyException();
+        assertThatCode(() -> validator.validateDataImpl(TENANT_ID, cf(DEVICE_ID, null))).doesNotThrowAnyException();
+    }
+
+    private CalculatedField edgeOnlyCf(EntityId entityId) {
+        return cf(entityId, ComputeOn.EDGE);
+    }
+
+    private CalculatedField cf(EntityId entityId, ComputeOn computeOn) {
+        CalculatedField calculatedField = new CalculatedField(CALCULATED_FIELD_ID);
+        calculatedField.setTenantId(TENANT_ID);
+        calculatedField.setEntityId(entityId);
+        calculatedField.setType(CalculatedFieldType.SIMPLE);
+        calculatedField.setName("Test");
+        calculatedField.setComputeOn(computeOn);
+
+        Argument argument = new Argument();
+        argument.setRefEntityKey(new ReferencedEntityKey("temperature", ArgumentType.TS_LATEST, null));
+
+        TimeSeriesOutput output = new TimeSeriesOutput();
+        output.setName("result");
+
+        SimpleCalculatedFieldConfiguration configuration = new SimpleCalculatedFieldConfiguration();
+        configuration.setArguments(Map.of("temperature", argument));
+        configuration.setExpression("temperature * 2");
+        configuration.setOutput(output);
+        calculatedField.setConfiguration(configuration);
+
+        return calculatedField;
     }
 
 }
