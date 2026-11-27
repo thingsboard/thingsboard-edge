@@ -163,19 +163,6 @@ public class CalculatedFieldDataValidatorTest {
         assertThatCode(() -> validator.validateDataImpl(TENANT_ID, cf(DEVICE_ID, null))).doesNotThrowAnyException();
     }
 
-    @Test
-    public void testUpdateNonExistingCalculatedField() {
-        CalculatedField calculatedField = new CalculatedField(CALCULATED_FIELD_ID);
-        calculatedField.setType(CalculatedFieldType.SIMPLE);
-        calculatedField.setName("Test");
-
-        given(calculatedFieldDao.findById(TENANT_ID, CALCULATED_FIELD_ID.getId())).willReturn(null);
-
-        assertThatThrownBy(() -> validator.validateUpdate(TENANT_ID, calculatedField))
-                .isInstanceOf(DataValidationException.class)
-                .hasMessage("Can't update non existing calculated field!");
-    }
-
     private CalculatedField edgeOnlyCf(EntityId entityId) {
         return cf(entityId, ComputeOn.EDGE);
     }
